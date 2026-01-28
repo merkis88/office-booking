@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('organization_id')->nullable()->constrained('organizations')->nullOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('guest_name')->nullable();
+            $table->decimal('price', 8,2)->default(0);
             $table->dateTime('start_time');
             $table->dateTime('end_time');
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');

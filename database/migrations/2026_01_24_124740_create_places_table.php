@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->string('name');
             $table->string('type');
+            $table->integer('capacity')->default(1);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

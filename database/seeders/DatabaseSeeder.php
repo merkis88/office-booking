@@ -48,6 +48,7 @@ class DatabaseSeeder extends Seeder
             'organization_id' => $org->id,
             'name' => 'Meeting Room"',
             'type' => 'conference_room',
+            'capacity' => 5,
             'is_active' => true,
         ]);
 
@@ -63,6 +64,7 @@ class DatabaseSeeder extends Seeder
             'created_by' => $user->id,
             'user_id' => $user->id,
             'organization_id' => $org->id,
+            'price' => 1000,
             'start_time' => now()->addDay()->setHour(10)->setMinute(0),
             'end_time' => now()->addDay()->setHour(12)->setMinute(0),
             'status' => 'approved',

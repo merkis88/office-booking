@@ -29,6 +29,20 @@ class User extends Authenticatable
         'company',
     ];
 
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id', 'id');
+    }
+
+    public function createdBy()
+    {
+        return $this->hasMany(Booking::class, 'created_by');
+    }
+
+    public function userId()
+    {
+        return $this->hasMany(Booking::class, 'user_id');
+    }
     /**
      * The attributes that should be hidden for serialization.
      *
