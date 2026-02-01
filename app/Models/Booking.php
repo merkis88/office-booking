@@ -31,4 +31,9 @@ class Booking extends Model
     {
         return $this->belongsTo(Place::class, 'place_id', 'id');
     }
+
+    public function parking_place()
+    {
+        return $this->belongsTo(Parking_place::class, 'parking_place_id', 'id');
+    }
 }

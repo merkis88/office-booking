@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Parking_place;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Organization;
@@ -57,6 +58,11 @@ class DatabaseSeeder extends Seeder
             'date_service' => now()->addDays(5),
             'type_service' => 'cleaning',
             'comment' => 'Коммент',
+        ]);
+
+        $parking_place = Parking_place::create([
+            'place_row' => 0,
+            'status' => 'free'
         ]);
 
         $booking = Booking::create([
