@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserStoreRequest;
+use App\Http\Requests\UserUpdatePasswordRequest;
 use http\Env\Response;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Resources\UserResource;
 use App\Http\Requests\UserUpdateRequest;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -26,7 +28,13 @@ class UserController extends Controller
      */
     public function store(UserStoreRequest $request)
     {
-        $created_user = User::create($request->validated());
+        $validated = $request->validated();
+
+
+        if(isset($validated['password'])){
+            $validated['password'] = Hash::make($validated['password']);
+        }
+        $created_user = User::create($validated);
         return new UserResource($created_user);
     }
 
@@ -58,5 +66,14 @@ class UserController extends Controller
     {
         $user->delete();
         return response(null,204);
+    }
+
+    public function updatePassword(UserUpdatePasswordRequest $request)
+    {
+        $validated = $request->validated();
+        $request->user()->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+        return response()->json(['message' => 'Password updated successfully.'], 200);
     }
 }
