@@ -1,9 +1,11 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+  import Header from './components/Header.vue';
+  import Main from './pages/Main.vue';
 </script>
 
 <template>
-  <HelloWorld/>
+  <div class="font-base mx-70 mt-10">
+    <Header />
+    <Main></Main>
+  </div>
 </template>
-
-
