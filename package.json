@@ -15,6 +15,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/vite": "^4.1.18",
     "@vitejs/plugin-vue": "^6.0.1",
+    "@yandex/ymaps3-types": "^1.0.18540164",
     "autoprefixer": "^10.4.24",
     "postcss": "^8.5.6",
     "prettier": "3.8.1",

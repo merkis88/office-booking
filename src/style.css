@@ -3,7 +3,16 @@
 
 @import "tailwindcss";
 
+@layer base {
+    html,
+    body {
+        min-height: 100%;
+    }
 
+    body {
+        background-color: #B2C1CB;
+    }
+}
 
 :root {
     --font-base: 'Inter', sans-serif;

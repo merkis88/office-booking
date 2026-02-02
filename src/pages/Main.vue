@@ -1,32 +1,66 @@
-<script setup></script>
+<script setup>
+  import { ref, onMounted, onBeforeUnmount } from 'vue';
+  import { loadYandexMaps } from '/utils/loadYandexMaps';
+
+  const mapRef = ref(null);
+  let mapInstance = null;
+
+  onMounted(async () => {
+    try {
+      const maps = await loadYandexMaps('6d245821-6d7d-4508-94ac-5f3bd1ad64e7');
+
+      mapInstance = new maps.Map(mapRef.value, {
+        center: [56.47206841422648, 84.96093203201555],
+        zoom: 18,
+      });
+
+      mapInstance.geoObjects.add(new maps.Placemark([56.47206841422648, 84.96093203201555]));
+    } catch (e) {
+      console.error('Ошибка загрузки Яндекс.Карт:', e);
+    }
+  });
+
+  onBeforeUnmount(() => {
+    if (mapInstance) {
+      mapInstance.destroy();
+      mapInstance = null;
+    }
+  });
+</script>
 
 <template>
-  <div class="flex items-center justify-between max-h-full">
-    <img src="/skyscraper-main.png" alt="skyscraper" />
+  <section class="w-full">
+    <div class="flex items-center">
+      <img src="/skyscraper-main.png" alt="skyscraper" class="h-full max-h-175 object-contain" />
 
-    <div class="flex items-center flex-col gap-28">
-      <h1 class="font-heading text-3xl text-center max-w-xl">
-        Добро пожаловать в бизнес центр “Рабочая точка.”
-      </h1>
-      <div class="max-w-2xl text-xl">
-        <p class="mb-10">
-          Здесь вы найдёте всё, что нужно для работы без лишних хлопот: современные офисы под ключ,
-          переговорные с техникой и тишиной, гибкий коворкинг — и команду, которая всегда готова
-          помочь.
-        </p>
-        <p>
-          Ни суеты, ни нервов из-за мелочей — только чёткая организация, уважение к вашему времени и
-          пространство, в котором хочется остаться.
-        </p>
+      <div class="flex-1 flex justify-end">
+        <div class="max-w-3xl w-full flex flex-col items-center gap-28 pr-20">
+          <h1 class="font-heading text-3xl text-center max-w-xl">
+            Добро пожаловать в бизнес центр “Рабочая точка.”
+          </h1>
+
+          <div class="max-w-2xl text-xl">
+            <p class="mb-10">
+              Здесь вы найдёте всё, что нужно для работы без лишних хлопот: современные офисы под
+              ключ, переговорные с техникой и тишиной, гибкий коворкинг — и команду, которая всегда
+              готова помочь.
+            </p>
+            <p>
+              Ни суеты, ни нервов из-за мелочей — только чёткая организация, уважение к вашему
+              времени и пространство, в котором хочется остаться.
+            </p>
+          </div>
+
+          <button class="text-xl border border-gray-400 rounded-xl px-15 py-2">Подробнее</button>
+        </div>
       </div>
-      <button class="text-xl border-solid border rounded-xl px-15 py-2">Подробнее</button>
     </div>
-  </div>
+  </section>
 
-  <div class="mt-50">
+  <section class="mt-50">
     <h2 class="font-heading text-3xl mb-20 ml-100">Почему мы?</h2>
 
-    <div class="relative flex items-center">
+    <div class="relative flex items-center justify-center">
       <img src="/working-main.png" alt="working" class="absolute left-35" />
 
       <ul
@@ -60,9 +94,9 @@
         </li>
       </ul>
     </div>
-  </div>
+  </section>
 
-  <div class="mt-40 mb-40 flex gap-10 items-center">
+  <section class="mt-40 flex gap-10 items-center justify-center">
     <div class="flex justify-between text-center gap-15">
       <div class="relative inline-block">
         <div
@@ -111,7 +145,22 @@
     </div>
 
     <img src="/man-main.png" alt="man" />
-  </div>
+  </section>
 
-  <div></div>
+  <section class="mt-40 mb-40 flex gap-10 items-center justify-center">
+    <div class="flex flex-col gap-10 items-center">
+      <div class="flex justify-between gap-10 items-start text-2xl">
+        <img src="/routing-main.svg" alt="routing" />
+        <p>
+          Нас легко найти — и ещё легче приехать. Рядом — парковка, остановки общественного
+          транспорта и всё, что нужно для комфортного визита. Посмотрите, как к нам добраться — и
+          заходите в гости. Мы всегда рады!
+        </p>
+      </div>
+      <button class="text-xl border border-gray-400 rounded-xl px-15 py-2">
+        Проложить маршрут
+      </button>
+    </div>
+    <div ref="mapRef" class="min-w-3xl h-145"></div>
+  </section>
 </template>
