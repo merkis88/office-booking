@@ -51,13 +51,18 @@
             </p>
           </div>
 
-          <button class="text-xl border border-gray-400 rounded-xl px-15 py-2">Подробнее</button>
+          <a
+            href="#about"
+            class="text-xl border cursor-pointer border-gray-400 rounded-xl px-15 py-2"
+          >
+            Подробнее
+          </a>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="mt-50">
+  <section class="mt-50" id="about">
     <h2 class="font-heading text-3xl mb-20 ml-100">Почему мы?</h2>
 
     <div class="relative flex items-center justify-center">
