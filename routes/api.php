@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\BookingController;
 
 Route::post('/bookings', [BookingController::class, 'createBooking']);
 Route::get('/bookings/my', [BookingController::class, 'myBookings']);
+Route::get('bookings/{bookingId}', [BookingController::class, 'showBooking']);
 
 
 

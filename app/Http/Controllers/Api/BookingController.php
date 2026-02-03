@@ -3,29 +3,35 @@
 namespace App\Http\Controllers\Api;
 
 use App\Handlers\Bookings\CreateBookingHandler;
+use App\Handlers\Bookings\MyBookingHandler;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Bookings\StoreBookingRequest;
 use App\Models\Booking;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Handlers\Bookings\ShowBookingHandler;
 
 class BookingController extends Controller
 {
     public function createBooking(StoreBookingRequest $request, CreateBookingHandler $handler): JsonResponse
     {
-        $booking = $handler->handle($request->toDTO(), $request->user());
-        return response()->json(['data' => $booking], 201);
+        $create_booking = $handler->handle($request->toDTO(), $request->user());
+
+        return response()->json(['data' => $create_booking], 201);
     }
 
-    public function myBookings(Request $request): JsonResponse
+    public function myBookings(Request $request, MyBookingHandler $handler): JsonResponse
     {
-        $bookings = Booking::query()
-            ->with('place')
-            ->where('user_id', $request->user()->id)
-            ->orderByDesc('start_time')
-            ->get();
+        $my_bookings = $handler->handle($request->user());
 
-        return response()->json(['data' => $bookings]);
+        return response()->json(['data' => $my_bookings], 200);
+    }
+
+    public function showBooking(Request $request, Booking $booking, ShowBookingHandler $handler)
+    {
+        $show_booking = $handler->handle($booking, $request->user());
+
+        return response()->json(['data' => $show_booking], 200);
     }
 
 
