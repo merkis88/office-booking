@@ -28,6 +28,7 @@ class RegisterRequest extends FormRequest
             'patronymic'=>'nullable|string|max:255',
             'email'=>'required|email|unique:users,email',
             'password'=>['required', 'confirmed', Password::defaults()],
+            'password_confirmation' => 'required|string',
             'role_id'=>'exists:roles,id',
             'post' => 'nullable|string|max:255',
             'company' => 'nullable|string|max:255',

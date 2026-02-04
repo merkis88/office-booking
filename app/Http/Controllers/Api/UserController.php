@@ -4,20 +4,31 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserStoreRequest;
-use App\Http\Requests\UserUpdatePasswordRequest;
-use http\Env\Response;
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Http\Resources\UserResource;
 use App\Http\Requests\UserUpdateRequest;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
+use App\Http\Requests\UserUpdatePasswordRequest;
+use App\Handlers\Users\CreateUserHandler;
+use App\Handlers\Users\UpdateUserHandler;
+use App\Handlers\Users\UpdatePasswordHandler;
+use App\DTO\Users\CreateUserDTO;
+use App\DTO\Users\UpdateUserDTO;
+use App\DTO\Users\UpdatePasswordDTO;
+use App\Http\Resources\UserResource;
+use App\Models\User;
 
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct(
+        private CreateUserHandler $createUserHandler,
+        private UpdateUserHandler $updateUserHandler,
+        private UpdatePasswordHandler $updatePasswordHandler,
+    )
+    {
+
+    }
     public function index()
     {
         return UserResource::collection(User::all());
@@ -28,14 +39,10 @@ class UserController extends Controller
      */
     public function store(UserStoreRequest $request)
     {
-        $validated = $request->validated();
+        $dto = CreateUserDTO::fromRequest($request->validated());
+        $user = $this->createUserHandler->handle($dto);
 
-
-        if(isset($validated['password'])){
-            $validated['password'] = Hash::make($validated['password']);
-        }
-        $created_user = User::create($validated);
-        return new UserResource($created_user);
+        return new UserResource($user);
     }
 
     /**
@@ -51,12 +58,10 @@ class UserController extends Controller
      */
     public function update(UserUpdateRequest $request, User $user)
     {
-        $data =$request->validated();
-        if($request->has('password')) {
-            $data['password'] = Hash::make($request->password);
-        }
-        $user->update($data);
-        return new UserResource($user);
+        $dto = UpdateUserDTO::fromRequest($request->validated());
+        $updatedUser = $this->updateUserHandler->handle($user, $dto);
+
+        return new UserResource($updatedUser);
     }
 
     /**
@@ -70,10 +75,17 @@ class UserController extends Controller
 
     public function updatePassword(UserUpdatePasswordRequest $request)
     {
-        $validated = $request->validated();
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
-        ]);
-        return response()->json(['message' => 'Password updated successfully.'], 200);
+        $dto = UpdatePasswordDTO::fromRequest($request->validated());
+        try {
+            $this->updatePasswordHandler->handle($request->user(), $dto);
+            return response()->json([
+               'message' => 'Пароль успешно обновлен'
+            ],200);
+        }
+        catch(\Illuminate\Validation\ValidationException $e){
+            return response()->json([
+                'errors' => $e->errors()
+            ],422);
+        }
     }
 }

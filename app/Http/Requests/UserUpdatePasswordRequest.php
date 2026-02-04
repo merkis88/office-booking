@@ -24,6 +24,7 @@ class UserUpdatePasswordRequest extends FormRequest
         return [
             'current_password' => 'required|current_password',
             'password' => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required|string'
         ];
     }
 
