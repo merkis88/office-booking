@@ -13,6 +13,8 @@ use App\Models\Booking;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Handlers\Bookings\ShowBookingHandler;
+use App\Http\Requests\Bookings\MyBookingsRequest;
+
 
 class BookingController extends Controller
 {
@@ -23,38 +25,33 @@ class BookingController extends Controller
         return response()->json(['data' => $create_booking], 201);
     }
 
-    public function myBookings(Request $request, MyBookingHandler $handler): JsonResponse
+    public function myBookings(MyBookingsRequest $request, MyBookingHandler $handler): JsonResponse
     {
-        $my_bookings = $handler->handle($request->user());
+        $result = $handler->handle($request->user(), $request->toDTO());
 
-        return response()->json(['data' => $my_bookings], 200);
+        return response()->json($result, 200);
     }
 
-    public function showBooking(Request $request, Booking $booking, ShowBookingHandler $handler)
+    public function showBooking(Request $request, Booking $booking, ShowBookingHandler $handler): JsonResponse
     {
         $show_booking = $handler->handle($booking, $request->user());
 
         return response()->json(['data' => $show_booking], 200);
     }
 
-    public function cancelBooking(Request $request, Booking $booking, CancelBookingHandler $handler)
+    public function cancelBooking(Request $request, Booking $booking, CancelBookingHandler $handler): JsonResponse
     {
         $cansel_booking = $handler->handle($booking, $request->user());
 
         return response()->json(['data' => $cansel_booking], 200);
     }
 
-    public function rescheduleBooking(RescheduleBookingRequest $request, Booking $booking, RescheduleBookingHandler $handler )
+    public function rescheduleBooking(RescheduleBookingRequest $request, Booking $booking, RescheduleBookingHandler $handler ): JsonResponse
     {
         $reschedule_booking = $handler->handle($request->toDTO(), $booking, $request->user());
 
         return response()->json(['data' => $reschedule_booking], 200);
     }
-
-
-
-
-
 
 
 }
