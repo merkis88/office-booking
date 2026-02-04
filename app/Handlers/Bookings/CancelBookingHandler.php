@@ -14,7 +14,7 @@ final class CancelBookingHandler
     {
         $this->assertCanView($booking, (int) $user->id);
 
-        if ($booking->status === 'cancelled') {
+        if ($booking->status === 'rejected') {
             throw ValidationException::withMessages([
                 'status' => ['Бронирование уже отменено']
             ]);
@@ -33,7 +33,7 @@ final class CancelBookingHandler
             ]);
         }
 
-        $booking->status = 'cancelled';
+        $booking->status = 'rejected';
         $booking->save();
 
         $booking->load('place');
