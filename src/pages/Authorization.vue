@@ -5,9 +5,13 @@
   <div class="min-h-screen w-full flex items-center justify-center">
     <div class="flex w-full min-h-160 max-w-6xl bg-[#7C8FA0] rounded-xl overflow-hidden shadow-lg">
       <div class="hidden lg:block lg:w-1/2 relative overflow-hidden">
-        <div class="absolute inset-0 bg-linear-to-b from-orange-200 to-red-300 rounded-xl"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-orange-200 to-red-300 rounded-xl"></div>
 
-        <img src="/people-login.png" alt="people" class="absolute z-10">
+        <img
+            src="/people-login.png"
+            alt="people"
+            class="absolute z-10 transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 max-h-full max-w-full object-contain"
+        >
       </div>
 
       <div class="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-8">
@@ -26,7 +30,7 @@
                     type="email"
                     placeholder="Введите электронную почту"
                     required
-                    class="w-full px-4 py-3 bg-linear-to-r from-orange-200 to-red-300 border border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black-500 focus:border-transparent transition duration-200"
+                    class="w-full px-4 py-3 bg-gradient-to-r from-orange-200 to-red-300 border border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black-500 focus:border-transparent transition duration-200"
                 />
               </div>
 
@@ -38,7 +42,7 @@
                     type="password"
                     placeholder="Введите пароль"
                     required
-                    class="w-full px-4 py-3 bg-linear-to-r from-orange-200 to-red-300 border border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black-500 focus:border-transparent transition duration-200"
+                    class="w-full px-4 py-3 bg-gradient-to-r from-orange-200 to-red-300 border border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black-500 focus:border-transparent transition duration-200"
                 />
               </div>
 

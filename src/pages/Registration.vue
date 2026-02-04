@@ -7,7 +7,10 @@
       <div class="hidden lg:block lg:w-1/2 relative overflow-hidden">
         <div class="absolute inset-0 bg-linear-to-b from-orange-200 to-red-300 rounded-xl"></div>
 
-        <img src="/people-login.png" alt="people" class="absolute z-10">
+        <img
+            src="/people-login.png"
+            alt="people"
+            class="absolute z-10 transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 max-h-full max-w-full object-contain">
       </div>
 
       <div class="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-8">
@@ -55,7 +58,7 @@
               </div>
 
               <div class="flex items-center justify-between">
-                <label><input type="checkbox">
+                <label><input type="checkbox" class="border border-black accent-yellow-200">
                   Я принимаю условия обработки персональных данных
                 </label>
               </div>
