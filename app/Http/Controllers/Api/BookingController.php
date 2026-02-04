@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Handlers\Bookings\CancelBookingHandler;
 use App\Handlers\Bookings\CreateBookingHandler;
 use App\Handlers\Bookings\MyBookingHandler;
 use App\Http\Controllers\Controller;
@@ -33,6 +34,17 @@ class BookingController extends Controller
 
         return response()->json(['data' => $show_booking], 200);
     }
+
+    public function cancelBooking(Request $request, Booking $booking, CancelBookingHandler $handler)
+    {
+        $cansel_booking = $handler->handle($booking, $request->user());
+
+        return response()->json(['data' => $cansel_booking], 200);
+    }
+
+
+
+
 
 
 
