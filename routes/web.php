@@ -16,3 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/reset-password/{token}', function () {
+    abort(404, 'я сделал это для API endpoint. для теста POST /api/reset-password');
+})->name('password.reset');
