@@ -14,7 +14,7 @@
         <div class="w-full max-w-md">
           <div class="p-8 w-full">
             <h2 class="font-heading text-3xl text-center text-gray-800 mb-8">
-              Авторизация
+              Регистрация
             </h2>
 
             <form class="space-y-6">
@@ -42,13 +42,22 @@
                 />
               </div>
 
+              <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2">
+                  Подтвердите пароль*
+                </label>
+                <input
+                    type="password"
+                    placeholder="Введите пароль"
+                    required
+                    class="w-full px-4 py-3 bg-linear-to-r from-orange-200 to-red-300 border border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black-500 focus:border-transparent transition duration-200"
+                />
+              </div>
+
               <div class="flex items-center justify-between">
-                <a href="#" class="text-sm hover:text-yellow-100 transition duration-200">
-                  Забыли пароль?
-                </a>
-                <router-link to="/registration"><p class="ml-1 text-sm hover:text-yellow-100 font-medium transition duration-200">
-                  Зарегистрироваться
-                </p></router-link>
+                <label><input type="checkbox">
+                  Я принимаю условия обработки персональных данных
+                </label>
               </div>
 
               <button
@@ -57,6 +66,15 @@
               >
                 Войти
               </button>
+
+              <div class="flex items-center justify-center">
+                <p class="text-sm font-medium">
+                  Уже есть аккаунт?
+                </p>
+                <router-link to="authorization"><p class="ml-1 text-sm hover:text-yellow-100 font-medium transition duration-200">
+                  Авторизация
+                </p></router-link>
+              </div>
             </form>
           </div>
         </div>

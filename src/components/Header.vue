@@ -13,7 +13,7 @@
       <li>Пропуск</li>
       <li>Личный кабинет</li>
       <router-link to="/authorization"><li>Авторизация</li></router-link>
-      <li>Регистрация</li>
+      <router-link to="/registration"><li>Регистрация</li></router-link>
     </ul>
   </div>
 </template>
