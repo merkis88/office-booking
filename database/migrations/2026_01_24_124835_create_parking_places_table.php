@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('places', function (Blueprint $table) {
+        Schema::create('parking_places', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('organization_id')->constrained('organizations')->cascadeOnDelete();
-            $table->string('name');
-            $table->string('type');
-            $table->integer('capacity')->default(1);
-            $table->boolean('is_active')->default(true);
+            $table->integer('place_row');
+            $table->enum('status', ['free', 'occupied'])->default('free');
             $table->timestamps();
         });
     }
@@ -27,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('places');
+        Schema::dropIfExists('parking_place');
     }
 };
