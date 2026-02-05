@@ -40,5 +40,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('is_admin')->prefix('admin')->group(function () {
         Route::apiResource('users', UserController::class);
         Route::get('/bookings', [AdminBookingController::class, 'index']);
+        Route::post('/bookings/{booking}/approve', [AdminBookingController::class, 'approve']);
     });
 });
