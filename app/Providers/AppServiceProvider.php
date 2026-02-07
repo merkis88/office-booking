@@ -10,6 +10,9 @@ use App\Handlers\Auth\PasswordResetHandler;
 use App\Handlers\Users\CreateUserHandler;
 use App\Handlers\Users\UpdateUserHandler;
 use App\Handlers\Users\UpdatePasswordHandler;
+use App\Handlers\Reviews\CreateReviewHandler;
+use App\Handlers\Reviews\UpdateReviewHandler;
+use App\Handlers\Reviews\DeleteReviewHandler;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CreateUserHandler::class);
         $this->app->singleton(UpdateUserHandler::class);
         $this->app->singleton(UpdatePasswordHandler::class);
+        $this->app->singleton(CreateReviewHandler::class);
+        $this->app->singleton(UpdateReviewHandler::class);
+        $this->app->singleton(DeleteReviewHandler::class);
     }
 
     /**
