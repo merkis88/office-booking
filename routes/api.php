@@ -1,44 +1,46 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\PasswordResetController;
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-//апи круд для юзера
+// Круд для юзеров
 Route::apiResources([
     'users' => UserController::class,
 ]);
 
-//апи для незарегованных пользователей восстановление пароля
+// Восстановление пароля
 Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword'])->name('password.email');
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
 Route::post('/validate-reset-token', [PasswordResetController::class, 'checkToken'])->name('password.validate');
 
-//апи для аутентификации
+// Аутентификация
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-//апи для смены пароля и прочие защищенные пути
+// Защищённые пути
 Route::middleware('auth:sanctum')->group(function () {
+    // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/user/password', [UserController::class, 'updatePassword']);
+    // Reviews
+    Route::apiResource('reviews', ReviewController::class)->except('create', 'edit');
+    Route::get('/users/{user}/reviews', [ReviewController::class, 'userReviews']);
 
-    Route::put('user/password', [UserController::class, 'updatePassword']);
-
+    // Bookings
+    Route::post('/bookings', [BookingController::class, 'createBooking']);
+    Route::get('/bookings/my', [BookingController::class, 'myBookings']);
+    Route::get('/bookings/{booking}', [BookingController::class, 'showBooking']);
+    Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancelBooking']);
+    Route::post('/bookings/{booking}/reschedule', [BookingController::class, 'rescheduleBooking']);
 });

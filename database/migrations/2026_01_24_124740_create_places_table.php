@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('type');
             $table->integer('capacity')->default(1);
+            $table->integer('number_place');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

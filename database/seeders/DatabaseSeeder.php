@@ -50,6 +50,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Meeting Room"',
             'type' => 'conference_room',
             'capacity' => 5,
+            'number_place' => 48,
             'is_active' => true,
         ]);
 
