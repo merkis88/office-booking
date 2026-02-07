@@ -31,10 +31,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
    // Booking
     Route::post('/bookings', [BookingController::class, 'createBooking']);
+    Route::post('/bookings/guest', [BookingController::class, 'guestBooking']);
     Route::get('/bookings/my', [BookingController::class, 'myBookings']);
     Route::get('/bookings/{booking}', [BookingController::class, 'showBooking']);
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancelBooking']);
     Route::post('/bookings/{booking}/reschedule', [BookingController::class, 'rescheduleBooking']);
+
 
    // Admin
     Route::middleware('is_admin')->prefix('admin')->group(function () {

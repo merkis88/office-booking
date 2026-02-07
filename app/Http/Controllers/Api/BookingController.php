@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Handlers\Bookings\CancelBookingHandler;
 use App\Handlers\Bookings\CreateBookingHandler;
+use App\Handlers\Bookings\CreateGuestBookingHandler;
 use App\Handlers\Bookings\MyBookingHandler;
 use App\Handlers\Bookings\RescheduleBookingHandler;
 use App\Http\Controllers\Controller;
@@ -14,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Handlers\Bookings\ShowBookingHandler;
 use App\Http\Requests\Bookings\MyBookingsRequest;
+use App\Http\Requests\Bookings\CreateGuestBookingRequest;
 
 
 class BookingController extends Controller
@@ -51,6 +53,13 @@ class BookingController extends Controller
         $reschedule_booking = $handler->handle($request->toDTO(), $booking, $request->user());
 
         return response()->json(['data' => $reschedule_booking], 200);
+    }
+
+    public function guestBooking(CreateGuestBookingRequest $request, CreateGuestBookingHandler $handler): JsonResponse
+    {
+        $guest_booking = $handler->handle($request->toDTO(), $request->user());
+
+        return response()->json(['data' => $guest_booking], 201);
     }
 
 
