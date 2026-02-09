@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Bookings\AdminBookingsRequest;
 use App\Models\Booking;
 use Illuminate\Http\JsonResponse;
+use App\Handlers\Bookings\AdminExportBookingsHandler;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminBookingController extends Controller
 {
@@ -23,5 +25,10 @@ class AdminBookingController extends Controller
         $approve = $handler->handle($booking);
 
         return response()->json(['data' => $approve], 200);
+    }
+
+    public function export(AdminBookingsRequest $request, AdminExportBookingsHandler $handler, AdminListBookingsHandler $listHandler): StreamedResponse
+    {
+        return $handler->handle($request->toDTO(), $listHandler);
     }
 }

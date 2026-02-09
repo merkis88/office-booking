@@ -5,15 +5,25 @@ namespace App\Handlers\Bookings;
 use App\DTO\Bookings\AdminBookingsDTO;
 use App\Models\Booking;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 final class AdminListBookingsHandler
 {
     public function handle(AdminBookingsDTO $dto): LengthAwarePaginator
     {
+        return $this->buildQuery($dto)->paginate($dto->perPage);
+    }
+
+    public function buildQuery(AdminBookingsDTO $dto): Builder
+    {
         $query = Booking::query()->with(['place', 'user', 'creator']);
 
         if ($dto->status !== null) {
             $query->where('status', $dto->status);
+        }
+
+        if ($dto->userId !== null) {
+            $query->where('user_id', $dto->userId);
         }
 
         if ($dto->placeId !== null) {
@@ -34,7 +44,7 @@ final class AdminListBookingsHandler
 
         $query->orderBy('start_time', $dto->sortDirection);
 
-        return $query->paginate($dto->perPage);
+        return $query;
     }
 
 }
