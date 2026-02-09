@@ -16,6 +16,8 @@ use Illuminate\Http\Request;
 use App\Handlers\Bookings\ShowBookingHandler;
 use App\Http\Requests\Bookings\MyBookingsRequest;
 use App\Http\Requests\Bookings\CreateGuestBookingRequest;
+use App\Http\Requests\Bookings\ExtendBookingRequest;
+use App\Handlers\Bookings\ExtendBookingHandler;
 
 
 class BookingController extends Controller
@@ -62,5 +64,11 @@ class BookingController extends Controller
         return response()->json(['data' => $guest_booking], 201);
     }
 
+    public function extendBooking(ExtendBookingRequest $request, Booking $booking, ExtendBookingHandler $handler): JsonResponse
+    {
+        $updated = $handler->handle($booking, $request->user(), $request->minutes());
+
+        return response()->json(['data' => $updated], 200);
+    }
 
 }

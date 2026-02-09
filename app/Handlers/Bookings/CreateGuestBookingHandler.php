@@ -8,9 +8,12 @@ use App\Models\PlaceManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
+use App\Services\Bookings\BookingOverlapService;
 
 final class CreateGuestBookingHandler
 {
+    public function __construct(private readonly BookingOverlapService $overlap) {}
+
     public function handle(CreateBookingDTO $dto, User $actor)
     {
         if(empty($dto->guestName)) {
@@ -28,31 +31,27 @@ final class CreateGuestBookingHandler
             abort(403, 'У вас нет прав пригласить гостей в это помещение');
         }
 
-        return DB::transaction(function () use ($dto, $actor) {
-            $isOverlap = Booking::query()
-                ->where('place_id', $dto->placeId)
-                ->whereIn('status', ['pending', 'approved'])
-                ->where('start_time', '<', $dto->endTime)
-                ->where('end_time', '>', $dto->startTime)
-                ->exists();
+        return DB::transaction(function () use ($dto, $actor, $overlap) {
+            $this->$overlap->assertNoOverlap(
+                placeId: $dto->placeId,
+                startTime: $dto->startTime,
+                endTime: $dto->endTime
+            );
 
-            if ($isOverlap) {
-                throw ValidationException::withMessages([
-                    'time' => ['В это время помещение уже забронировано']
-                ]);
-            }
-
-            return Booking::query()->create([
-               'place_id' => $dto->placeId,
-               'created_by' => $actor->id,
-               'guest_name' => $dto->guestName,
-               'user_id' => null,
-               'start_time' => $dto->startTime,
-               'end_time' => $dto->endTime,
-               'status' => 'pending',
-               'pass_type' => $dto->passType,
+            $booking = Booking::query()->create([
+                'place_id' => $dto->placeId,
+                'created_by' => $actor->id,
+                'user_id' => null,
+                'guest_name' => $dto->guestName,
+                'start_time' => $dto->startTime,
+                'end_time' => $dto->endTime,
+                'status' => 'pending',
+                'pass_type' => $dto->passType,
             ]);
+
+            $booking->load('place', 'creator');
+
+            return $booking;
         });
     }
-
 }
