@@ -27,7 +27,7 @@ class User extends Authenticatable
         'password',
         'photo',
         'post',
-        'company',
+        'company'
     ];
 
     public function role()
@@ -43,6 +43,11 @@ class User extends Authenticatable
     public function userId()
     {
         return $this->hasMany(Booking::class, 'user_id');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'user_id');
     }
     /**
      * The attributes that should be hidden for serialization.

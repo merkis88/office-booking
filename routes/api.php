@@ -4,9 +4,22 @@ use App\Http\Controllers\Api\AdminBookingController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\PasswordResetController;
+
+use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+// Круд для юзеров
+Route::apiResources([
+    'users' => UserController::class,
+]);
+
 
 // Восстановление пароля
 Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword'])->name('password.email');
@@ -16,6 +29,7 @@ Route::post('/validate-reset-token', [PasswordResetController::class, 'checkToke
 // Аутентификация
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
 
 
 // Защищённые пути
@@ -29,7 +43,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/user/password', [UserController::class, 'updatePassword']);
 
-   // Booking
+    // Reviews
+    Route::apiResource('reviews', ReviewController::class)->except('create', 'edit');
+    Route::get('/users/{user}/reviews', [ReviewController::class, 'userReviews']);
+
+    // Bookings
     Route::post('/bookings', [BookingController::class, 'createBooking']);
     Route::post('/bookings/guest', [BookingController::class, 'guestBooking']);
     Route::get('/bookings/my', [BookingController::class, 'myBookings']);
