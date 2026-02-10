@@ -1,0 +1,867 @@
+﻿openapi: 3.0.3
+info:
+  title: office-booking API
+  version: 1.0.0
+  description: |
+    Контракт API
+
+    Auth: Sanctum Bearer token.
+    Заголовок: Authorization: Bearer <token>
+
+    Роли (users.role_id):
+    - 1 = admin
+    - 2 = manager
+    - 3 = user
+
+    Админский префикс: /api/admin/* защищён middleware is_admin (EnsureUserIsAdmin).
+    Manager помещения определяется также по place_managers (place_id + user_id).
+
+    Booking rules (как в коде handlers):
+    - Доступ к брони:
+      owner: booking.user_id == auth_user.id
+      или creator гостевой: booking.user_id == null AND booking.created_by == auth_user.id
+      иначе 403 (abort).
+    - Перенос/продление: только pending/approved, пересечения запрещены (BookingOverlapService).
+    - Cancel: переводит статус в rejected, нельзя если бронь уже началась (start_time isPast()).
+    - Reschedule: нельзя в прошлое; если был approved -> становится pending.
+    - Extend: minutes/preset; нельзя если end_time уже в прошлом.
+
+servers:
+  - url: /api
+    description: API base
+
+tags:
+  - name: "Merk · Booking"
+    description: "Owner: merk. Bookings endpoints."
+  - name: "Merk · Admin"
+    description: "Owner: merk. Admin bookings/export/approve (+ minimal admin users)."
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    MessageError:
+      type: object
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          example: "Нет доступа к бронированию"
+      required: [message]
+
+    ValidationError:
+      type: object
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          example: "The given data was invalid."
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required: [message, errors]
+
+    Role:
+      type: object
+      additionalProperties: false
+      properties:
+        id: { type: integer, example: 3 }
+        role_name:
+          type: string
+          example: "user"
+      required: [id, role_name]
+
+    User:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { type: integer, example: 5 }
+        first_name: { type: string, nullable: true, example: "merk1" }
+        last_name: { type: string, nullable: true, example: "merk1" }
+        patronymic: { type: string, nullable: true, example: null }
+        email: { type: string, example: "merk@mail.com" }
+        role_id:
+          type: integer
+          example: 3
+          description: "1=admin, 2=manager, 3=user"
+        post: { type: string, nullable: true, example: null }
+        company: { type: string, nullable: true, example: null }
+        photo: { type: string, nullable: true, example: null }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+        role:
+          allOf:
+            - $ref: "#/components/schemas/Role"
+          nullable: true
+      required: [id, email, role_id]
+
+    Organization:
+      type: object
+      additionalProperties: false
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: "Business Center" }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+      required: [id, name]
+
+    Place:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { type: integer, example: 10 }
+        organization_id: { type: integer, nullable: true, example: 1 }
+        name: { type: string, example: "Meeting room 1" }
+        type: { type: string, nullable: true, example: "meeting_room" }
+        capacity: { type: integer, nullable: true, example: 8 }
+        is_active: { type: boolean, example: true }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+        organization:
+          allOf:
+            - $ref: "#/components/schemas/Organization"
+          nullable: true
+      required: [id, name, is_active]
+
+    ParkingPlace:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { type: integer, example: 3 }
+        place_row: { type: integer, example: 12 }
+        status:
+          type: string
+          example: "free"
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+      required: [id, place_row, status]
+
+    PlaceManager:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { type: integer, example: 7 }
+        place_id: { type: integer, example: 10 }
+        user_id: { type: integer, example: 5 }
+        created_from_booking_id: { type: integer, nullable: true, example: 101 }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+      required: [id, place_id, user_id]
+
+    Booking:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { type: integer, example: 101 }
+        place_id: { type: integer, example: 10 }
+        created_by: { type: integer, example: 5 }
+        organization_id: { type: integer, nullable: true, example: null }
+        user_id:
+          type: integer
+          nullable: true
+          example: 5
+          description: "null for guest bookings"
+        guest_name: { type: string, nullable: true, example: null }
+        parking_place_id: { type: integer, nullable: true, example: null }
+        start_time: { type: string, format: date-time, example: "2026-02-10T12:00:00Z" }
+        end_time: { type: string, format: date-time, example: "2026-02-10T13:00:00Z" }
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+          example: pending
+        pass_type:
+          type: string
+          enum: [qr, pin]
+          example: qr
+        price: { type: number, nullable: true, example: null }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+
+        place:
+          allOf:
+            - $ref: "#/components/schemas/Place"
+          nullable: true
+        user:
+          allOf:
+            - $ref: "#/components/schemas/User"
+          nullable: true
+        creator:
+          allOf:
+            - $ref: "#/components/schemas/User"
+          nullable: true
+        organization:
+          allOf:
+            - $ref: "#/components/schemas/Organization"
+          nullable: true
+        parkingPlace:
+          allOf:
+            - $ref: "#/components/schemas/ParkingPlace"
+          nullable: true
+      required: [id, place_id, created_by, start_time, end_time, status, pass_type]
+
+    BookingDataResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/Booking"
+      required: [data]
+
+    PaginatedBookings:
+      type: object
+      additionalProperties: true
+      description: "Laravel LengthAwarePaginator JSON"
+      properties:
+        current_page: { type: integer, example: 1 }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Booking"
+        per_page: { type: integer, example: 20 }
+        total: { type: integer, example: 42 }
+      required: [current_page, data]
+
+  responses:
+    Forbidden:
+      description: Forbidden (abort(403, ...))
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MessageError"
+          examples:
+            no_access_booking:
+              value: { message: "Нет доступа к бронированию" }
+            need_admin:
+              value: { message: "Требуется права админа" }
+
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MessageError"
+          examples:
+            not_found:
+              value: { message: "Not Found" }
+
+    ValidationFailed:
+      description: Validation error (ValidationException)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationError"
+          examples:
+            example_status:
+              value:
+                message: "The given data was invalid."
+                errors:
+                  status:
+                    - "Нельзя переносить бронирование в текущем статусе"
+
+security:
+  - bearerAuth: []
+
+paths:
+  /bookings:
+    post:
+      tags: ["Merk · Booking"]
+      summary: Create booking
+      description: |
+        Owner: merk
+
+        FormRequest: StoreBookingRequest
+        - place_id required, exists:places,id
+        - start_time required, date
+        - end_time required, date, after:start_time
+        - user_id nullable, exists:users,id, required_without:guest_name
+        - guest_name nullable string max:255, required_without:user_id
+        - pass_type sometimes in [qr,pin] (default qr)
+
+        Handler: CreateBookingHandler
+        - если guest_name задан -> user_id = null
+        - иначе user_id = auth_user.id (user_id из body игнорируется)
+        - overlap check через BookingOverlapService (422 ValidationException)
+        Ответ: 201 {data: Booking} (load place,user,creator)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                place_id: { type: integer }
+                start_time: { type: string, format: date-time }
+                end_time: { type: string, format: date-time }
+                user_id:
+                  type: integer
+                  nullable: true
+                  description: "При non-guest броне будет проигнорирован и заменён на auth_user.id"
+                guest_name: { type: string, nullable: true }
+                pass_type:
+                  type: string
+                  enum: [qr, pin]
+                  nullable: true
+              required: [place_id, start_time, end_time]
+            examples:
+              user_booking:
+                value:
+                  place_id: 10
+                  start_time: "2026-02-10T12:00:00Z"
+                  end_time: "2026-02-10T13:00:00Z"
+                  pass_type: "qr"
+              guest_booking_via_same_endpoint:
+                value:
+                  place_id: 10
+                  guest_name: "Guest Ivan"
+                  start_time: "2026-02-10T12:00:00Z"
+                  end_time: "2026-02-10T13:00:00Z"
+                  pass_type: "pin"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingDataResponse"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+  /bookings/guest:
+    post:
+      tags: ["Merk · Booking"]
+      summary: Create guest booking (place manager only)
+      description: |
+        Owner: merk
+
+        FormRequest: CreateGuestBookingRequest
+        - place_id required
+        - start_time required
+        - end_time required after start_time
+        - user_id prohibited
+        - guest_name required string max:255
+        - pass_type sometimes in [qr,pin] (default qr)
+
+        Handler: CreateGuestBookingHandler
+        - Проверка: place_managers exists(place_id, user_id=auth_user.id), иначе 403 (abort)
+        - overlap check (422 ValidationException)
+        - создаёт booking: user_id=null, created_by=actor.id, status=pending, load place,creator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                place_id: { type: integer }
+                guest_name: { type: string }
+                start_time: { type: string, format: date-time }
+                end_time: { type: string, format: date-time }
+                pass_type:
+                  type: string
+                  enum: [qr, pin]
+                  nullable: true
+              required: [place_id, guest_name, start_time, end_time]
+            examples:
+              guest:
+                value:
+                  place_id: 10
+                  guest_name: "John Guest"
+                  start_time: "2026-02-10T12:00:00Z"
+                  end_time: "2026-02-10T13:00:00Z"
+                  pass_type: "qr"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingDataResponse"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+  /bookings/my:
+    get:
+      tags: ["Merk · Booking"]
+      summary: List my bookings
+      description: |
+        Owner: merk
+
+        FormRequest: MyBookingsRequest
+        - status nullable in [pending, approved, rejected]
+        - place_id nullable exists:places,id
+        - from nullable date
+        - to nullable date
+        - sort nullable in [start_time, -start_time] (default -start_time => desc)
+        - per_page nullable int 1..100 (default 20)
+
+        Handler: MyBookingHandler
+        - where user_id = auth_user.id
+        - with('place')
+        - paginate(perPage)
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+        - in: query
+          name: place_id
+          schema: { type: integer }
+        - in: query
+          name: from
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          schema: { type: string, format: date }
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [start_time, -start_time]
+            example: "-start_time"
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            example: 20
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedBookings"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+  /bookings/{booking}:
+    get:
+      tags: ["Merk · Booking"]
+      summary: Show booking
+      description: |
+        Owner: merk
+
+        Controller: showBooking -> ShowBookingHandler
+        - load('place')
+        - доступ: owner или creator гостевой (иначе abort 403)
+      parameters:
+        - in: path
+          name: booking
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingDataResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+  /bookings/{booking}/cancel:
+    post:
+      tags: ["Merk · Booking"]
+      summary: Cancel booking (status -> rejected)
+      description: |
+        Owner: merk
+
+        Handler: CancelBookingHandler
+        - доступ: owner или creator гостевой, иначе 403
+        - если status == rejected -> 422 (status: "Бронирование уже отменено")
+        - если status не pending/approved -> 422
+        - если start_time isPast() -> 422 (start_time: "Нельзя отменить бронирование которе уже началось")
+        - иначе status = rejected, load('place')
+      parameters:
+        - in: path
+          name: booking
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingDataResponse"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+  /bookings/{booking}/reschedule:
+    post:
+      tags: ["Merk · Booking"]
+      summary: Reschedule booking
+      description: |
+        Owner: merk
+
+        FormRequest: RescheduleBookingRequest
+        - start_time required date
+        - end_time required date after start_time
+
+        Handler: RescheduleBookingHandler
+        - доступ: owner или creator гостевой, иначе 403
+        - start_time в прошлом -> 422
+        - status должен быть pending/approved, иначе 422
+        - overlap check (ignoreBookingId = booking.id) -> 422
+        - если status был approved -> становится pending
+        - сохраняет новые start/end, load('place')
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                start_time: { type: string, format: date-time }
+                end_time: { type: string, format: date-time }
+              required: [start_time, end_time]
+            examples:
+              move:
+                value:
+                  start_time: "2026-02-10T14:00:00Z"
+                  end_time: "2026-02-10T15:00:00Z"
+      parameters:
+        - in: path
+          name: booking
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingDataResponse"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+  /bookings/{booking}/extend:
+    post:
+      tags: ["Merk · Booking"]
+      summary: Extend booking
+      description: |
+        Owner: merk
+
+        FormRequest: ExtendBookingRequest
+        - minutes nullable int 1..1440 required_without:preset
+        - preset nullable enum [10m, 1h, 1d] required_without:minutes
+        minutes() вычисляется:
+        - minutes если передан
+        - иначе preset => 10|60|1440
+        - иначе 0 (и handler вернёт 422)
+
+        Handler: ExtendBookingHandler
+        - доступ: owner или creator гостевой, иначе 403
+        - status должен быть pending/approved, иначе 422
+        - end_time в прошлом -> 422
+        - overlap check (ignoreBookingId = booking.id) -> 422
+        - сохраняет новый end_time, load('place')
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  additionalProperties: false
+                  properties:
+                    minutes:
+                      type: integer
+                      minimum: 1
+                      maximum: 1440
+                  required: [minutes]
+                - type: object
+                  additionalProperties: false
+                  properties:
+                    preset:
+                      type: string
+                      enum: [10m, 1h, 1d]
+                  required: [preset]
+            examples:
+              by_minutes:
+                value: { minutes: 30 }
+              by_preset:
+                value: { preset: "1h" }
+      parameters:
+        - in: path
+          name: booking
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingDataResponse"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+  /admin/bookings:
+    get:
+      tags: ["Merk · Admin"]
+      summary: Admin list bookings
+      description: |
+        Owner: merk
+
+        Middleware: is_admin (EnsureUserIsAdmin: role_id == 1)
+
+        FormRequest: AdminBookingsRequest
+        - status nullable in [pending, approved, rejected]
+        - place_id nullable exists:places,id
+        - user_id nullable exists:users,id
+        - created_by nullable exists:users,id
+        - from nullable date
+        - to nullable date
+        - sort nullable in [start_time, -start_time] (default -start_time => desc)
+        - per_page nullable int 1..100 (default 20)
+
+        Handler: AdminListBookingsHandler
+        - with(place,user,creator)
+        - filters + orderBy(start_time, sortDirection)
+        - paginate(perPage)
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, approved, rejected] }
+        - in: query
+          name: place_id
+          schema: { type: integer }
+        - in: query
+          name: user_id
+          schema: { type: integer }
+        - in: query
+          name: created_by
+          schema: { type: integer }
+        - in: query
+          name: from
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          schema: { type: string, format: date }
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [start_time, -start_time]
+            example: "-start_time"
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            example: 20
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, example: 1 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedBookings"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+  /admin/bookings/{booking}/approve:
+    post:
+      tags: ["Merk · Admin"]
+      summary: Admin approve booking (pending -> approved)
+      description: |
+        Owner: merk
+
+        Middleware: is_admin (role_id == 1)
+
+        Handler: AdminApproveBookingHandler
+        - если status != pending -> 422 (errors.status)
+        - иначе status=approved
+        - если booking.user_id != null -> PlaceManager::firstOrCreate(place_id, user_id) + created_from_booking_id
+        - load(place,user,creator)
+      parameters:
+        - in: path
+          name: booking
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingDataResponse"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+  /admin/bookings/export:
+    get:
+      tags: ["Merk · Admin"]
+      summary: Admin export bookings (CSV)
+      description: |
+        Owner: merk
+
+        Middleware: is_admin (role_id == 1)
+
+        Controller: export(AdminBookingsRequest, AdminExportBookingsHandler, AdminListBookingsHandler)
+        - Content-Type: text/csv; charset=UTF-8
+        - separator: ;
+        - BOM added
+        - filename: bookings_YYYYmmdd_His.csv
+        - колонки:
+          id;status;place_id;place_name;user_id;guest_name;created_by;start_time;end_time;pass_type
+
+        Фильтры берутся из AdminBookingsRequest (как /admin/bookings).
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, approved, rejected] }
+        - in: query
+          name: place_id
+          schema: { type: integer }
+        - in: query
+          name: user_id
+          schema: { type: integer }
+        - in: query
+          name: created_by
+          schema: { type: integer }
+        - in: query
+          name: from
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          schema: { type: string, format: date }
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [start_time, -start_time]
+            example: "-start_time"
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            example: 100
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, example: 1 }
+      responses:
+        "200":
+          description: CSV stream
+          content:
+            text/csv:
+              schema:
+                type: string
+              examples:
+                sample:
+                  value: |
+                    id;status;place_id;place_name;user_id;guest_name;created_by;start_time;end_time;pass_type
+                    101;approved;10;Meeting room 1;5;;5;2026-02-10 12:00:00;2026-02-10 13:00:00;qr
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
