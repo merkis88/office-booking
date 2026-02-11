@@ -16,7 +16,7 @@ cd office-booking
 
 ### 2) Настраиваем .env
 ```bash
-docker compose up -d --build
+cp .env.example .env
 ```
 
 ### 3) Поднимаем контейнеры
