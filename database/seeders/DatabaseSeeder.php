@@ -81,6 +81,7 @@ class DatabaseSeeder extends Seeder
         Qr::create([
             'booking_id' => $booking->id,
             'hash' => hash('sha256', 'unique_secret_string_' . $booking->id),
+            'time_window' => intdiv(now()->timestamp, 1800),
             'used_at' => null,
         ]);
     }

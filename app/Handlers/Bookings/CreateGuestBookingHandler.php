@@ -31,8 +31,8 @@ final class CreateGuestBookingHandler
             abort(403, 'У вас нет прав пригласить гостей в это помещение');
         }
 
-        return DB::transaction(function () use ($dto, $actor, $overlap) {
-            $this->$overlap->assertNoOverlap(
+        return DB::transaction(function () use ($dto, $actor) {
+            $this->overlap->assertNoOverlap(
                 placeId: $dto->placeId,
                 startTime: $dto->startTime,
                 endTime: $dto->endTime

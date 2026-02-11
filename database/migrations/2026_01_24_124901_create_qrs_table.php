@@ -13,11 +13,16 @@ return new class extends Migration
     {
         Schema::create('qrs', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('booking_id')->constrained('bookings')->cascadeOnDelete();
-            $table->string('hash');
+            $table->string('hash')->unique();
+            $table->unsignedInteger('time_window');
             $table->dateTime('used_at')->nullable();
             $table->timestamps();
+            $table->unique(['booking_id', 'time_window']);
+            $table->index('booking_id');
         });
+
     }
 
     /**
