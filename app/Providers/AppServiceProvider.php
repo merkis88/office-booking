@@ -13,6 +13,7 @@ use App\Handlers\Users\UpdatePasswordHandler;
 use App\Handlers\Reviews\CreateReviewHandler;
 use App\Handlers\Reviews\UpdateReviewHandler;
 use App\Handlers\Reviews\DeleteReviewHandler;
+use App\Handlers\Reviews\FilterReviewHandler;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CreateReviewHandler::class);
         $this->app->singleton(UpdateReviewHandler::class);
         $this->app->singleton(DeleteReviewHandler::class);
+        $this->app->singleton(FilterReviewHandler::class);
     }
 
     /**

@@ -18,7 +18,6 @@ class ReviewResource extends JsonResource
             'id' => $this->id,
             'text' => $this->text,
             'rating' => $this->rating,
-            'rating_stars' => $this->generateStars(),
             'user_id' => $this->user_id,
             'user' => new UserResource($this->whenLoaded('user')),
             'created_at' => $this->created_at->format('d.m.Y H:i'),
@@ -26,14 +25,4 @@ class ReviewResource extends JsonResource
         ];
     }
 
-     //генерирует строку со звёздами для отображения
-
-
-    private function generateStars(): string
-    {
-        $filled = $this->rating;
-        $empty = 5 - $filled;
-
-        return str_repeat('&#9733;', $filled) . str_repeat('&#9734;', $empty);
-    }
 }
