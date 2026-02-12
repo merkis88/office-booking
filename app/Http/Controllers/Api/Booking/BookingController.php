@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\Booking;
 
 use App\Handlers\Bookings\CancelBookingHandler;
 use App\Handlers\Bookings\CreateBookingHandler;
 use App\Handlers\Bookings\CreateGuestBookingHandler;
+use App\Handlers\Bookings\ExtendBookingHandler;
 use App\Handlers\Bookings\MyBookingHandler;
 use App\Handlers\Bookings\RescheduleBookingHandler;
+use App\Handlers\Bookings\ShowBookingHandler;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Bookings\CreateGuestBookingRequest;
+use App\Http\Requests\Bookings\ExtendBookingRequest;
+use App\Http\Requests\Bookings\MyBookingsRequest;
 use App\Http\Requests\Bookings\RescheduleBookingRequest;
 use App\Http\Requests\Bookings\StoreBookingRequest;
 use App\Models\Booking;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Handlers\Bookings\ShowBookingHandler;
-use App\Http\Requests\Bookings\MyBookingsRequest;
-use App\Http\Requests\Bookings\CreateGuestBookingRequest;
-use App\Http\Requests\Bookings\ExtendBookingRequest;
-use App\Handlers\Bookings\ExtendBookingHandler;
 
 
 class BookingController extends Controller

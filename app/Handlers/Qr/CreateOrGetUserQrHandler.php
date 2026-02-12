@@ -9,18 +9,19 @@ use App\Services\Qr\QrHashService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-class CreateOrGetUserQrHandler
+final class CreateOrGetUserQrHandler
 {
     public function __construct(private readonly QrHashService $hashService) {}
 
-    private int $windowSecond = 1800;
-    private int $beforeMinute = 30;
-    private int $afterMinute = 15;
+    private int $windowSeconds = 1800;
+    private int $beforeMinutes = 30;
+    private int $afterMinutes  = 15;
 
-    public function handler(Booking $booking, User $user): Qr
+    public function handle(Booking $booking, User $user, ?int $timeWindow = null): Qr
     {
-        $this->timeOfActionQr($booking);
-        $window = $this->currentWindow();
+        $this->assertQrAllowed($booking);
+
+        $window = $timeWindow ?? $this->currentWindow();
 
         $existing = Qr::query()
             ->where('booking_id', $booking->id)
@@ -33,10 +34,12 @@ class CreateOrGetUserQrHandler
         }
 
         return DB::transaction(function () use ($booking, $user, $window) {
+
             $existing = Qr::query()
                 ->where('booking_id', $booking->id)
                 ->where('time_window', $window)
                 ->where('user_id', $user->id)
+                ->lockForUpdate()
                 ->first();
 
             if ($existing) {
@@ -54,42 +57,38 @@ class CreateOrGetUserQrHandler
                 'used_at' => null,
             ]);
         });
-
     }
 
     private function currentWindow(): int
     {
-        return intdiv(now()->timestamp, $this->windowSecond);
+        return intdiv(now()->timestamp, $this->windowSeconds);
     }
 
-    private function timeOfActionQr(Booking $booking): void
+    private function assertQrAllowed(Booking $booking): void
     {
         if ($booking->status !== 'approved') {
             throw ValidationException::withMessages([
-               'status' => ['QR доступен только для подтверждённых бронирований']
+                'status' => ['QR доступен только для подтверждённых бронирований'],
             ]);
         }
 
         $now = now();
         $start = $booking->start_time;
-        $end = $booking->end_time;
+        $end   = $booking->end_time;
 
-        $openFrom = $start->copy()->subMinutes($this->beforeMinute);
-        $closeAt = $end->copy()->addMinutes($this->afterMinute);
+        $openFrom = $start->copy()->subMinutes($this->beforeMinutes);
+        $closeAt  = $end->copy()->addMinutes($this->afterMinutes);
 
         if ($now->lt($openFrom)) {
             throw ValidationException::withMessages([
-               'time' => ['QR будет доступен ближе к началу бронирования']
+                'time' => ['QR будет доступен ближе к началу бронирования'],
             ]);
         }
 
-        if ($now->gt($$closeAt)) {
+        if ($now->gt($closeAt)) {
             throw ValidationException::withMessages([
-               'time' => ['QR уже недоступен. Время бронирования прошло']
+                'time' => ['QR уже недоступен. Время бронирования прошло'],
             ]);
         }
-
-
     }
-
 }
