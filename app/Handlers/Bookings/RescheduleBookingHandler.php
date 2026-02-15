@@ -4,20 +4,18 @@ namespace App\Handlers\Bookings;
 
 use App\DTO\Bookings\RescheduleBookingDTO;
 use App\Models\Booking;
-use Illuminate\Validation\ValidationException;
 use App\Models\User;
+use App\Services\Bookings\BookingOverlapService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final class RescheduleBookingHandler
 {
+    public function __construct(private readonly BookingOverlapService $overlap) {}
+
     public function handle(RescheduleBookingDTO $dto, Booking $booking, User $user): Booking
     {
         $this->assertCanReschedule($booking, (int) $user->id);
-
-        if ($booking->status === 'cancelled') {
-            throw ValidationException::withMessages([
-               'status' => ['Нельзя переносить отменённое бронирование']
-            ]);
-        }
 
         if ($dto->startTime->isPast()) {
             throw ValidationException::withMessages([
@@ -25,31 +23,33 @@ final class RescheduleBookingHandler
             ]);
         }
 
-        $isOverlap = Booking::query()
-            ->where('place_id', $booking->place_id)
-            ->whereIn('status', ['pending', 'approved'])
-            ->where('id', '!=', $booking->id)
-            ->where('start_time', '<', $dto->endTime)
-            ->where('end_time', '>', $dto->startTime)
-            ->exists();
-
-        if ($isOverlap) {
+        if (!in_array($booking->status, ['pending', 'approved'], true)) {
             throw ValidationException::withMessages([
-                'time' => ['В это время помещение уже забронировано'],
+                'status' => ['Нельзя переносить бронирование в текущем статусе']
             ]);
         }
 
-        if ($booking->status === 'approved') {
-            $booking->status = 'pending';
-        }
+        return DB::transaction(function () use ($dto, $booking) {
 
-        $booking->start_time = $dto->startTime;
-        $booking->end_time = $dto->endTime;
-        $booking->save();
+            $this->overlap->assertNoOverlap(
+                placeId: (int) $booking->place_id,
+                startTime: $dto->startTime,
+                endTime: $dto->endTime,
+                ignoreBookingId: (int) $booking->id
+            );
 
-        $booking->load('place');
+            if ($booking->status === 'approved') {
+                $booking->status = 'pending';
+            }
 
-        return $booking;
+            $booking->start_time = $dto->startTime;
+            $booking->end_time = $dto->endTime;
+            $booking->save();
+
+            $booking->load('place');
+
+            return $booking;
+        });
     }
 
     private function assertCanReschedule(Booking $booking, int $actorId): void
@@ -60,6 +60,5 @@ final class RescheduleBookingHandler
         if (!($isOwner || $isGuestCreator)) {
             abort(403, 'Нет доступа к бронированию');
         }
-
     }
 }

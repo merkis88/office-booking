@@ -1,19 +1,23 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\Booking;
 
 use App\Handlers\Bookings\CancelBookingHandler;
 use App\Handlers\Bookings\CreateBookingHandler;
+use App\Handlers\Bookings\CreateGuestBookingHandler;
+use App\Handlers\Bookings\ExtendBookingHandler;
 use App\Handlers\Bookings\MyBookingHandler;
 use App\Handlers\Bookings\RescheduleBookingHandler;
+use App\Handlers\Bookings\ShowBookingHandler;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Bookings\CreateGuestBookingRequest;
+use App\Http\Requests\Bookings\ExtendBookingRequest;
+use App\Http\Requests\Bookings\MyBookingsRequest;
 use App\Http\Requests\Bookings\RescheduleBookingRequest;
 use App\Http\Requests\Bookings\StoreBookingRequest;
 use App\Models\Booking;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Handlers\Bookings\ShowBookingHandler;
-use App\Http\Requests\Bookings\MyBookingsRequest;
 
 
 class BookingController extends Controller
@@ -53,5 +57,18 @@ class BookingController extends Controller
         return response()->json(['data' => $reschedule_booking], 200);
     }
 
+    public function guestBooking(CreateGuestBookingRequest $request, CreateGuestBookingHandler $handler): JsonResponse
+    {
+        $guest_booking = $handler->handle($request->toDTO(), $request->user());
+
+        return response()->json(['data' => $guest_booking], 201);
+    }
+
+    public function extendBooking(ExtendBookingRequest $request, Booking $booking, ExtendBookingHandler $handler): JsonResponse
+    {
+        $updated = $handler->handle($booking, $request->user(), $request->minutes());
+
+        return response()->json(['data' => $updated], 200);
+    }
 
 }

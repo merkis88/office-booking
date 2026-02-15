@@ -10,7 +10,7 @@ final class CreateBookingDTO
         public readonly CarbonImmutable $startTime,
         public readonly CarbonImmutable $endTime,
         public readonly ?int $userId,
-        public readonly ?int $guestName,
+        public readonly ?string $guestName,
         public readonly string $passType,
     ) {}
 
