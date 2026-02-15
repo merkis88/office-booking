@@ -46,11 +46,13 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $place = Place::create([
-            'organization_id' => $org->id,
             'name' => 'Meeting Room"',
-            'type' => 'conference_room',
+            'photo' => 'places/1771145751_69918a17e552a.png',
+            'type' => 'office',
             'capacity' => 5,
             'number_place' => 48,
+            'price' => 4000.00,
+            'description' => 'Комната для переговоров с проектором и маркерной доской',
             'is_active' => true,
         ]);
 

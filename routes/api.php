@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\AdminBookingController;
+use App\Http\Controllers\Api\AdminPlaceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\PasswordResetController;
 
+use App\Http\Controllers\Api\PlaceController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
@@ -54,10 +56,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancelBooking']);
     Route::post('/bookings/{booking}/reschedule', [BookingController::class, 'rescheduleBooking']);
 
+    //Places
+    Route::get('/places', [PlaceController::class, 'index']);
+    Route::get('/places/{place}', [PlaceController::class, 'show']);
+
    // Admin
     Route::middleware('is_admin')->prefix('admin')->group(function () {
         Route::apiResource('users', UserController::class);
         Route::get('/bookings', [AdminBookingController::class, 'index']);
         Route::post('/bookings/{booking}/approve', [AdminBookingController::class, 'approve']);
+
+        //Places admin
+        Route::get('/places', [AdminPlaceController::class, 'index']);
+        Route::post('/places', [AdminPlaceController::class, 'store']);
+        Route::get('/places/{place}', [AdminPlaceController::class, 'show']);
+        Route::put('/places/{place}', [AdminPlaceController::class, 'update']);
+        Route::delete('/places/{place}', [AdminPlaceController::class, 'destroy']);
+        Route::post('/places/{place}/photo', [AdminPlaceController::class, 'storePhoto']);
+        Route::delete('/places/{place}/photo', [AdminPlaceController::class, 'deletePhoto']);
     });
 });

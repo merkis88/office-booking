@@ -10,17 +10,16 @@ class Place extends Model
     use HasFactory;
     protected $table = 'places';
     protected $fillable = [
-        'organization_id',
         'name',
         'type',
         'capacity',
-        'is_active'
+        'number_place',
+        'is_active',
+        'photo',
+        'price',
+        'description'
     ];
 
-    public function organization()
-    {
-        return $this->belongsTo(Organization::class, 'organization_id', 'id');
-    }
 
     public function service()
     {

@@ -13,10 +13,12 @@ return new class extends Migration
     {
         Schema::create('places', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('organization_id')->constrained('organizations')->cascadeOnDelete();
+            $table->string('photo');
             $table->string('name');
-            $table->string('type');
+            $table->enum('type', ['office', 'coworking', 'meeting'])->default('office');
             $table->integer('capacity')->default(1);
+            $table->text('description');
+            $table->decimal('price', 10, 2)->default(0);
             $table->integer('number_place');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
