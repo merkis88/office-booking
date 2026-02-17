@@ -64,6 +64,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('users', UserController::class); // merk
         Route::get('/bookings', [AdminBookingController::class, 'index']); // merk
         Route::get('/bookings/export', [AdminBookingController::class, 'export']); // merk
-        Route::post('/bookings/{booking}/approve', [AdminBookingController::class, 'approve']); // merk
     });
 });

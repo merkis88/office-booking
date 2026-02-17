@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('price', 8,2)->default(0);
             $table->dateTime('start_time');
             $table->dateTime('end_time');
+            $table->enum('status', ['active', 'cancelled'])->default('active');
             $table->enum('pass_type', ['qr', 'pin'])->default('qr');
             $table->timestamps();
         });
