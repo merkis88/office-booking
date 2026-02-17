@@ -3,10 +3,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reviews\CreateReviewRequest;
+use App\Http\Requests\Reviews\ReviewFiltersRequest;
 use App\Http\Requests\Reviews\UpdateReviewRequest;
 use App\Handlers\Reviews\CreateReviewHandler;
 use App\Handlers\Reviews\UpdateReviewHandler;
 use App\Handlers\Reviews\DeleteReviewHandler;
+use App\Handlers\Reviews\FilterReviewHandler;
 use App\DTO\Reviews\CreateReviewDTO;
 use App\DTO\Reviews\UpdateReviewDTO;
 use App\Http\Resources\ReviewResource;
@@ -20,14 +22,16 @@ class ReviewController extends Controller
         private CreateReviewHandler $createReviewHandler,
         private UpdateReviewHandler $updateReviewHandler,
         private DeleteReviewHandler $deleteReviewHandler,
+        private FilterReviewHandler $filterReviewHandler,
     )
     {
 
     }
 
-    public function index()
+    public function index(ReviewFiltersRequest $request)
     {
-        $reviews = Review::with('user')->latest()->get();
+        $dto = $request->toDTO();
+        $reviews = $this->filterReviewHandler->handle($dto);
         return ReviewResource::collection($reviews);
     }
 

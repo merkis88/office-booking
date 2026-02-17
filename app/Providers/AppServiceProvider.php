@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Handlers\Places\AdminDeletePhotoPlaceHandler;
+use App\Handlers\Places\AdminStorePhotoPlaceHandler;
 use Illuminate\Support\ServiceProvider;
 use App\Handlers\Auth\LoginHandler;
 use App\Handlers\Auth\RegisterHandler;
@@ -13,6 +15,7 @@ use App\Handlers\Users\UpdatePasswordHandler;
 use App\Handlers\Reviews\CreateReviewHandler;
 use App\Handlers\Reviews\UpdateReviewHandler;
 use App\Handlers\Reviews\DeleteReviewHandler;
+use App\Handlers\Reviews\FilterReviewHandler;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +34,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CreateReviewHandler::class);
         $this->app->singleton(UpdateReviewHandler::class);
         $this->app->singleton(DeleteReviewHandler::class);
+        $this->app->singleton(FilterReviewHandler::class);
+        $this->app->singleton(AdminStorePhotoPlaceHandler::class);
+        $this->app->singleton(AdminDeletePhotoPlaceHandler::class);
     }
 
     /**
