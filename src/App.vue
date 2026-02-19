@@ -3,14 +3,14 @@
   import Footer from './components/Footer.vue';
 </script>
 
-<style lang="sass">
-  @import "assets/sass/main.sass"
-</style>
-
 <template>
-  <div class="font-base mx-70 mt-10">
+  <div>
     <Header />
     <router-view></router-view>
   </div>
   <Footer />
 </template>
+
+<style lang="sass">
+
+</style>

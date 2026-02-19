@@ -1,56 +1,56 @@
 <script setup></script>
 
 <template>
-  <div class="font-base bg-[#7C8FA0] text-xl rounded-t-2xl">
-    <div class="flex items-center justify-between mx-70 py-15">
-      <section class="flex flex-col justify-center gap-7 w-100">
-        <div class="flex items-center gap-2 cursor-pointer">
+  <div class="footer">
+    <div class="footer__inner">
+      <section class="footer__brand">
+        <div class="footer__logo">
           <img src="/logo.svg" alt="logo" />
-          <a>LOGOTYPE</a>
+          <span>LOGOTYPE</span>
         </div>
-        <div>
+        <div class="footer__description">
           <p>Здесь работают люди, которые создают, растут и вдохновляют друг друга.</p>
           <p>Присоединяйтесь!</p>
         </div>
-        <div>
+        <div class="footer__hours">
           <p>Режим работы:</p>
           <p>Пн - Вс с 09:00 до 22:00</p>
         </div>
       </section>
 
-      <section class="flex flex-col justify-center gap-7">
-        <div class="flex items-center gap-2 cursor-pointer">
+      <section class="footer__nav">
+        <div class="footer__link">
           <img src="/user-footer.svg" alt="" />
           <a href="">Личный кабинет</a>
         </div>
-        <div class="flex items-center gap-2 cursor-pointer">
+        <div class="footer__link">
           <img src="/handbag-footer.svg" alt="" />
           <a href="">Услуги</a>
         </div>
-        <div class="flex items-center gap-2 cursor-pointer">
+        <div class="footer__link">
           <img src="/bank-transfer-footer.svg" alt="" />
           <a href="">Пропуск</a>
         </div>
-        <div class="flex items-center gap-2 cursor-pointer">
+        <div class="footer__link">
           <img src="/routing-footer.svg" alt="" />
           <a href="">Как добраться</a>
         </div>
       </section>
 
-      <section class="flex flex-col justify-center gap-7">
-        <div class="flex items-center gap-2 cursor-pointer">
+      <section class="footer__contacts">
+        <div class="footer__link">
           <img src="/call-calling-footer.svg" alt="" />
           <a href="">+7 930 454 54 04</a>
         </div>
-        <div class="flex items-center gap-2 cursor-pointer">
+        <div class="footer__link">
           <img src="/send-2-footer.svg" alt="" />
           <a href="">@operatingPoint.</a>
         </div>
-        <div class="flex items-center gap-2 cursor-pointer">
+        <div class="footer__link">
           <img src="/sms-edit-footer.svg" alt="" />
           <a href="">operatingPoint.@mail.ru</a>
         </div>
-        <div class="flex items-center gap-2 cursor-pointer">
+        <div class="footer__link">
           <img src="/location-marker-footer.svg" alt="" />
           <a href="">Говорова 35</a>
         </div>
@@ -58,3 +58,87 @@
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+  @use '/src/assets/styles/variables' as *;
+  @use '/src/assets/styles/mixins' as *;
+
+  .footer {
+    background-color: $color-footer-bg;
+    color: $color-footer-text;
+    border-radius: $radius-lg $radius-lg 0 0;
+
+    &__inner {
+      @include container;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: $gap-lg;
+      padding-top: $footer-pad-y;
+      padding-bottom: $footer-pad-y;
+    }
+
+    &__brand {
+      display: flex;
+      flex-direction: column;
+      gap: $gap-md;
+      max-width: 22rem;
+    }
+
+    &__logo {
+      display: flex;
+      align-items: center;
+      gap: $gap-xs;
+      cursor: pointer;
+
+      img {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+      }
+
+      span {
+        font-size: $text-lg;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+    }
+
+    &__description,
+    &__hours {
+      font-size: $text-xl;
+      line-height: 1.7;
+
+      p + p {
+        margin-top: 0.2rem;
+      }
+    }
+
+    &__nav,
+    &__contacts {
+      display: flex;
+      flex-direction: column;
+      gap: $gap-md;
+    }
+
+    &__link {
+      display: flex;
+      align-items: center;
+      gap: $gap-xs;
+      font-size: $text-xl;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+
+      &:hover {
+        opacity: 0.75;
+      }
+
+      img {
+        width: 22px;
+        height: 22px;
+        object-fit: contain;
+        flex-shrink: 0;
+      }
+    }
+  }
+</style>
