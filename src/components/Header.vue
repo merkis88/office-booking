@@ -11,7 +11,7 @@
       </router-link>
 
       <ul class="header__nav">
-        <li>Аренда помещений</li>
+        <router-link to="/service"><li>Аренда помещений</li></router-link>
         <li>Отзывы</li>
         <li>Личный кабинет</li>
         <router-link to="/authorization"><li>Авторизация</li></router-link>
@@ -26,6 +26,7 @@
   @use '/src/assets/styles/mixins' as *;
 
   .header {
+    margin-top: 3.5rem;
     &__container {
       @include container;
       display: flex;

@@ -28,7 +28,6 @@
 
 <template>
   <main class="page-main">
-    <!-- ===== HERO ===== -->
     <section class="hero">
       <div class="hero__inner">
         <img src="/skyscraper-main.png" alt="skyscraper" class="hero__image" />
@@ -52,7 +51,6 @@
       </div>
     </section>
 
-    <!-- ===== ABOUT ===== -->
     <section class="about" id="about">
       <div class="about__container">
         <h2 class="about__title">Почему мы?</h2>
@@ -91,7 +89,6 @@
       </div>
     </section>
 
-    <!-- ===== SERVICES ===== -->
     <section class="services">
       <div class="services__container">
         <h2 class="services__title">Аренда помещений</h2>
@@ -133,7 +130,6 @@
       </div>
     </section>
 
-    <!-- ===== LOCATION ===== -->
     <section class="location">
       <div class="location__container">
         <div class="location__info">
@@ -157,7 +153,6 @@
   @use '/src/assets/styles/variables' as *;
   @use '/src/assets/styles/mixins' as *;
 
-  // ===== HERO =====
   .hero {
     &__inner {
       @include container;
@@ -222,7 +217,6 @@
     }
   }
 
-  // ===== ABOUT =====
   .about {
     margin-top: $section-gap-lg;
 
@@ -276,7 +270,6 @@
     }
   }
 
-  // ===== SERVICES =====
   .services {
     margin-top: $section-gap-md;
 
@@ -347,7 +340,6 @@
     }
   }
 
-  // ===== LOCATION =====
   .location {
     margin-top: $section-gap-md;
     margin-bottom: $section-gap-md;
