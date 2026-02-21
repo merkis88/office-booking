@@ -18,9 +18,9 @@ final class CreateGuestQrHandler
     private int $beforeMinutes = 30;
     private int $afterMinutes  = 15;
 
-    public function handle(Booking $booking, User $actor, CreateGuestQrDTO $dto): Qr
+    public function handle(Booking $booking, User $user, CreateGuestQrDTO $dto): Qr
     {
-        $this->assertCanInvite($booking, $actor);
+        $this->assertCanInvite($booking, $user);
         $this->assertQrAllowed($booking);
 
         $window = $dto->timeWindow ?? $this->currentWindow();
@@ -35,7 +35,7 @@ final class CreateGuestQrHandler
             return $existing;
         }
 
-        return DB::transaction(function () use ($booking, $actor, $dto, $window) {
+        return DB::transaction(function () use ($booking, $user, $dto, $window) {
 
             $existing = Qr::query()
                 ->where('booking_id', $booking->id)
@@ -53,7 +53,7 @@ final class CreateGuestQrHandler
             return Qr::query()->create([
                 'booking_id' => $booking->id,
                 'time_window' => $window,
-                'user_id' => (int) $actor->id,
+                'user_id' => null,
                 'recipient_email' => $dto->recipientEmail,
                 'hash' => $hash,
                 'used_at' => null,
@@ -66,10 +66,10 @@ final class CreateGuestQrHandler
         return intdiv(now()->timestamp, $this->windowSeconds);
     }
 
-    private function assertCanInvite(Booking $booking, User $actor): void
+    private function assertCanInvite(Booking $booking, User $user): void
     {
-        $isOwner = $booking->user_id !== null && (int) $booking->user_id === (int) $actor->id;
-        $isCreator = (int) $booking->created_by === (int) $actor->id;
+        $isOwner = $booking->user_id !== null && (int) $booking->user_id === (int) $user->id;
+        $isCreator = (int) $booking->created_by === (int) $user->id;
 
         if (!($isOwner || $isCreator)) {
             abort(403, 'Нет прав приглашать гостей в рамках этого бронирования');

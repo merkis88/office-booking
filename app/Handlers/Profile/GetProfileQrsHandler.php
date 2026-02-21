@@ -2,14 +2,14 @@
 
 namespace App\Handlers\Profile;
 
-use App\Handlers\Qr\CreateOrGetUserQrHandler;
+use App\Handlers\Qr\CreateUserQrHandler;
 use App\Models\Booking;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 final class GetProfileQrsHandler
 {
-    public function __construct(private readonly CreateOrGetUserQrHandler $qrHandler) {}
+    public function __construct(private readonly CreateUserQrHandler $qrHandler) {}
 
     public function handle(User $user): array
     {

@@ -75,11 +75,6 @@ class BookingController extends Controller
         return response()->json(['data' => $updated], 200);
     }
 
-    public function createGuestQr(CreateGuestQrRequest $request, Booking $booking,CreateGuestQrHandler $handler): JsonResponse
-    {
-        $create_guest_qr = $handler->handle($booking, $request->user(), $request->toDTO());
 
-        return response()->json(['data' => $create_guest_qr], 201);
-    }
 
 }
