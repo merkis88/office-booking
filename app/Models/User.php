@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -27,7 +28,10 @@ class User extends Authenticatable
         'password',
         'photo',
         'post',
-        'company'
+        'company',
+        'is_verified',
+        'verification_code',
+        'verification_code_expires_at',
     ];
 
     public function role()
@@ -57,6 +61,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'verification_code',
     ];
 
     /**
@@ -69,6 +74,35 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_verified' => 'boolean',
+            'verification_code_expires_at' => 'datetime',
         ];
+    }
+
+    public function generateVerificationCode(): string
+    {
+        $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        $this->verification_code = $code;
+        $this->verification_code_expires_at = Carbon::now()->addMinutes(30);
+        $this->save();
+
+        return $code;
+    }
+
+    public function verifyCode(string $code): bool
+    {
+        if($this->verification_code_expires_at && Carbon::now()->gt($this->verification_code_expires_at)){
+            return false;
+        }
+        return $this->verification_code === $code;
+    }
+    public function markAsVerified(): void
+    {
+        $this->is_verified = true;
+        $this->email_verified_at = Carbon::now();
+        $this->verification_code = null;
+        $this->verification_code_expires_at = null;
+        $this->save();
     }
 }

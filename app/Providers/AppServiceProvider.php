@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Handlers\Auth\SendVerificationHandler;
+use App\Handlers\Auth\VerifyEmailHandler;
+use App\Handlers\Places\AdminArchivePlaceHandler;
 use App\Handlers\Places\AdminDeletePhotoPlaceHandler;
 use App\Handlers\Places\AdminStorePhotoPlaceHandler;
 use Illuminate\Support\ServiceProvider;
@@ -37,6 +40,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(FilterReviewHandler::class);
         $this->app->singleton(AdminStorePhotoPlaceHandler::class);
         $this->app->singleton(AdminDeletePhotoPlaceHandler::class);
+        $this->app->singleton(AdminArchivePlaceHandler::class);
+        $this->app->singleton(SendVerificationHandler::class);
+        $this->app->singleton(VerifyEmailHandler::class);
     }
 
     /**

@@ -11,11 +11,13 @@ use App\Http\Requests\Places\AdminStorePhotoPlaceRequest;
 use App\Handlers\Places\AdminCreatePlaceHandler;
 use App\Handlers\Places\AdminUpdatePlaceHandler;
 use App\Handlers\Places\AdminDeletePlaceHandler;
+use App\Handlers\Places\AdminArchivePlaceHandler;
 use App\Http\Resources\PlaceResource;
 use App\Models\Place;
 use App\Handlers\Places\AdminStorePhotoPlaceHandler;
 use App\Handlers\Places\AdminDeletePhotoPlaceHandler;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class AdminPlaceController extends Controller
@@ -26,6 +28,7 @@ class AdminPlaceController extends Controller
         private AdminDeletePlaceHandler $deletePlaceHandler,
         private AdminStorePhotoPlaceHandler $storePhotoPlaceHandler,
         private AdminDeletePhotoPlaceHandler $deletePhotoPlaceHandler,
+        private AdminArchivePlaceHandler $archivePlaceHandler,
     )
     {
 
@@ -39,6 +42,13 @@ class AdminPlaceController extends Controller
         }
         if($request->filled('is_active')){
             $query->where('is_active', $request->boolean('is_active'));
+        }
+        if($request->has('archived')) {
+            if($request->boolean('archived')) {
+                $query->where('is_active', false); // только архивные
+            } else {
+                $query->where('is_active', true);  // только активные
+            }
         }
 
         $sortBy = $request->input('sortBy', 'created_at');
@@ -165,6 +175,60 @@ class AdminPlaceController extends Controller
                 'message' => 'Ошибка при удалении фото',
             ], 500);
         }
+    }
+
+    public function archive(Request $request,Place $place): JsonResponse
+    {
+        try{
+            $force = $request->boolean('force', false);
+            $archivedPlace = $this->archivePlaceHandler->archive($place, $force);
+            $message = $force ? 'Помещение принудительно отправлено в архив, все активные бронирования отменены' : 'помещение успешно отправлено в архив';
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'data' => new PlaceResource($archivedPlace),
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка при архивации',
+                'errors' => $e->errors()
+            ],422);
+        }
+    }
+
+    public function restore(Place $place): JsonResponse
+    {
+        try{
+            $restoredPlace = $this->archivePlaceHandler->restore($place);
+            return response()->json([
+                'success' => true,
+                'message' => 'Помещение успешно восстановленно из архива',
+                'data' => new PlaceResource($restoredPlace),
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка при восстановленрии',
+                'errors' => $e->errors()
+            ], 422);
+        }
+    }
+
+    public function archiveStatus(Place $place): JsonResponse
+    {
+        $activeBookingsCount = $place->booking()->whereIn('status', ['pending', 'approved'])->count();
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'is_active' => $place->is_active,
+                'is_archived' => $place->is_active == 0,
+                'active_bookings_count' => $activeBookingsCount,
+                'can_archive' => $place->is_active == 1,
+                'can_restore' => $place->is_active == 0,
+                'force_available' => $activeBookingsCount > 0 && $place->is_active == 1,
+            ]
+        ]);
     }
 
 }

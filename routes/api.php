@@ -21,40 +21,36 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Круд для юзеров
-Route::apiResources([
-    'users' => UserController::class,
-]);
-
 
 // Восстановление пароля
-Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword'])->name('password.email');
-Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
-Route::post('/validate-reset-token', [PasswordResetController::class, 'checkToken'])->name('password.validate');
+Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword'])->name('password.email');// Osip
+Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');// Osip
+Route::post('/validate-reset-token', [PasswordResetController::class, 'checkToken'])->name('password.validate');// Osip
 
 // Аутентификация
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-
+Route::post('/register', [AuthController::class, 'register']);// Osip
+Route::post('/login', [AuthController::class, 'login']);// Osip
+Route::post('/verify-email', [AuthController::class, 'verifyEmail']);// Osip
+Route::post('/resend-verification', [AuthController::class, 'resendVerification']);// Osip
 
 
 // Защищённые пути
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
-    });
+    }); // Osip
 
     // Auth
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::put('/user/password', [UserController::class, 'updatePassword']);
+    Route::post('/logout', [AuthController::class, 'logout']);// Osip
+    Route::get('/me', [AuthController::class, 'me']);// Osip
+    Route::put('/user/password', [UserController::class, 'updatePassword']);// Osip
 
     // Profile
     Route::get('/profile/qrs', [ProfileQrController::class, 'index']); // merk
 
     // Reviews
-    Route::apiResource('reviews', ReviewController::class)->except('create', 'edit');
-    Route::get('/users/{user}/reviews', [ReviewController::class, 'userReviews']);
+    Route::apiResource('reviews', ReviewController::class)->except('create', 'edit');// Osip
+    Route::get('/users/{user}/reviews', [ReviewController::class, 'userReviews']);// Osip
 
     // Bookings
     Route::post('/bookings', [BookingController::class, 'createBooking']); // merk
@@ -67,25 +63,28 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     //Places
-    Route::get('/places', [PlaceController::class, 'index']);
-    Route::get('/places/{place}', [PlaceController::class, 'show']);
+    Route::get('/places', [PlaceController::class, 'index']);// Osip
+    Route::get('/places/{place}', [PlaceController::class, 'show']);// Osip
 
    // Admin
     Route::middleware('is_admin')->prefix('admin')->group(function () {
 
-        Route::apiResource('users', UserController::class);
+        Route::apiResource('users', UserController::class);// Osip
         Route::get('/bookings', [AdminBookingController::class, 'index']);
         Route::get('/bookings/export', [AdminBookingController::class, 'export']);
         Route::post('/bookings/{booking}/approve', [AdminBookingController::class, 'approve']);
 
         //Places admin
-        Route::get('/places', [AdminPlaceController::class, 'index']);
-        Route::post('/places', [AdminPlaceController::class, 'store']);
-        Route::get('/places/{place}', [AdminPlaceController::class, 'show']);
-        Route::put('/places/{place}', [AdminPlaceController::class, 'update']);
-        Route::delete('/places/{place}', [AdminPlaceController::class, 'destroy']);
-        Route::post('/places/{place}/photo', [AdminPlaceController::class, 'storePhoto']);
-        Route::delete('/places/{place}/photo', [AdminPlaceController::class, 'deletePhoto']);
+        Route::get('/places', [AdminPlaceController::class, 'index']);// Osip
+        Route::post('/places', [AdminPlaceController::class, 'store']);// Osip
+        Route::get('/places/{place}', [AdminPlaceController::class, 'show']);// Osip
+        Route::put('/places/{place}', [AdminPlaceController::class, 'update']);// Osip
+        Route::delete('/places/{place}', [AdminPlaceController::class, 'destroy']);// Osip
+        Route::post('/places/{place}/photo', [AdminPlaceController::class, 'storePhoto']);// Osip
+        Route::delete('/places/{place}/photo', [AdminPlaceController::class, 'deletePhoto']);// Osip
+        Route::post('/places/{place}/archive', [AdminPlaceController::class, 'archive']);// Osip
+        Route::post('/places/{place}/restore', [AdminPlaceController::class, 'restore']);// Osip
+        Route::get('/places/{place}/archive-status', [AdminPlaceController::class, 'archiveStatus']);// Osip
 
     });
 });

@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Requests\ResetPassword;
+namespace App\Http\Requests\Auth;
 
+use App\DTO\Auth\VerifyEmailDTO;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ValidateResetRequest extends FormRequest
+class VerifyEmailRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,14 +23,25 @@ class ValidateResetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'token' => 'required|string',
             'email' => 'required|email|exists:users,email',
+            'code' => 'required|string|size:6',
         ];
     }
     public function messages(): array
     {
         return [
+            'email.required' => 'Email обязателен',
+            'email.email' => 'Неверный формат email',
             'email.exists' => 'Пользователь с таким email не найден',
+            'code.required' => 'Код подтверждения обязателен',
+            'code.size' => 'Код должен содержать 6 символов',
         ];
+    }
+    public function toDTO(): VerifyEmailDTO
+    {
+        return new VerifyEmailDTO(
+            email: $this->input('email'),
+            code: $this->input('code'),
+        );
     }
 }

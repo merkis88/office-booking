@@ -16,6 +16,7 @@ class AdminIndexPlaceRequest extends FormRequest
         return [
             'type' => ['nullable', Rule::in(['office', 'coworking', 'meeting'])],
             'is_active' => ['nullable', 'boolean'],
+            'archived' => ['nullable', 'boolean'],
             'sort_by' => ['nullable', Rule::in(['name', 'created_at', 'capacity', 'number_place'])],
             'sort_direction' => ['nullable', Rule::in(['asc', 'desc'])],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
