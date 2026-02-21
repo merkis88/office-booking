@@ -7,7 +7,6 @@ use App\Models\Booking;
 use App\Models\User;
 use App\Services\Bookings\BookingOverlapService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 final class CreateBookingHandler
 {

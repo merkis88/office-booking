@@ -65,6 +65,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings/{booking}/extend', [BookingController::class, 'extendBooking']); // merk
     Route::post('/bookings/{booking}/reschedule', [BookingController::class, 'rescheduleBooking']); // merk
 
+    // Qr
+    Route::post('/bookings/{booking}/guest-qr', [BookingController::class, 'createGuestQr']); // merk
+
 
     //Places
     Route::get('/places', [PlaceController::class, 'index']);
@@ -72,7 +75,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
    // Admin
     Route::middleware('is_admin')->prefix('admin')->group(function () {
-
         Route::apiResource('users', UserController::class);
         Route::get('/bookings', [AdminBookingController::class, 'index']);
         Route::get('/bookings/export', [AdminBookingController::class, 'export']);
@@ -87,5 +89,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/places/{place}/photo', [AdminPlaceController::class, 'storePhoto']);
         Route::delete('/places/{place}/photo', [AdminPlaceController::class, 'deletePhoto']);
 
+        Route::apiResource('users', UserController::class); // merk
+        Route::get('/bookings', [AdminBookingController::class, 'index']); // merk
+        Route::get('/bookings/export', [AdminBookingController::class, 'export']); // merk
     });
 });

@@ -14,13 +14,11 @@ class Booking extends Model
     protected $fillable = [
         'place_id',
         'created_by',
-        'organization_id',
         'user_id',
         'guest_name',
         'parking_place_id',
         'start_time',
         'end_time',
-        'status',
         'pass_type',
         'price',
     ];
