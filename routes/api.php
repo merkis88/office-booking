@@ -58,6 +58,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings/{booking}/extend', [BookingController::class, 'extendBooking']); // merk
     Route::post('/bookings/{booking}/reschedule', [BookingController::class, 'rescheduleBooking']); // merk
 
+    // Qr
+    Route::post('/bookings/{booking}/guest-qr', [BookingController::class, 'createGuestQr']); // merk
+
 
    // Admin
     Route::middleware('is_admin')->prefix('admin')->group(function () {
