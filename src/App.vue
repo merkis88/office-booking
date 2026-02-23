@@ -6,11 +6,9 @@
 <template>
   <div>
     <Header />
-    <router-view></router-view>
+    <router-view />
+    <Footer />
   </div>
-  <Footer />
 </template>
 
-<style lang="sass">
-
-</style>
+<style lang="sass"></style>

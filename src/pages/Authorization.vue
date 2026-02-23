@@ -1,4 +1,30 @@
-<script setup></script>
+<script setup>
+  import { ref } from 'vue';
+  import { useRouter } from 'vue-router';
+  import { useAuthStore } from '@/store/auth';
+
+  const router = useRouter();
+  const authStore = useAuthStore();
+
+  const email = ref('');
+  const password = ref('');
+  const error = ref('');
+  const loading = ref(false);
+
+  async function handleLogin() {
+    error.value = '';
+    loading.value = true;
+
+    try {
+      await authStore.login(email.value, password.value);
+      await router.push('/');
+    } catch (e) {
+      error.value = e.response?.data?.message || 'Неверный email или пароль';
+    } finally {
+      loading.value = false;
+    }
+  }
+</script>
 
 <template>
   <div class="auth">
@@ -11,15 +37,16 @@
       <div class="auth__content">
         <h2 class="auth__title">Авторизация</h2>
 
-        <form class="auth__form">
+        <form class="auth__form" @submit.prevent="handleLogin">
           <div class="auth__field">
             <label>Эл. почта*</label>
-            <input type="email" placeholder="Введите электронную почту" required />
+            <input v-model="email" type="email" placeholder="Введите электронную почту" required />
           </div>
 
           <div class="auth__field">
             <label>Пароль*</label>
-            <input type="password" placeholder="Введите пароль" required />
+            <input v-model="password" type="password" placeholder="Введите пароль" required />
+            <p v-if="error" class="auth__error">{{ error }}</p>
           </div>
 
           <div class="auth__links">
@@ -27,7 +54,9 @@
             <router-link to="/registration">Зарегистрироваться</router-link>
           </div>
 
-          <button class="auth__btn">Войти</button>
+          <button class="auth__btn" :disabled="loading">
+            {{ loading ? 'Вход...' : 'Войти' }}
+          </button>
         </form>
       </div>
     </div>
@@ -122,6 +151,13 @@
           border-color: $color-text;
         }
       }
+    }
+
+    &__error {
+      color: #e53e3e;
+      font-size: $text-sm;
+      margin: 1px 0;
+      text-align: start;
     }
 
     &__links {
