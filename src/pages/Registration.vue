@@ -1,87 +1,217 @@
-<script setup>
-</script>
+<script setup></script>
 
 <template>
-  <div class="min-h-screen w-full flex items-center justify-center">
-    <div class="flex w-full min-h-160 max-w-6xl bg-[#7C8FA0] rounded-xl overflow-hidden shadow-lg">
-      <div class="hidden lg:block lg:w-1/2 relative overflow-hidden">
-        <div class="absolute inset-0 bg-linear-to-b from-orange-200 to-red-300 rounded-xl"></div>
-
-        <img
-            src="/people-login.png"
-            alt="people"
-            class="absolute z-10 transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 max-h-full max-w-full object-contain">
+  <div class="auth">
+    <div class="auth__card">
+      <div class="auth__image">
+        <div class="auth__gradient"></div>
+        <img src="/people-login.png" alt="people" />
       </div>
 
-      <div class="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-8">
-        <div class="w-full max-w-md">
-          <div class="p-8 w-full">
-            <h2 class="font-heading text-3xl text-center text-gray-800 mb-8">
-              Регистрация
-            </h2>
+      <div class="auth__content">
+        <h2 class="auth__title">Регистрация</h2>
 
-            <form class="space-y-6">
-              <div>
-                <label class="block text-gray-700 text-sm font-medium mb-2">
-                  Эл. почта*
-                </label>
-                <input
-                    type="email"
-                    placeholder="Введите электронную почту"
-                    required
-                    class="w-full px-4 py-3 bg-linear-to-r from-orange-200 to-red-300 border border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black-500 focus:border-transparent transition duration-200"
-                />
-              </div>
-
-              <div>
-                <label class="block text-gray-700 text-sm font-medium mb-2">
-                  Пароль*
-                </label>
-                <input
-                    type="password"
-                    placeholder="Введите пароль"
-                    required
-                    class="w-full px-4 py-3 bg-linear-to-r from-orange-200 to-red-300 border border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black-500 focus:border-transparent transition duration-200"
-                />
-              </div>
-
-              <div>
-                <label class="block text-gray-700 text-sm font-medium mb-2">
-                  Подтвердите пароль*
-                </label>
-                <input
-                    type="password"
-                    placeholder="Введите пароль"
-                    required
-                    class="w-full px-4 py-3 bg-linear-to-r from-orange-200 to-red-300 border border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black-500 focus:border-transparent transition duration-200"
-                />
-              </div>
-
-              <div class="flex items-center justify-between">
-                <label><input type="checkbox" class="border border-black accent-yellow-200">
-                  Я принимаю условия обработки персональных данных
-                </label>
-              </div>
-
-              <button
-                  type="submit"
-                  class="w-full bg-[#EBCAA3] hover:bg-red-300 font-semibold py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Войти
-              </button>
-
-              <div class="flex items-center justify-center">
-                <p class="text-sm font-medium">
-                  Уже есть аккаунт?
-                </p>
-                <router-link to="authorization"><p class="ml-1 text-sm hover:text-yellow-100 font-medium transition duration-200">
-                  Авторизация
-                </p></router-link>
-              </div>
-            </form>
+        <form class="auth__form">
+          <div class="auth__field">
+            <label>Эл. почта*</label>
+            <input type="email" placeholder="Введите электронную почту" required />
           </div>
-        </div>
+
+          <div class="auth__field">
+            <label>Пароль*</label>
+            <input type="password" placeholder="Введите пароль" required />
+          </div>
+
+          <div class="auth__field">
+            <label>Подтвердите пароль*</label>
+            <input type="password" placeholder="Введите пароль" required />
+          </div>
+
+          <label class="auth__checkbox">
+            <input type="checkbox" class="auth__checkbox-input" />
+            <span class="auth__checkbox-box"></span>
+            <span class="auth__checkbox-text">
+              Я принимаю условия обработки персональных данных
+            </span>
+          </label>
+
+          <button class="auth__btn">Зарегистрироваться</button>
+
+          <div class="auth__bottom">
+            <span>Уже есть аккаунт?</span>
+            <router-link to="/authorization">Авторизация</router-link>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+  @use '/src/assets/styles/variables' as *;
+
+  .auth {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &__card {
+      width: 100%;
+      max-width: 72rem;
+      min-height: 40rem;
+      background: $color-footer-bg;
+      border-radius: $radius-lg;
+      overflow: hidden;
+      display: flex;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+
+    &__image {
+      position: relative;
+      width: 50%;
+      display: none;
+
+      @media (min-width: 1024px) {
+        display: block;
+      }
+
+      img {
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        z-index: 2;
+      }
+    }
+
+    &__gradient {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, $color-shadow-from, $color-shadow-to);
+      z-index: 1;
+      border-radius: $radius-lg;
+    }
+
+    &__content {
+      width: 100%;
+      max-width: 28rem;
+      margin: auto;
+      padding: 3rem 2rem;
+    }
+
+    &__title {
+      font-family: $font-heading;
+      font-size: $text-3xl;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    &__form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    &__field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      label {
+        font-size: $text-sm;
+      }
+
+      input {
+        padding: 1rem 1.25rem;
+        border-radius: $radius-sm;
+        border: 1px solid $color-border;
+        background: $color-input-bg;
+        outline: none;
+
+        &:focus {
+          border-color: $color-text;
+        }
+      }
+    }
+
+    &__checkbox {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: $text-sm;
+      line-height: 1.3;
+      cursor: pointer;
+      user-select: none;
+
+      &-input {
+        display: none;
+      }
+
+      &-box {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 1.5px solid $color-border;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+      }
+
+      &-text {
+        white-space: nowrap;
+      }
+
+      &-input:checked + &-box {
+        background: linear-gradient(135deg, $color-shadow-from, $color-shadow-to);
+        border-color: $color-text;
+
+        &::after {
+          content: '\2713';
+          font-size: 13px;
+          font-weight: 700;
+          color: $color-text;
+        }
+      }
+
+      &:hover &-box {
+        border-color: $color-text;
+      }
+    }
+
+    &__btn {
+      margin-top: 1rem;
+      background: $color-input-bg;
+      padding: 0.75rem;
+      border-radius: $radius-sm;
+      font-size: $text-lg;
+      font-weight: 600;
+      transition: 0.25s;
+
+      &:hover {
+        background: $color-input-bg-dark;
+      }
+    }
+
+    &__bottom {
+      display: flex;
+      justify-content: center;
+      gap: 0.4rem;
+      font-size: $text-sm;
+
+      a {
+        font-weight: 600;
+        transition: 0.2s;
+
+        &:hover {
+          opacity: 0.6;
+        }
+      }
+    }
+  }
+</style>

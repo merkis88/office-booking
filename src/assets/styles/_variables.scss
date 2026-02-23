@@ -1,25 +1,26 @@
-
 // --- Colors ---
-$color-bg:          #B2C1CB;
-$color-text:        #1a1a1a;
-$color-header-bg:   #8B9DAD;
-$color-footer-bg:   #7C8FA0;
+$color-bg: #b2c1cb;
+$color-text: #1a1a1a;
+$color-input-bg: #d1dfe8;
+$color-input-bg-dark: #b8c5d5;
+$color-header-bg: #8b9dad;
+$color-footer-bg: #7c8fa0;
 $color-footer-text: #1a1a1a;
-$color-card-bg:     #d4d4d8;
-$color-border:      #000000;
+$color-card-bg: #d4d4d8;
+$color-border: #000000;
 $color-shadow-from: #fed7aa;
-$color-shadow-to:   #fca5a5;
+$color-shadow-to: #fca5a5;
 
 // --- Typography ---
-$font-base:    'Inter', sans-serif;
+$font-base: 'Inter', sans-serif;
 $font-heading: 'Unbounded', serif;
 
-$text-sm:   0.875rem;
+$text-sm: 0.875rem;
 $text-base: 1rem;
-$text-lg:   1.125rem;
-$text-xl:   1.25rem;
-$text-2xl:  1.5rem;
-$text-3xl:  1.875rem;
+$text-lg: 1.125rem;
+$text-xl: 1.25rem;
+$text-2xl: 1.5rem;
+$text-3xl: 1.875rem;
 
 // --- Spacing ---
 $gap-xs: 0.5rem;
@@ -43,13 +44,13 @@ $header-pad-y: 2.25rem;
 $footer-pad-y: 3.75rem;
 
 // --- Cards ---
-$card-size:   20rem;
+$card-size: 20rem;
 $card-radius: 0.75rem;
 $card-offset: 0.875rem;
 
 // --- Map ---
 $map-height: 36.25rem;
-$map-min-w:  42rem;
+$map-min-w: 42rem;
 
 // --- Radius ---
 $radius-sm: 0.75rem;
