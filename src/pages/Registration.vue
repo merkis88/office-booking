@@ -1,5 +1,5 @@
 <script setup>
-  import { ref } from 'vue';
+  import router from '@/router/index.js';
 </script>
 
 <template>
@@ -14,6 +14,21 @@
         <h2 class="auth__title">Регистрация</h2>
 
         <form class="auth__form">
+          <div class="auth__field">
+            <label>Эл. почта*</label>
+            <input type="text" placeholder="Введите имя" required />
+          </div>
+
+          <div class="auth__field">
+            <label>Эл. почта*</label>
+            <input type="text" placeholder="Введите фамилию" required />
+          </div>
+
+          <div class="auth__field">
+            <label>Эл. почта*</label>
+            <input type="text" placeholder="Введите отчество" required />
+          </div>
+
           <div class="auth__field">
             <label>Эл. почта*</label>
             <input type="email" placeholder="Введите электронную почту" required />
@@ -37,11 +52,17 @@
             </span>
           </label>
 
+          <div class="auth__info">
+            <span class="auth__info-text">
+              Нажимая на кнопку “Зарегистрироваться”, я соглашаюсь с условиями
+              <router-link to="/authorization">Политики конфиденциальности</router-link>
+            </span>
+          </div>
+
           <button class="auth__btn">Зарегистрироваться</button>
 
           <div class="auth__bottom">
-            <span>Уже есть аккаунт?</span>
-            <router-link to="/authorization">Авторизация</router-link>
+            <router-link to="/authorization">Уже есть аккаунт? Авторизация</router-link>
           </div>
         </form>
       </div>
@@ -50,9 +71,11 @@
 </template>
 
 <style lang="scss" scoped>
-  @use '/src/assets/styles/variables' as *;
+  @use '@/assets/styles/variables' as *;
+  @use '@/assets/styles/mixins' as *;
 
   .auth {
+    margin: 150px 0;
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -105,7 +128,8 @@
     }
 
     &__title {
-      font-family: $font-heading;
+      font-family: $font-title;
+      font-weight: normal;
       font-size: $text-3xl;
       text-align: center;
       margin-bottom: 2rem;
@@ -186,13 +210,20 @@
       }
     }
 
+    &__info {
+      text-align: center;
+
+      &-text {
+        font-size: $text-sm;
+      }
+    }
+
     &__btn {
       margin-top: 1rem;
       background: $color-input-bg;
       padding: 0.75rem;
       border-radius: $radius-sm;
       font-size: $text-lg;
-      font-weight: 600;
       transition: 0.25s;
 
       &:hover {
@@ -207,7 +238,6 @@
       font-size: $text-sm;
 
       a {
-        font-weight: 600;
         transition: 0.2s;
 
         &:hover {
