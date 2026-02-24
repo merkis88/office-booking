@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Parking_place;
 use App\Models\User;
 use App\Models\Role;
-use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Service;
 use App\Models\Booking;
@@ -18,11 +17,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $roleAdmin = Role::create(['role_name' => 'admin']);
-        $roleManager = Role::create(['role_name' => 'manager']);
         $roleUser = Role::create(['role_name' => 'user']);
-        $org = Organization::create([
-            'name' => 'Operating point',
-        ]);
 
         $admin = User::create([
             'role_id' => $roleAdmin->id,
@@ -73,7 +68,6 @@ class DatabaseSeeder extends Seeder
             'place_id' => $place->id,
             'created_by' => $user->id,
             'user_id' => $user->id,
-            'organization_id' => $org->id,
             'price' => 1000,
             'start_time' => now()->addDay()->setHour(10)->setMinute(0),
             'end_time' => now()->addDay()->setHour(12)->setMinute(0),

@@ -33,7 +33,7 @@ class RegisterHandler
                'photo' => $dto->photo,
                'post' => $dto->post,
                'company' => $dto->company,
-               'role_id' => $dto->role_id ?? 3,
+               'role_id' => $dto->role_id ?? 2,
                'is_verified' => false,
            ]);
            $this->sendVerificationHandler->handle($user);

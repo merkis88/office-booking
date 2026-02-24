@@ -14,7 +14,6 @@ class Booking extends Model
     protected $fillable = [
         'place_id',
         'created_by',
-        'organization_id',
         'user_id',
         'guest_name',
         'parking_place_id',
@@ -45,10 +44,6 @@ class Booking extends Model
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-    public function organization()
-    {
-        return $this->belongsTo(Organization::class, 'organization_id', 'id');
-    }
 
     public function parkingPlace()
     {

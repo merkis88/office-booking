@@ -17,4 +17,13 @@ class Role extends Model
     {
         return $this->hasMany(User::class, 'role_id');
     }
+    public function isAdmin(): bool
+    {
+        return $this->role_name === 'admin';
+    }
+
+    public function isUser(): bool
+    {
+        return $this->role_name === 'user';
+    }
 }
