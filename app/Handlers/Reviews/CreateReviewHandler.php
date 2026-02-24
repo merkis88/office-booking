@@ -14,19 +14,23 @@ class CreateReviewHandler
      * @param CreateReviewDTO $dto
      * @return Review
      */
-    public function handle(CreateReviewDTO $dto): Review
+    public function handle(CreateReviewDTO $dto, User $user): Review
     {
+        if (!$user->hasVerifiedEmail()) {
+            throw ValidationException::withMessages([
+                'email' => ['Необходимо подтвердить email для создания отзыва']
+            ]);
+        }
         if($dto->rating < 1) {
             throw ValidationException::withMessages([
                 'rating' => ['Выберите больше 0 звезд']
             ]);
         }
 
-        $user = User::findOrFail($dto->user_id);
         return Review::create([
             'text' => $dto->text,
             'rating' => $dto->rating,
-            'user_id' => $dto->user_id,
+            'user_id' => $user->id,
         ]);
     }
 }

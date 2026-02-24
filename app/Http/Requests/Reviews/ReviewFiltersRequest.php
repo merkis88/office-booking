@@ -23,7 +23,7 @@ class ReviewFiltersRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'rating' => 'required|integer|in:1,2,3,4,5',
+            'rating' => 'nullable|integer|in:1,2,3,4,5',
             'sort_by' => 'nullable|string|in:created_at,rating',
             'sort_direction' => 'nullable|string|in:asc,desc',
         ];

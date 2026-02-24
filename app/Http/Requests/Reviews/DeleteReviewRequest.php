@@ -5,7 +5,7 @@ namespace App\Http\Requests\Reviews;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
 
-class UpdateReviewRequest extends FormRequest
+class DeleteReviewRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -15,11 +15,11 @@ class UpdateReviewRequest extends FormRequest
         $user = $this->user();
         $review = $this->route('review');
 
-        if(!$user || !$review) return false;
-        if($user->role->role_name === 'admin') return true;
+        if (!$user || !$review) return false;
+        if ($user->role->role_name === 'admin') return true;
         if ($user->id !== $review->user_id) {
             throw ValidationException::withMessages([
-                'error' => ['Вы не можете редактировать чужой отзыв']
+                'error' => ['Вы не можете удалить чужой отзыв']
             ]);
         }
 
@@ -34,14 +34,7 @@ class UpdateReviewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'text' => 'sometimes|min:16|max:1000',
-            'rating' => 'sometimes|integer|in:1,2,3,4,5',
-        ];
-    }
-    public function messages(): array
-    {
-        return [
-            'rating.in' => 'Выберите от 1 до 5 звёзд',
+            //
         ];
     }
 }
