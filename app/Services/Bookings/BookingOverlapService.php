@@ -12,7 +12,7 @@ final class BookingOverlapService
     {
         $query = Booking::query()
             ->where('place_id', $placeId)
-            ->whereIn('status', ['pending', 'approved'])
+            ->whereIn('status', ['active'])
             ->where('start_time', '<', $endTime)
             ->where('end_time', '>', $startTime);
 

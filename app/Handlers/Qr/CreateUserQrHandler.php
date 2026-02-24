@@ -9,7 +9,7 @@ use App\Services\Qr\QrHashService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-final class CreateOrGetUserQrHandler
+final class CreateUserQrHandler
 {
     public function __construct(private readonly QrHashService $hashService) {}
 
@@ -20,6 +20,7 @@ final class CreateOrGetUserQrHandler
     public function handle(Booking $booking, User $user, ?int $timeWindow = null): Qr
     {
         $this->assertQrAllowed($booking);
+        $this->assertCanUseBooking($booking, $user);
 
         $window = $timeWindow ?? $this->currentWindow();
 
@@ -64,11 +65,21 @@ final class CreateOrGetUserQrHandler
         return intdiv(now()->timestamp, $this->windowSeconds);
     }
 
+    private function assertCanUseBooking(Booking $booking, User $user): void
+    {
+        $isOwner = $booking->user_id !== null && (int)$booking->user_id === (int)$user->id;
+        $isCreator = (int)$booking->created_by === (int)$user->id;
+
+        if (!($isOwner || $isCreator)) {
+            abort(403, 'Нет доступа к этому бронированию');
+        }
+    }
+
     private function assertQrAllowed(Booking $booking): void
     {
-        if ($booking->status !== 'approved') {
+        if ($booking->status !== 'active') {
             throw ValidationException::withMessages([
-                'status' => ['QR доступен только для подтверждённых бронирований'],
+                'status' => ['QR доступен только для активных бронирований'],
             ]);
         }
 

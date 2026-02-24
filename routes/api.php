@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AdminPlaceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Booking\BookingController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\Qr\QrController;
 
 
 use App\Http\Controllers\Api\PlaceController;
@@ -61,6 +62,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings/{booking}/extend', [BookingController::class, 'extendBooking']); // merk
     Route::post('/bookings/{booking}/reschedule', [BookingController::class, 'rescheduleBooking']); // merk
 
+    // Qr
+    Route::post('/qr/{booking}/guest-qr', [QrController::class, 'createGuestQr']); // merk
+    Route::post('/qr/{booking}/user-qr', [QrController::class, 'createUserQr']); // merk
+
 
     //Places
     Route::get('/places', [PlaceController::class, 'index']);// Osip
@@ -69,10 +74,10 @@ Route::middleware('auth:sanctum')->group(function () {
    // Admin
     Route::middleware('is_admin')->prefix('admin')->group(function () {
 
-        Route::apiResource('users', UserController::class);// Osip
-        Route::get('/bookings', [AdminBookingController::class, 'index']);
-        Route::get('/bookings/export', [AdminBookingController::class, 'export']);
-        Route::post('/bookings/{booking}/approve', [AdminBookingController::class, 'approve']);
+        Route::apiResource('users', UserController::class);
+        Route::get('/bookings', [AdminBookingController::class, 'index']); // merk
+        Route::get('/bookings/export', [AdminBookingController::class, 'export']); // merk
+
 
         //Places admin
         Route::get('/places', [AdminPlaceController::class, 'index']);// Osip
@@ -86,5 +91,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/places/{place}/restore', [AdminPlaceController::class, 'restore']);// Osip
         Route::get('/places/{place}/archive-status', [AdminPlaceController::class, 'archiveStatus']);// Osip
 
+        Route::apiResource('users', UserController::class); // merk
+        Route::get('/bookings', [AdminBookingController::class, 'index']); // merk
+        Route::get('/bookings/export', [AdminBookingController::class, 'export']); // merk
     });
 });
