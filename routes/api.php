@@ -73,7 +73,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
    // Admin
     Route::middleware('is_admin')->prefix('admin')->group(function () {
-
         Route::apiResource('users', UserController::class);
         Route::get('/bookings', [AdminBookingController::class, 'index']); // merk
         Route::get('/bookings/export', [AdminBookingController::class, 'export']); // merk
