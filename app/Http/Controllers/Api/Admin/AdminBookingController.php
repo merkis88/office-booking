@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Handlers\Bookings\AdminApproveBookingHandler;
 use App\Handlers\Bookings\AdminExportBookingsHandler;
 use App\Handlers\Bookings\AdminListBookingsHandler;
 use App\Http\Controllers\Controller;
@@ -18,13 +17,6 @@ class AdminBookingController extends Controller
         $result = $handler->handle($request->toDTO());
 
         return response()->json($result, 200);
-    }
-
-    public function approve(Booking $booking, AdminApproveBookingHandler $handler): JsonResponse
-    {
-        $approve = $handler->handle($booking);
-
-        return response()->json(['data' => $approve], 200);
     }
 
     public function export(AdminBookingsRequest $request, AdminExportBookingsHandler $handler, AdminListBookingsHandler $listHandler): StreamedResponse

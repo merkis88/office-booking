@@ -9,15 +9,19 @@ use App\Handlers\Bookings\ExtendBookingHandler;
 use App\Handlers\Bookings\MyBookingHandler;
 use App\Handlers\Bookings\RescheduleBookingHandler;
 use App\Handlers\Bookings\ShowBookingHandler;
+use App\Handlers\Qr\CreateGuestQrHandler;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Bookings\CreateGuestBookingRequest;
 use App\Http\Requests\Bookings\ExtendBookingRequest;
 use App\Http\Requests\Bookings\MyBookingsRequest;
 use App\Http\Requests\Bookings\RescheduleBookingRequest;
 use App\Http\Requests\Bookings\StoreBookingRequest;
+use App\Http\Requests\Qr\CreateGuestQrRequest;
 use App\Models\Booking;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\DTO\Qr\CreateGuestQrDTO;
+
 
 
 class BookingController extends Controller
@@ -70,5 +74,7 @@ class BookingController extends Controller
 
         return response()->json(['data' => $updated], 200);
     }
+
+
 
 }

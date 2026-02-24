@@ -21,6 +21,10 @@ return new class extends Migration
             $table->decimal('price', 10, 2)->default(0);
             $table->integer('number_place');
             $table->boolean('is_active')->default(true);
+            $table->dateTime('booking_start_time')->nullable();
+            $table->dateTime('booking_end_time')->nullable();
+            $table->smallInteger('cleanup_minutes')->nullable();
+            $table->smallInteger('slot_step_minutes')->nullable();
             $table->timestamps();
         });
     }

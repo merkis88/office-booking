@@ -19,7 +19,6 @@ class Booking extends Model
         'parking_place_id',
         'start_time',
         'end_time',
-        'status',
         'pass_type',
         'price',
     ];

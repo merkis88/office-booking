@@ -71,7 +71,6 @@ class DatabaseSeeder extends Seeder
             'price' => 1000,
             'start_time' => now()->addDay()->setHour(10)->setMinute(0),
             'end_time' => now()->addDay()->setHour(12)->setMinute(0),
-            'status' => 'approved',
             'pass_type' => 'qr',
         ]);
 
