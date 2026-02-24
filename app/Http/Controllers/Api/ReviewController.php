@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reviews\CreateReviewRequest;
+use App\Http\Requests\Reviews\DeleteReviewRequest;
 use App\Http\Requests\Reviews\ReviewFiltersRequest;
 use App\Http\Requests\Reviews\UpdateReviewRequest;
 use App\Handlers\Reviews\CreateReviewHandler;
@@ -45,7 +46,7 @@ class ReviewController extends Controller
     {
         try {
             $dto = CreateReviewDTO::fromRequest($request->validated());
-            $review = $this->createReviewHandler->handle($dto);
+            $review = $this->createReviewHandler->handle($dto, $request->user());
 
             return response()->json([
                 'success' => true,
@@ -82,7 +83,7 @@ class ReviewController extends Controller
             ],422);
         }
     }
-    public function destroy(Review $review)
+    public function destroy(DeleteReviewRequest $request,Review $review)
     {
         $this->deleteReviewHandler->handle($review);
 

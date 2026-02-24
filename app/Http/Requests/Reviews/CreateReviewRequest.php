@@ -11,7 +11,7 @@ class CreateReviewRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return true && $this->user()->hasVerifiedEmail();
     }
 
     /**
@@ -24,7 +24,6 @@ class CreateReviewRequest extends FormRequest
         return [
             'text' => 'required|string|min:16|max:1000',
             'rating' => 'required|integer|between:1,5',
-            'user_id' => 'required|exists:users,id'
         ];
     }
     public function messages(): array
@@ -35,8 +34,7 @@ class CreateReviewRequest extends FormRequest
             'text.max' => 'Отзыв не должен превышать 1000 символов',
             'rating.required' => 'Выберите рейтинг звёздами',
             'rating.between' => 'Выберите от 1 до 5 звёзд',
-            'user_id.required' => 'Пользователь не указан',
-            'user_id.exists' => 'Пользователь не найден',
+
         ];
     }
 }
