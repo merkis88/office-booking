@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\ResendVerificationRequest;
+use App\Http\Requests\Auth\VerifyEmailRequest;
 use App\Http\Requests\ResetPassword\PasswordResetRequest;
 use App\Http\Requests\ResetPassword\PasswordForgotRequest;
 use App\Http\Requests\ResetPassword\ValidateResetRequest;
@@ -12,6 +14,8 @@ use App\Handlers\Auth\LoginHandler;
 use App\Handlers\Auth\RegisterHandler;
 use App\Handlers\Auth\LogoutHandler;
 use App\Handlers\Auth\PasswordResetHandler;
+use App\Handlers\Auth\VerifyEmailHandler;
+use App\Handlers\Auth\SendVerificationHandler;
 use App\DTO\Auth\LoginDTO;
 use App\DTO\Auth\RegisterDTO;
 use App\DTO\Auth\PasswordResetDTO;
@@ -20,6 +24,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -28,6 +33,8 @@ class AuthController extends Controller
         private RegisterHandler $registerHandler,
         private LogoutHandler $logoutHandler,
         private PasswordResetHandler $passwordResetHandler,
+        private VerifyEmailHandler $verifyEmailHandler,
+        private SendVerificationHandler $sendVerificationHandler,
     )
     {
 
@@ -41,8 +48,47 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Регистрация прошла успешно!',
             'user' => new AuthResource($result['user']),
-            'token' => $result['token'],
         ],201);
+    }
+    public function verifyEmail(VerifyEmailRequest $request)
+    {
+        try {
+            $dto = $request->toDTO();
+            $user = $this->verifyEmailHandler->handle($dto);
+
+            $token = $user->createToken('auth-token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Email успешно подтвержден',
+                'user' => new AuthResource($user),
+                'token' => $token,
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка подтверждения',
+                'errors' => $e->errors()
+            ], 422);
+        }
+    }
+    public function resendVerification(ResendVerificationRequest $request)
+    {
+        try {
+            $dto = $request->toDTO();
+            $user = $this->sendVerificationHandler->resend($dto->email);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Код подтверждения отправлен повторно',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
     public function login(LoginRequest $request)
@@ -118,10 +164,12 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json(['valid' => false]);
         }
+        $hashedToken = hash('sha256', $validated['token']);
+
 
         $exists = DB::table('password_reset_tokens')
             ->where('email', $validated['email'])
-            ->where('token', hash('sha256', $validated['token']))
+            ->where('token',$hashedToken)
             ->exists();
 
         return response()->json(['valid' => $exists]);

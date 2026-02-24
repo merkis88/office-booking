@@ -54,12 +54,17 @@ class PasswordResetController extends Controller
     {
         $validated = $request->validated();
 
-        $user = User::where('email', $validated['email'])->first();
 
-        if(!$user) {
-            return response()->json(['valid'=>false]);
+        $broker = Password::broker();
+
+        $user = $broker->getUser(['email' => $validated['email']]);
+
+        if (!$user) {
+            return response()->json(['valid' => false]);
         }
-        $exists = DB::table('password_reset_tokens')->where('email', $validated['email'])->where('token', hash('sha256', $validated['token']))->exists();
-        return response()->json(['valid'=>$exists]);
+
+        $valid = $broker->tokenExists($user, $validated['token']);
+
+        return response()->json(['valid' => $valid]);
     }
 }

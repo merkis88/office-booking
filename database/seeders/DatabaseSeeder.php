@@ -38,6 +38,7 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
             'post' => 'Backend Developer',
             'company' => 'My Company',
+            'is_verified' => false,
         ]);
 
         $place = Place::create([

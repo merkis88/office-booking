@@ -26,7 +26,6 @@ final class CreateBookingHandler
             $booking = Booking::query()->create([
                 'place_id' => $dto->placeId,
                 'created_by' => $actor->id,
-                'organization_id' => null,
                 'user_id' => $userId,
                 'guest_name' => $guestName,
                 'start_time' => $dto->startTime,

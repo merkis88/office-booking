@@ -12,6 +12,12 @@ class AdminUpdatePlaceHandler
     const PHOTO_DIRECTORY = 'public/places';
     public function handle(Place $place, UpdatePlaceDTO $dto, ?UploadedFile $newPhoto = null, bool $removePhoto = false): Place
     {
+        if (!$place->is_active) {
+            throw ValidationException::withMessages([
+                'place' => ['Нельзя обновлять помещение, находящееся в архиве']
+            ]);
+        }
+
         $data = array_filter($dto->toArray(), fn ($value) => $value !== null);
 
         if ($newPhoto) {

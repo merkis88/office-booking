@@ -43,10 +43,6 @@ class Booking extends Model
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-    public function organization()
-    {
-        return $this->belongsTo(Organization::class, 'organization_id', 'id');
-    }
 
     public function parkingPlace()
     {

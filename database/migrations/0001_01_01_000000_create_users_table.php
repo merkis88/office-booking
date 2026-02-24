@@ -23,6 +23,9 @@ return new class extends Migration
             $table->string('photo')->nullable();
             $table->string('post')->nullable();
             $table->string('company')->nullable();
+            $table->boolean('is_verified')->default(false);
+            $table->string('verification_code')->nullable();
+            $table->timestamp('verification_code_expires_at')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
