@@ -2,6 +2,7 @@
   import router from '@/router/index.js';
   import { ref } from 'vue';
   import { useAuthStore } from '@/store/auth';
+  import EmailVerificationModal from '@/components/modals/EmailVerificationModal.vue';
 
   const authStore = useAuthStore();
 
@@ -17,13 +18,13 @@
 
   const errorMessage = ref('');
   const isLoading = ref(false);
+  const showVerificationModal = ref(false);
 
   function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   }
 
-  // Функция регистрации
   async function handleRegister(event) {
     event.preventDefault();
     errorMessage.value = '';
@@ -83,24 +84,35 @@
         registrationData.patronymic = patronymic.value.trim();
       }
 
-      await authStore.register(registrationData);
+      const result = await authStore.register(registrationData);
 
-      router.push('/');
+      if (result.success) {
+        showVerificationModal.value = true;
+      }
     } catch (error) {
       console.error('Ошибка регистрации:', error);
 
-       if (error.response?.data?.message) {
-        errorMessage.value = error.response.data.message;
-      } else if (error.response?.data?.errors) {
+      if (error.response?.data?.errors) {
         const errors = error.response.data.errors;
         const firstError = Object.values(errors)[0];
         errorMessage.value = Array.isArray(firstError) ? firstError[0] : firstError;
+      } else if (error.response?.data?.message) {
+        errorMessage.value = error.response.data.message;
       } else {
         errorMessage.value = 'Произошла ошибка при регистрации. Попробуйте снова.';
       }
     } finally {
       isLoading.value = false;
     }
+  }
+
+  function handleVerified() {
+    showVerificationModal.value = false;
+    router.push('/');
+  }
+
+  function handleModalClose() {
+    showVerificationModal.value = false;
   }
 </script>
 
@@ -223,7 +235,7 @@
           <div class="auth__info">
             <span class="auth__info-text">
               Нажимая на кнопку "Зарегистрироваться", я соглашаюсь с условиями
-              <router-link to="/authorization">Политики конфиденциальности</router-link>
+              <router-link to="/privacy-policy">Политики конфиденциальности</router-link>
             </span>
           </div>
 
@@ -237,6 +249,12 @@
         </form>
       </div>
     </div>
+    <EmailVerificationModal
+      v-model="showVerificationModal"
+      :email="email"
+      @verified="handleVerified"
+      @close="handleModalClose"
+    />
   </div>
 </template>
 
