@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Requests\ResetPassword;
+namespace App\Http\Requests\Auth;
 
+use App\DTO\Auth\ForgotPasswordDTO;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ValidateResetRequest extends FormRequest
+class ForgotPasswordRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,14 +23,21 @@ class ValidateResetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'token' => 'required|string',
             'email' => 'required|email|exists:users,email',
         ];
     }
     public function messages(): array
     {
         return [
+            'email.required' => 'Email обязателен',
+            'email.email' => 'Неверный формат email',
             'email.exists' => 'Пользователь с таким email не найден',
         ];
+    }
+    public function toDTO(): ForgotPasswordDTO
+    {
+        return new ForgotPasswordDTO(
+            email: $this->input('email'),
+        );
     }
 }
