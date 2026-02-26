@@ -2,23 +2,21 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTO\Auth\ForgotPasswordDTO;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResendVerificationRequest;
 use App\Http\Requests\Auth\VerifyEmailRequest;
-use App\Http\Requests\ResetPassword\PasswordResetRequest;
-use App\Http\Requests\ResetPassword\PasswordForgotRequest;
-use App\Http\Requests\ResetPassword\ValidateResetRequest;
 use App\Handlers\Auth\LoginHandler;
 use App\Handlers\Auth\RegisterHandler;
 use App\Handlers\Auth\LogoutHandler;
-use App\Handlers\Auth\PasswordResetHandler;
 use App\Handlers\Auth\VerifyEmailHandler;
 use App\Handlers\Auth\SendVerificationHandler;
+use App\Handlers\Auth\SendTemporaryPasswordHandler;
 use App\DTO\Auth\LoginDTO;
 use App\DTO\Auth\RegisterDTO;
-use App\DTO\Auth\PasswordResetDTO;
 use App\Http\Resources\AuthResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
@@ -32,9 +30,9 @@ class AuthController extends Controller
         private LoginHandler $loginHandler,
         private RegisterHandler $registerHandler,
         private LogoutHandler $logoutHandler,
-        private PasswordResetHandler $passwordResetHandler,
         private VerifyEmailHandler $verifyEmailHandler,
         private SendVerificationHandler $sendVerificationHandler,
+        private SendTemporaryPasswordHandler $sendTemporaryPasswordHandler,
     )
     {
 
@@ -128,52 +126,28 @@ class AuthController extends Controller
         ]);
     }
 
-    public function forgotPassword(PasswordForgotRequest $request)
+    public function forgotPassword(ForgotPasswordRequest $request)
     {
-        $request->validated();
-
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
-        return response()->json([
-            'message' => 'Если email зарегистрирован , на него будет отправлена ссылка для сброса пароля'
-        ]);
-
-    }
-
-    public function resetPassword(PasswordResetRequest $request){
-        $dto = PasswordResetDTO::fromRequest($request->validated());
-        $status = $this->passwordResetHandler->handle($dto);
-
-        if($status == Password::PASSWORD_RESET){
+        try{
+            $this->sendTemporaryPasswordHandler->handle($request->toDTO());
             return response()->json([
                 'success' => true,
-                'message' => 'пароль успешно изменен'
+                'message' => 'Временный пароль отправлен на вашу почту'
             ]);
+        }catch (ValidationException $e){
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка',
+                'errors' => $e->errors()
+            ],422);
+        }catch(\Exception $e){
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка при отправке'
+            ],500);
         }
-        return response()->json([
-            'message' => 'Неверный токен или срок его действия истек'
-        ],422);
     }
 
-    public function checkToken(ValidateResetRequest $request)
-    {
-        $validated = $request->validated();
-        $user = User::where('email', $validated['email'])->first();
-
-        if (!$user) {
-            return response()->json(['valid' => false]);
-        }
-        $hashedToken = hash('sha256', $validated['token']);
-
-
-        $exists = DB::table('password_reset_tokens')
-            ->where('email', $validated['email'])
-            ->where('token',$hashedToken)
-            ->exists();
-
-        return response()->json(['valid' => $exists]);
-    }
 
 }
 

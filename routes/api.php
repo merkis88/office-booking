@@ -23,10 +23,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-// Восстановление пароля
-Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword'])->name('password.email');// Osip
-Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');// Osip
-Route::post('/validate-reset-token', [PasswordResetController::class, 'checkToken'])->name('password.validate');// Osip
+//восстановление пароля
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 
 // Аутентификация
 Route::post('/register', [AuthController::class, 'register']);// Osip

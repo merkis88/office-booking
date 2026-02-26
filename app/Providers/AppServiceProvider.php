@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Handlers\Auth\SendTemporaryPasswordHandler;
 use App\Handlers\Auth\SendVerificationHandler;
 use App\Handlers\Auth\VerifyEmailHandler;
 use App\Handlers\Places\AdminArchivePlaceHandler;
@@ -30,7 +31,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(LoginHandler::class);
         $this->app->singleton(RegisterHandler::class);
         $this->app->singleton(LogoutHandler::class);
-        $this->app->singleton(PasswordResetHandler::class);
         $this->app->singleton(CreateUserHandler::class);
         $this->app->singleton(UpdateUserHandler::class);
         $this->app->singleton(UpdatePasswordHandler::class);
@@ -43,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(AdminArchivePlaceHandler::class);
         $this->app->singleton(SendVerificationHandler::class);
         $this->app->singleton(VerifyEmailHandler::class);
+        $this->app->singleton(SendTemporaryPasswordHandler::class);
     }
 
     /**
