@@ -78,6 +78,19 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async forgotPassword(email) {
+      try {
+        const { data } = await axios.post('/api/forgot-password', {
+          email
+        });
+
+        return data;
+      } catch (error) {
+        console.error('Ошибка отправки временного пароля:', error);
+        throw error;
+      }
+    },
+
     async logout() {
       try {
         await axios.post('/api/logout');

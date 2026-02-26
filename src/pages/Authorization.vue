@@ -3,6 +3,7 @@
   import { useRouter } from 'vue-router';
   import { useAuthStore } from '@/store/auth';
   import EmailVerificationModal from '@/components/modals/EmailVerificationModal.vue';
+  import ForgotPasswordModal from '@/components/modals/ForgotPasswordModal.vue';
 
   const router = useRouter();
   const authStore = useAuthStore();
@@ -14,6 +15,7 @@
   const showPassword = ref(false);
 
   const showVerificationModal = ref(false);
+  const showForgotPasswordModal = ref(false);
 
   async function handleLogin() {
     error.value = '';
@@ -27,6 +29,14 @@
     } finally {
       loading.value = false;
     }
+  }
+
+  function openVerificationModal() {
+    showVerificationModal.value = true;
+  }
+
+  function openForgotPasswordModal() {
+    showForgotPasswordModal.value = true;
   }
 
   function handleVerified() {
@@ -76,22 +86,34 @@
             </div>
             <p v-if="error" class="auth__error">{{ error }}</p>
           </div>
+
           <div class="auth__links">
-            <a href="#">Забыли пароль?</a>
+            <button type="button" @click="openForgotPasswordModal">Забыли пароль?</button>
             <router-link to="/registration">Зарегистрироваться</router-link>
           </div>
 
-          <button class="auth__btn" :disabled="loading">
+          <button type="submit" class="auth__btn auth__btn--primary" :disabled="loading">
             {{ loading ? 'Вход...' : 'Войти' }}
           </button>
         </form>
+
+        <button type="button" class="auth__btn auth__btn--secondary" @click="openVerificationModal">
+          Подтвердить аккаунт
+        </button>
       </div>
     </div>
+
+    <EmailVerificationModal
+      v-model="showVerificationModal"
+      :initial-email="email"
+      @verified="handleVerified"
+      @close="handleModalClose"
+    />
   </div>
-  <EmailVerificationModal
-    v-model="showVerificationModal"
+
+  <ForgotPasswordModal
+    v-model="showForgotPasswordModal"
     :initial-email="email"
-    @verified="handleVerified"
     @close="handleModalClose"
   />
 </template>
@@ -104,6 +126,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 2rem 1rem;
 
     &__card {
       width: 100%;
@@ -149,6 +172,9 @@
       max-width: 28rem;
       margin: auto;
       padding: 3rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
 
     &__title {
@@ -170,7 +196,8 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      min-width: 30rem;
+      width: 100%;
+      max-width: 30rem;
 
       label {
         font-size: $text-sm;
@@ -216,7 +243,7 @@
         opacity: 0.6;
       }
 
-      svg {
+      img {
         width: 1.25rem;
         height: 1.25rem;
       }
@@ -233,7 +260,7 @@
       display: flex;
       justify-content: space-between;
       width: 100%;
-      min-width: 30rem;
+      max-width: 30rem;
       font-size: $text-sm;
       padding: 0 0.8rem;
 
@@ -248,14 +275,50 @@
 
     &__btn {
       background: $color-input-bg;
-      padding: 0.75rem 6rem;
       border-radius: $radius-sm;
       font-size: $text-lg;
       transition: 0.25s;
       border: solid 1px $color-border;
+      cursor: pointer;
+      padding: 0.8rem 2rem;
+      width: auto;
+      min-width: 15rem;
 
-      &:hover {
+      &:hover:not(:disabled) {
         background: $color-input-bg-dark;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      &--secondary {
+        margin-top: 0.5rem;
+
+        &:hover {
+          background: rgba($color-input-bg, 0.3);
+        }
+      }
+
+      @media (max-width: 768px) {
+        min-width: auto;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      &__field {
+        max-width: 100%;
+      }
+
+      &__links {
+        max-width: 100%;
+      }
+
+      &__btn {
+        padding: 0.75rem 2rem;
+        width: 100%;
       }
     }
   }

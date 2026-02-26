@@ -27,8 +27,8 @@
   const emit = defineEmits(['update:modelValue', 'close']);
 
   function closeModal() {
-      emit('update:modelValue', false);
-      emit('close');
+    emit('update:modelValue', false);
+    emit('close');
   }
 
   function handleBackdropClick() {
@@ -69,12 +69,10 @@
             <h3 v-if="title" class="modal-title">{{ title }}</h3>
           </div>
 
-          <!-- Контент модалки (слот) -->
           <div class="modal-body">
             <slot />
           </div>
 
-          <!-- Футер модалки (слот) -->
           <div v-if="$slots.footer" class="modal-footer">
             <slot name="footer" />
           </div>
@@ -115,10 +113,13 @@
     display: flex;
     align-items: center;
     padding: 1.5rem 1rem;
-    justify-content: space-around;
+    position: relative;
+    justify-content: center;
   }
 
   .modal-back {
+    position: absolute;
+    left: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -128,6 +129,10 @@
     transition: all 0.2s;
     color: $color-text;
     border: 1px solid #292d32;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
   }
 
   .modal-back:hover {
