@@ -27,10 +27,8 @@
   const emit = defineEmits(['update:modelValue', 'close']);
 
   function closeModal() {
-    if (props.closeOnBackdrop) {
       emit('update:modelValue', false);
       emit('close');
-    }
   }
 
   function handleBackdropClick() {
@@ -59,7 +57,6 @@
     <Transition name="modal">
       <div v-if="modelValue" class="modal-overlay" @click.self="handleBackdropClick">
         <div class="modal-container" :style="{ maxWidth: maxWidth }">
-
           <div class="modal-header">
             <button
               v-if="showCloseButton"
@@ -67,7 +64,7 @@
               @click="closeModal"
               aria-label="Назад"
             >
-              <img src="/arrow.svg" alt="">
+              <img src="/arrow.svg" alt="" />
             </button>
             <h3 v-if="title" class="modal-title">{{ title }}</h3>
           </div>
@@ -131,7 +128,6 @@
     transition: all 0.2s;
     color: $color-text;
     border: 1px solid #292d32;
-
   }
 
   .modal-back:hover {
@@ -147,7 +143,7 @@
   }
 
   .modal-body {
-    padding:1.5rem;
+    padding: 1.5rem;
   }
 
   .modal-footer {

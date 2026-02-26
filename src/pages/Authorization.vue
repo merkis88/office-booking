@@ -2,6 +2,7 @@
   import { ref } from 'vue';
   import { useRouter } from 'vue-router';
   import { useAuthStore } from '@/store/auth';
+  import EmailVerificationModal from '@/components/modals/EmailVerificationModal.vue';
 
   const router = useRouter();
   const authStore = useAuthStore();
@@ -11,6 +12,8 @@
   const error = ref('');
   const loading = ref(false);
   const showPassword = ref(false);
+
+  const showVerificationModal = ref(false);
 
   async function handleLogin() {
     error.value = '';
@@ -24,6 +27,15 @@
     } finally {
       loading.value = false;
     }
+  }
+
+  function handleVerified() {
+    showVerificationModal.value = false;
+    router.push('/');
+  }
+
+  function handleModalClose() {
+    showVerificationModal.value = false;
   }
 </script>
 
@@ -76,6 +88,12 @@
       </div>
     </div>
   </div>
+  <EmailVerificationModal
+    v-model="showVerificationModal"
+    :initial-email="email"
+    @verified="handleVerified"
+    @close="handleModalClose"
+  />
 </template>
 
 <style lang="scss" scoped>

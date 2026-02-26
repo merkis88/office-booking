@@ -10,15 +10,15 @@
       type: Boolean,
       default: false,
     },
-    email: {
+    initialEmail: {
       type: String,
-      required: true,
+      default: '',
     },
   });
 
   const emit = defineEmits(['update:modelValue', 'verified', 'close']);
 
-  // Состояния
+  const email = ref('');
   const code = ref(['', '', '', '', '', '']);
   const inputRefs = ref([]);
   const errorMessage = ref('');
@@ -26,16 +26,13 @@
   const isLoading = ref(false);
   const isResending = ref(false);
 
-  // Следим за открытием модалки
   watch(
     () => props.modelValue,
     (newVal) => {
       if (newVal) {
-        // Сбрасываем форму при открытии
         code.value = ['', '', '', '', '', ''];
         errorMessage.value = '';
         successMessage.value = '';
-        // Фокусируем первый инпут
         nextTick(() => {
           if (inputRefs.value[0]) {
             inputRefs.value[0].focus();
@@ -45,11 +42,14 @@
     },
   );
 
-  // Обработка ввода кода
+  function isValidEmail(emailValue) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(emailValue);
+  }
+
   function handleInput(index, event) {
     const value = event.target.value;
 
-    // Разрешаем только цифры
     if (!/^\d*$/.test(value)) {
       event.target.value = code.value[index];
       return;
@@ -57,25 +57,21 @@
 
     code.value[index] = value;
 
-    // Автопереход на следующий инпут
     if (value && index < 5) {
       inputRefs.value[index + 1]?.focus();
     }
 
-    // Автоматическая отправка при заполнении всех полей
     if (code.value.every((digit) => digit !== '')) {
       handleVerify();
     }
   }
 
-  // Обработка удаления
   function handleKeyDown(index, event) {
     if (event.key === 'Backspace' && !code.value[index] && index > 0) {
       inputRefs.value[index - 1]?.focus();
     }
   }
 
-  // Обработка вставки кода
   function handlePaste(event) {
     event.preventDefault();
     const pastedData = event.clipboardData.getData('text').replace(/\D/g, '');
@@ -84,21 +80,28 @@
       code.value[i] = pastedData[i];
     }
 
-    // Фокусируем следующий пустой инпут или последний
     const nextEmptyIndex = code.value.findIndex((digit) => digit === '');
     const focusIndex = nextEmptyIndex !== -1 ? nextEmptyIndex : 5;
     inputRefs.value[focusIndex]?.focus();
 
-    // Если код полностью вставлен, отправляем
     if (pastedData.length >= 6) {
       handleVerify();
     }
   }
 
-  // Отправка кода на проверку
   async function handleVerify() {
     errorMessage.value = '';
     successMessage.value = '';
+
+    if (!email.value.trim()) {
+      errorMessage.value = 'Пожалуйста, введите email';
+      return;
+    }
+
+    if (!isValidEmail(email.value)) {
+      errorMessage.value = 'Пожалуйста, введите корректный email';
+      return;
+    }
 
     const verificationCode = code.value.join('');
 
@@ -110,13 +113,11 @@
     isLoading.value = true;
 
     try {
-      const data = await authStore.verifyEmail(props.email, verificationCode);
+      const data = await authStore.verifyEmail(email.value, verificationCode);
 
-      // Проверяем успешность верификации
       if (data.success) {
         successMessage.value = data.message || 'Email успешно подтвержден';
 
-        // Задержка для показа сообщения, затем закрываем модалку
         setTimeout(() => {
           emit('verified', data);
           emit('update:modelValue', false);
@@ -129,23 +130,22 @@
     } catch (error) {
       console.error('Ошибка верификации:', error);
 
-      // Обработка ошибок от backend
       if (error.response?.data?.success === false) {
-        // Если есть конкретная ошибка для поля code
         if (error.response.data.errors?.code) {
           errorMessage.value = error.response.data.errors.code[0];
+        } else if (error.response.data.errors?.email) {
+          errorMessage.value = error.response.data.errors.email[0];
         } else {
           errorMessage.value = error.response.data.message || 'Ошибка подтверждения';
         }
       } else if (error.response?.status === 422) {
-        errorMessage.value = 'Неверный код. Попробуйте еще раз.';
+        errorMessage.value = 'Неверный код или email. Попробуйте еще раз.';
       } else if (error.response?.status === 410) {
         errorMessage.value = 'Код истек. Запросите новый код.';
       } else {
         errorMessage.value = 'Произошла ошибка. Попробуйте снова.';
       }
 
-      // Очищаем поля при ошибке
       code.value = ['', '', '', '', '', ''];
       inputRefs.value[0]?.focus();
     } finally {
@@ -156,10 +156,21 @@
   async function handleResendCode() {
     errorMessage.value = '';
     successMessage.value = '';
+
+    if (!email.value.trim()) {
+      errorMessage.value = 'Пожалуйста, введите email';
+      return;
+    }
+
+    if (!isValidEmail(email.value)) {
+      errorMessage.value = 'Пожалуйста, введите корректный email';
+      return;
+    }
+
     isResending.value = true;
 
     try {
-      const data = await authStore.resendVerificationCode(props.email);
+      const data = await authStore.resendVerificationCode(email.value);
 
       successMessage.value = data.message || 'Код отправлен повторно на вашу почту';
 
@@ -195,10 +206,16 @@
     @close="handleClose"
   >
     <div class="verification-content">
-      <div class="info-message">
-        <p>Мы отправили код подтверждения на адрес:</p>
-        <p class="email-display">{{ email }}</p>
-        <p class="hint-text">Введите 6-значный код из письма</p>
+
+      <div class="field-group">
+        <label class="field-label">Эл.почта*</label>
+        <input
+          v-model="email"
+          type="email"
+          placeholder="Введите электронную почту"
+          class="email-input"
+          :disabled="isLoading"
+        />
       </div>
 
       <div class="field-group">
@@ -213,7 +230,7 @@
             inputmode="numeric"
             maxlength="1"
             class="code-input"
-            :class="{ error: errorMessage}"
+            :class="{ error: errorMessage }"
             @input="handleInput(index, $event)"
             @keydown="handleKeyDown(index, $event)"
             @paste="handlePaste"
@@ -242,7 +259,7 @@
       <button
         @click="handleVerify"
         class="submit-btn"
-        :disabled="isLoading || code.some((d) => d === '')"
+        :disabled="isLoading || code.some((d) => d === '') || !email.trim()"
       >
         {{ isLoading ? 'Проверка...' : 'Отправить' }}
       </button>
@@ -271,18 +288,10 @@
     line-height: 1.5;
   }
 
-  .email-display {
-    font-weight: 600;
-    font-size: $text-base;
-    color: $color-text;
-    margin: 0.5rem 0;
-  }
-
   .hint-text {
     color: $color-text;
     opacity: 0.7;
     font-size: $text-sm;
-    margin-top: 0.5rem;
   }
 
   .field-group {
@@ -296,7 +305,27 @@
     font-weight: 500;
     color: $color-text;
     text-align: start;
-    margin-left: 3rem;
+  }
+
+  .email-input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border-radius: $radius-sm;
+    border: 1px solid $color-border;
+    background: $color-input-bg;
+    outline: none;
+    font-size: $text-base;
+    color: $color-text;
+    transition: all 0.2s;
+
+    &:focus {
+      border-color: $color-text;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   }
 
   .code-inputs {
@@ -389,7 +418,7 @@
   .resend-text {
     color: $color-text;
     opacity: 0.7;
-    margin-right: 1rem;
+    margin-right: 0.5rem;
   }
 
   .resend-link {

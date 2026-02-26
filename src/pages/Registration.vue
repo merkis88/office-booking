@@ -16,7 +16,17 @@
   const showRepeatPassword = ref(false);
   const acceptTerms = ref(false);
 
-  const errorMessage = ref('');
+  // Отдельные ошибки для каждого поля
+  const errors = ref({
+    firstName: '',
+    lastName: '',
+    patronymic: '',
+    email: '',
+    password: '',
+    repeatPassword: '',
+    acceptTerms: '',
+  });
+
   const isLoading = ref(false);
   const showVerificationModal = ref(false);
 
@@ -25,47 +35,70 @@
     return emailRegex.test(email);
   }
 
-  async function handleRegister(event) {
-    event.preventDefault();
-    errorMessage.value = '';
+  // Очистка всех ошибок
+  function clearErrors() {
+    errors.value = {
+      firstName: '',
+      lastName: '',
+      patronymic: '',
+      email: '',
+      password: '',
+      repeatPassword: '',
+      acceptTerms: '',
+    };
+  }
+
+  // Валидация формы
+  function validateForm() {
+    clearErrors();
+    let isValid = true;
 
     if (!firstName.value.trim()) {
-      errorMessage.value = 'Пожалуйста, введите имя';
-      return;
+      errors.value.firstName = 'Ошибка: Неверно введено имя';
+      isValid = false;
     }
 
     if (!lastName.value.trim()) {
-      errorMessage.value = 'Пожалуйста, введите фамилию';
-      return;
+      errors.value.lastName = 'Ошибка: Неверно введено имя';
+      isValid = false;
     }
 
     if (!email.value.trim()) {
-      errorMessage.value = 'Пожалуйста, введите email';
-      return;
-    }
-
-    if (!isValidEmail(email.value)) {
-      errorMessage.value = 'Пожалуйста, введите корректный email';
-      return;
+      errors.value.email = 'Ошибка: Неверно введено имя';
+      isValid = false;
+    } else if (!isValidEmail(email.value)) {
+      errors.value.email = 'Ошибка: Неверно введена почта';
+      isValid = false;
     }
 
     if (!password.value) {
-      errorMessage.value = 'Пожалуйста, введите пароль';
-      return;
+      errors.value.password = 'Ошибка: Неверно введено имя';
+      isValid = false;
+    } else if (password.value.length < 8) {
+      errors.value.password = 'Пароль должен содержать минимум 8 символов';
+      isValid = false;
     }
 
-    if (password.value.length < 8) {
-      errorMessage.value = 'Пароль должен содержать минимум 8 символов';
-      return;
-    }
-
-    if (password.value !== repeatPassword.value) {
-      errorMessage.value = 'Пароли не совпадают';
-      return;
+    if (!repeatPassword.value) {
+      errors.value.repeatPassword = 'Ошибка: Неверно введено имя';
+      isValid = false;
+    } else if (password.value !== repeatPassword.value) {
+      errors.value.repeatPassword = 'Пароли не совпадают';
+      isValid = false;
     }
 
     if (!acceptTerms.value) {
-      errorMessage.value = 'Необходимо принять условия обработки персональных данных';
+      errors.value.acceptTerms = 'Необходимо принять условия обработки персональных данных';
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  async function handleRegister(event) {
+    event.preventDefault();
+
+    if (!validateForm()) {
       return;
     }
 
@@ -93,13 +126,37 @@
       console.error('Ошибка регистрации:', error);
 
       if (error.response?.data?.errors) {
-        const errors = error.response.data.errors;
-        const firstError = Object.values(errors)[0];
-        errorMessage.value = Array.isArray(firstError) ? firstError[0] : firstError;
+        const backendErrors = error.response.data.errors;
+
+        if (backendErrors.first_name) {
+          errors.value.firstName = Array.isArray(backendErrors.first_name)
+            ? backendErrors.first_name[0]
+            : backendErrors.first_name;
+        }
+        if (backendErrors.last_name) {
+          errors.value.lastName = Array.isArray(backendErrors.last_name)
+            ? backendErrors.last_name[0]
+            : backendErrors.last_name;
+        }
+        if (backendErrors.email) {
+          errors.value.email = Array.isArray(backendErrors.email)
+            ? backendErrors.email[0]
+            : backendErrors.email;
+        }
+        if (backendErrors.password) {
+          errors.value.password = Array.isArray(backendErrors.password)
+            ? backendErrors.password[0]
+            : backendErrors.password;
+        }
+        if (backendErrors.password_confirmation) {
+          errors.value.repeatPassword = Array.isArray(backendErrors.password_confirmation)
+            ? backendErrors.password_confirmation[0]
+            : backendErrors.password_confirmation;
+        }
       } else if (error.response?.data?.message) {
-        errorMessage.value = error.response.data.message;
+        errors.value.email = error.response.data.message;
       } else {
-        errorMessage.value = 'Произошла ошибка при регистрации. Попробуйте снова.';
+        errors.value.email = 'Произошла ошибка при регистрации. Попробуйте снова.';
       }
     } finally {
       isLoading.value = false;
@@ -127,52 +184,68 @@
       <div class="auth__content">
         <h2 class="auth__title">Регистрация</h2>
 
-        <div v-if="errorMessage" class="auth__error">
-          {{ errorMessage }}
-        </div>
-
         <form @submit="handleRegister" class="auth__form">
+          <!-- Имя пользователя -->
           <div class="auth__field">
             <label>Имя пользователя*</label>
             <input
               v-model="firstName"
               type="text"
               placeholder="Введите имя"
+              :class="{ 'auth__field-error': errors.firstName }"
               :disabled="isLoading"
               required
             />
+            <span v-if="errors.firstName" class="auth__error-text">
+              {{ errors.firstName }}
+            </span>
           </div>
 
+          <!-- Фамилия пользователя -->
           <div class="auth__field">
             <label>Фамилия пользователя*</label>
             <input
               v-model="lastName"
               type="text"
               placeholder="Введите фамилию"
+              :class="{ 'auth__field-error': errors.lastName }"
               :disabled="isLoading"
               required
             />
+            <span v-if="errors.lastName" class="auth__error-text">
+              {{ errors.lastName }}
+            </span>
           </div>
 
+          <!-- Отчество пользователя -->
           <div class="auth__field">
-            <label>Отчество пользователя (необязательно)</label>
+            <label>Отчество пользователя(необязательно)</label>
             <input
               v-model="patronymic"
               type="text"
               placeholder="Введите отчество"
+              :class="{ 'auth__field-error': errors.patronymic }"
               :disabled="isLoading"
             />
+            <span v-if="errors.patronymic" class="auth__error-text">
+              {{ errors.patronymic }}
+            </span>
           </div>
 
+          <!-- Эл. почта -->
           <div class="auth__field">
-            <label>Эл. почта*</label>
+            <label>Эл.почта*</label>
             <input
               v-model="email"
               type="email"
               placeholder="Введите электронную почту"
+              :class="{ 'auth__field-error': errors.email }"
               :disabled="isLoading"
               required
             />
+            <span v-if="errors.email" class="auth__error-text">
+              {{ errors.email }}
+            </span>
           </div>
 
           <div class="auth__field">
@@ -182,6 +255,7 @@
                 v-model="password"
                 :type="showPassword ? 'text' : 'password'"
                 placeholder="Введите пароль"
+                :class="{ 'auth__field-error': errors.password }"
                 :disabled="isLoading"
                 required
               />
@@ -195,6 +269,9 @@
                 <img v-else src="/eye-off.svg" alt="Показать" />
               </button>
             </div>
+            <span v-if="errors.password" class="auth__error-text">
+              {{ errors.password }}
+            </span>
           </div>
 
           <div class="auth__field">
@@ -204,6 +281,7 @@
                 v-model="repeatPassword"
                 :type="showRepeatPassword ? 'text' : 'password'"
                 placeholder="Введите пароль еще раз"
+                :class="{ 'auth__field-error': errors.repeatPassword }"
                 :disabled="isLoading"
                 required
               />
@@ -217,20 +295,28 @@
                 <img v-else src="/eye-off.svg" alt="Показать" />
               </button>
             </div>
+            <span v-if="errors.repeatPassword" class="auth__error-text">
+              {{ errors.repeatPassword }}
+            </span>
           </div>
 
-          <label class="auth__checkbox">
-            <input
-              v-model="acceptTerms"
-              type="checkbox"
-              class="auth__checkbox-input"
-              :disabled="isLoading"
-            />
-            <span class="auth__checkbox-box"></span>
-            <span class="auth__checkbox-text">
-              Я принимаю условия обработки персональных данных
+          <div class="auth__checkbox-wrapper">
+            <label class="auth__checkbox">
+              <input
+                v-model="acceptTerms"
+                type="checkbox"
+                class="auth__checkbox-input"
+                :disabled="isLoading"
+              />
+              <span class="auth__checkbox-box"></span>
+              <span class="auth__checkbox-text">
+                Я принимаю условия обработки персональных данных
+              </span>
+            </label>
+            <span v-if="errors.acceptTerms" class="auth__error-text">
+              {{ errors.acceptTerms }}
             </span>
-          </label>
+          </div>
 
           <div class="auth__info">
             <span class="auth__info-text">
@@ -249,9 +335,10 @@
         </form>
       </div>
     </div>
+
     <EmailVerificationModal
       v-model="showVerificationModal"
-      :email="email"
+      :initial-email="email"
       @verified="handleVerified"
       @close="handleModalClose"
     />
@@ -323,17 +410,6 @@
       margin-bottom: 2rem;
     }
 
-    &__error {
-      padding: 1rem;
-      margin-bottom: 1.5rem;
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      border-radius: $radius-sm;
-      color: rgb(239, 68, 68);
-      font-size: $text-sm;
-      text-align: center;
-    }
-
     &__form {
       display: flex;
       flex-direction: column;
@@ -347,6 +423,7 @@
 
       label {
         font-size: $text-sm;
+        color: $color-text;
       }
 
       input {
@@ -356,6 +433,7 @@
         background: $color-input-bg;
         outline: none;
         width: 100%;
+        transition: border-color 0.2s;
 
         &:focus {
           border-color: $color-text;
@@ -365,7 +443,17 @@
           opacity: 0.6;
           cursor: not-allowed;
         }
+
+        &.auth__field-error {
+          border-color: #ef4444;
+        }
       }
+    }
+
+    &__error-text {
+      color: #ef4444;
+      font-size: 0.75rem;
+      margin-top: -0.25rem;
     }
 
     &__input-wrapper {
@@ -405,6 +493,12 @@
       }
     }
 
+    &__checkbox-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
     &__checkbox {
       display: flex;
       align-items: center;
@@ -437,7 +531,7 @@
       }
 
       &-text {
-        white-space: nowrap;
+        white-space: normal;
       }
 
       &-input:checked + &-box {
@@ -462,6 +556,16 @@
 
       &-text {
         font-size: $text-sm;
+        line-height: 1.4;
+
+        a {
+          color: $color-text;
+          text-decoration: underline;
+
+          &:hover {
+            opacity: 0.7;
+          }
+        }
       }
     }
 
