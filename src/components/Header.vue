@@ -46,7 +46,7 @@
   @use '@/assets/styles/mixins' as *;
 
   .header {
-    margin-top: 3.5rem;
+    margin-top: 1.5rem;
     &__container {
       @include container;
       display: flex;
