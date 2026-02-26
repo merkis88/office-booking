@@ -1,4 +1,8 @@
-<script setup></script>
+<script setup>
+  import { useAuthStore } from '@/store/auth';
+
+  const authStore = useAuthStore();
+</script>
 
 <template>
   <main class="services-page">
@@ -21,7 +25,7 @@
             только комфортная обстановка, в которой легко принимать важные решения и строить
             долгосрочные партнёрства.
           </p>
-          <a href="#" class="service-section__btn">Арендовать</a>
+          <router-link to="/meeting_rooms" class="service-section__btn">Арендовать</router-link>
         </div>
       </div>
     </section>

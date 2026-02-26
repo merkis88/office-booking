@@ -2,8 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import Authorization from '../pages/Authorization.vue';
 import Main from '../pages/Main.vue';
-import Registration from "../pages/Registration.vue";
-import Services from "../pages/Services.vue";
+import Registration from '../pages/Registration.vue';
+import Services from '../pages/Services.vue';
+import MeetingRooms from '../pages/MeetingRooms.vue';
 
 const routes = [
   {
@@ -25,6 +26,11 @@ const routes = [
     path: '/service',
     name: 'Service',
     component: Services,
+  },
+  {
+    path: '/meeting_rooms',
+    name: 'MeetingRooms',
+    component: MeetingRooms,
   },
 ];
 
