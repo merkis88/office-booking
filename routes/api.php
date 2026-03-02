@@ -63,6 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Qr
     Route::post('/qr/{booking}/guest-qr', [QrController::class, 'createGuestQr']); // merk
     Route::post('/qr/{booking}/user-qr', [QrController::class, 'createUserQr']); // merk
+    Route::post('/qr/{booking}/issue-qr', [QrController::class, 'issueUserQr']); // merk
 
 
     //Places

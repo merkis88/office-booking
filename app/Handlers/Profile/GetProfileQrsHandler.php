@@ -15,7 +15,7 @@ final class GetProfileQrsHandler
     {
         $bookings = Booking::query()
             ->where('user_id', $user->id)
-            ->where('status', 'approved')
+            ->where('status', 'active')
             ->orderBy('start_time')
             ->limit(50)
             ->get();
