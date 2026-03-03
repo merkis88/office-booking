@@ -12,7 +12,6 @@ use Illuminate\Support\ServiceProvider;
 use App\Handlers\Auth\LoginHandler;
 use App\Handlers\Auth\RegisterHandler;
 use App\Handlers\Auth\LogoutHandler;
-use App\Handlers\Auth\PasswordResetHandler;
 use App\Handlers\Users\CreateUserHandler;
 use App\Handlers\Users\UpdateUserHandler;
 use App\Handlers\Users\UpdatePasswordHandler;
@@ -20,6 +19,10 @@ use App\Handlers\Reviews\CreateReviewHandler;
 use App\Handlers\Reviews\UpdateReviewHandler;
 use App\Handlers\Reviews\DeleteReviewHandler;
 use App\Handlers\Reviews\FilterReviewHandler;
+use App\Handlers\Notifications\CreateNotificationHandler;
+use App\Handlers\Notifications\GetUserNotificationsHandler;
+use App\Handlers\Notifications\MarkNotificationAsReadHandler;
+use App\Handlers\Notifications\DeleteNotificationHandler;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -44,6 +47,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(SendVerificationHandler::class);
         $this->app->singleton(VerifyEmailHandler::class);
         $this->app->singleton(SendTemporaryPasswordHandler::class);
+        $this->app->singleton(CreateNotificationHandler::class);
+        $this->app->singleton(GetUserNotificationsHandler::class);
+        $this->app->singleton(MarkNotificationAsReadHandler::class);
+        $this->app->singleton(DeleteNotificationHandler::class);
     }
 
     /**

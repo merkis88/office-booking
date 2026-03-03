@@ -1,9 +1,11 @@
 <?php
 namespace App\Handlers\Places;
 
+use App\Models\Booking;
 use App\Models\Place;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class AdminArchivePlaceHandler
 {
@@ -15,17 +17,26 @@ class AdminArchivePlaceHandler
             ]);
         }
 
-        $activeBookingsQuery = $place->booking()->whereIn('status', ['pending', 'approved']);
-        $activeBookingsCount = $activeBookingsQuery->count();
+        $activeBookingsCount = DB::table('bookings')
+            ->where('place_id', $place->id)
+            ->where('status', 'active')
+            ->count();
+
         if ($activeBookingsCount > 0) {
             if($force){
-                DB::transaction(function () use ($place, $activeBookingsQuery) {
-                    $activeBookingsQuery->update(['status' => 'rejected']);
+                $updated = DB::table('bookings')
+                    ->where('place_id', $place->id)
+                    ->where('status', 'active')
+                    ->update(['status' => 'cancelled']);
+
+                if ($updated > 0) {
                     $place->update(['is_active' => false]);
-                });
+                } else {
+                    throw new \Exception('Не удалось отменить бронирования');
+                }
             } else {
                 throw ValidationException::withMessages([
-                    'place' => ["У помещения {$activeBookingsCount} активных помещений." . "Используйте force = 1 для принудительной архивации,все брони ьбудут отменены"]
+                    'place' => ["У помещения {$activeBookingsCount} активных бронирований. Используйте force = 1 для принудительной архивации, все брони будут отменены"]
                 ]);
             }
         }
