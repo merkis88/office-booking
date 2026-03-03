@@ -19,6 +19,11 @@ final class CreateUserQrHandler
 
     public function handle(Booking $booking, User $user, ?int $timeWindow = null): Qr
     {
+        return $this->createForRecipient($booking, user: $user, recipient: $user, timeWindow: $timeWindow);
+    }
+
+    public function createForRecipient(Booking $booking, User $user, User $recipient, ?int $timeWindow = null): Qr
+    {
         $this->assertQrAllowed($booking);
         $this->assertCanUseBooking($booking, $user);
 
@@ -27,19 +32,19 @@ final class CreateUserQrHandler
         $existing = Qr::query()
             ->where('booking_id', $booking->id)
             ->where('time_window', $window)
-            ->where('user_id', $user->id)
+            ->where('user_id', $recipient->id)
             ->first();
 
         if ($existing) {
             return $existing;
         }
 
-        return DB::transaction(function () use ($booking, $user, $window) {
+        return DB::transaction(function () use ($booking, $recipient, $window) {
 
             $existing = Qr::query()
                 ->where('booking_id', $booking->id)
                 ->where('time_window', $window)
-                ->where('user_id', $user->id)
+                ->where('user_id', $recipient->id)
                 ->lockForUpdate()
                 ->first();
 
@@ -47,12 +52,12 @@ final class CreateUserQrHandler
                 return $existing;
             }
 
-            $hash = $this->hashService->makeForUser($booking, $window, (int) $user->id);
+            $hash = $this->hashService->makeForUser($booking, $window, (int) $recipient->id);
 
             return Qr::query()->create([
                 'booking_id' => $booking->id,
                 'time_window' => $window,
-                'user_id' => $user->id,
+                'user_id' => $recipient->id,
                 'recipient_email' => null,
                 'hash' => $hash,
                 'used_at' => null,
@@ -65,10 +70,10 @@ final class CreateUserQrHandler
         return intdiv(now()->timestamp, $this->windowSeconds);
     }
 
-    private function assertCanUseBooking(Booking $booking, User $user): void
+    private function assertCanUseBooking(Booking $booking, User $actor): void
     {
-        $isOwner = $booking->user_id !== null && (int)$booking->user_id === (int)$user->id;
-        $isCreator = (int)$booking->created_by === (int)$user->id;
+        $isOwner = $booking->user_id !== null && (int)$booking->user_id === (int)$actor->id;
+        $isCreator = (int)$booking->created_by === (int)$actor->id;
 
         if (!($isOwner || $isCreator)) {
             abort(403, 'Нет доступа к этому бронированию');
@@ -84,11 +89,8 @@ final class CreateUserQrHandler
         }
 
         $now = now();
-        $start = $booking->start_time;
-        $end   = $booking->end_time;
-
-        $openFrom = $start->copy()->subMinutes($this->beforeMinutes);
-        $closeAt  = $end->copy()->addMinutes($this->afterMinutes);
+        $openFrom = $booking->start_time->copy()->subMinutes($this->beforeMinutes);
+        $closeAt  = $booking->end_time->copy()->addMinutes($this->afterMinutes);
 
         if ($now->lt($openFrom)) {
             throw ValidationException::withMessages([
