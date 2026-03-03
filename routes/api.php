@@ -2,10 +2,12 @@
 
 
 use App\Http\Controllers\Api\Admin\AdminBookingController;
+use App\Http\Controllers\Api\Admin\AdminNotificationController;
 use App\Http\Controllers\Api\AdminPlaceController;
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Booking\BookingController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\Qr\QrController;
 
@@ -70,6 +72,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/places', [PlaceController::class, 'index']);// Osip
     Route::get('/places/{place}', [PlaceController::class, 'show']);// Osip
 
+    //Notifications
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::post('/{notification}/read', [NotificationController::class, 'markAsRead']);
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+        Route::delete('/{notification}', [NotificationController::class, 'destroy']);
+    });
+
    // Admin
     Route::middleware('is_admin')->prefix('admin')->group(function () {
         Route::apiResource('users', UserController::class);
@@ -92,5 +102,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('users', UserController::class); // merk
         Route::get('/bookings', [AdminBookingController::class, 'index']); // merk
         Route::get('/bookings/export', [AdminBookingController::class, 'export']); // merk
+
+        //Notifications
+        Route::post('/notifications', [AdminNotificationController::class, 'store']);// Osip
     });
 });

@@ -18,6 +18,7 @@ use App\Handlers\Places\AdminStorePhotoPlaceHandler;
 use App\Handlers\Places\AdminDeletePhotoPlaceHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class AdminPlaceController extends Controller
@@ -217,7 +218,7 @@ class AdminPlaceController extends Controller
 
     public function archiveStatus(Place $place): JsonResponse
     {
-        $activeBookingsCount = $place->booking()->whereIn('status', ['pending', 'approved'])->count();
+        $activeBookingsCount = $place->booking()->where('status', 'active')->count();
         return response()->json([
             'success' => true,
             'data' => [

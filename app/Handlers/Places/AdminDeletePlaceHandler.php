@@ -10,7 +10,7 @@ class AdminDeletePlaceHandler
     const PHOTO_DIRECTORY = 'public/places';
     public function handle(Place $place): void
     {
-        if($place->booking()->whereIn('status', ['pending', 'approved'])->exists()){
+        if($place->booking()->where('status', 'active')->exists()){
             throw ValidationException::withMessages([
                 'place' => ['Нельзя удалить помещение с активной арендой']
             ]);
