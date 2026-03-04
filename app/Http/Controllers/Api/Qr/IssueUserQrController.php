@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Handlers\Qr;
+namespace App\Http\Controllers\Api\Qr;
 
 use App\DTO\Qr\IssueUserQrDTO;
 use App\Handlers\Qr\CreateUserQrHandler;
@@ -8,7 +8,7 @@ use App\Models\Booking;
 use App\Models\Qr;
 use App\Models\User;
 
-final class IssueUserQrHandler
+final class IssueUserQrController
 {
     public function __construct(private readonly CreateUserQrHandler $createUserQr){}
 
