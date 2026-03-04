@@ -22,7 +22,7 @@
 
       <ul class="header__nav">
         <router-link to="/service"><li>Аренда помещений</li></router-link>
-        <li>Отзывы</li>
+        <router-link to="/reviews"><li>Отзывы</li></router-link>
         <router-link to="/profile" v-if="authStore.isAuthenticated">
           <li>Личный кабинет</li>
         </router-link>

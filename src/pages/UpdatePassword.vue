@@ -37,7 +37,8 @@
 
     try {
       await authStore.changePassword(currentPassword.value, password.value, confirmPassword.value);
-      router.push('/'); // или куда нужно после успеха
+      await authStore.logout();
+      await router.push('/authorization');
     } catch (err) {
       const serverError = err?.response?.data;
 
