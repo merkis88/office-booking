@@ -109,7 +109,7 @@
 
             <div class="profile__pass-actions">
               <button class="profile__btn profile__btn--action">Добавить парковку</button>
-              <button class="profile__btn profile__btn--action">Сменить пароль</button>
+              <router-link to="/update-password" class="profile__btn profile__btn--action">Сменить пароль</router-link>
             </div>
           </div>
         </div>

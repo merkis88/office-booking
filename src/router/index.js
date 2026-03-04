@@ -7,6 +7,7 @@ import Services from '../pages/Services.vue';
 import MeetingRooms from '../pages/MeetingRooms.vue';
 import PrivacyPolicy from '@/pages/PrivacyPolicy.vue';
 import Profile from '@/pages/Profile.vue';
+import UpdatePassword from '@/pages/UpdatePassword.vue';
 
 const routes = [
   {
@@ -44,6 +45,11 @@ const routes = [
     name: 'Profile',
     component: Profile,
   },
+  {
+    path: '/update-password',
+    name: 'UpdatePassword',
+    component: UpdatePassword,
+  }
 ];
 
 const router = createRouter({

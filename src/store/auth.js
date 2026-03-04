@@ -102,24 +102,16 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async updateUser(userData) {
+    async changePassword(currentPassword, newPassword, passwordConfirmation) {
       try {
-        const { data } = await axios.put('/api/user', userData);
-        this.user = data.user || data;
-        localStorage.setItem('user', JSON.stringify(this.user));
+        const { data } = await axios.put('/api/user/password', {
+          current_password: currentPassword,
+          password: newPassword,
+          password_confirmation: passwordConfirmation,
+        });
         return data;
       } catch (error) {
-        console.error('Ошибка обновления пользователя:', error);
-        throw error;
-      }
-    },
-
-    async deleteUser() {
-      try {
-        await axios.delete('/api/user');
-        await this.logout();
-      } catch (error) {
-        console.error('Ошибка удаления пользователя:', error);
+        console.error('Ошибка смены пароля:', error);
         throw error;
       }
     },
