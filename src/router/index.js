@@ -6,6 +6,7 @@ import Registration from '../pages/Registration.vue';
 import Services from '../pages/Services.vue';
 import MeetingRooms from '../pages/MeetingRooms.vue';
 import PrivacyPolicy from '@/pages/PrivacyPolicy.vue';
+import Profile from '@/pages/Profile.vue';
 
 const routes = [
   {
@@ -36,8 +37,13 @@ const routes = [
   {
     path: '/privacy-policy',
     name: 'Privacy Policy',
-    component: PrivacyPolicy
-  }
+    component: PrivacyPolicy,
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
+  },
 ];
 
 const router = createRouter({

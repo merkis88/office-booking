@@ -23,17 +23,19 @@
       <ul class="header__nav">
         <router-link to="/service"><li>Аренда помещений</li></router-link>
         <li>Отзывы</li>
-        <li>Личный кабинет</li>
+        <router-link to="/profile" v-if="authStore.isAuthenticated">
+          <li>Личный кабинет</li>
+        </router-link>
         <router-link to="/authorization" v-if="!authStore.isAuthenticated">
           <li>Авторизация</li>
         </router-link>
-        <router-link to="/registration " v-if="!authStore.isAuthenticated">
+        <router-link to="/registration" v-if="!authStore.isAuthenticated">
           <li>Регистрация</li>
         </router-link>
         <router-link to="/authorization" v-if="authStore.isAuthenticated">
           <li class="header__button" @click="handleLogout">Выход</li>
         </router-link>
-        <router-link to="/registration " v-if="authStore.isAuthenticated">
+        <router-link to="/" v-if="authStore.isAuthenticated">
           <li><img class="header__img" src="/notification.svg" alt="" /></li>
         </router-link>
       </ul>

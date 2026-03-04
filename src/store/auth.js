@@ -3,13 +3,13 @@ import axios from 'axios';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null,
+    user: JSON.parse(localStorage.getItem('user')) || null,
     token: localStorage.getItem('token') || null,
     pendingVerificationEmail: null,
   }),
 
   getters: {
-    isAuthenticated: (state) => !!state.token,
+    isAuthenticated: (state) => !!state.token && !!state.user,
     getCurrentUser: (state) => state.user,
     needsEmailVerification: (state) => !!state.pendingVerificationEmail,
   },
@@ -22,6 +22,29 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    },
+
+    async fetchCurrentUser() {
+      if (!this.token) return;
+
+      try {
+        const { data } = await axios.get('/api/user');
+        this.user = data.user || data;
+        localStorage.setItem('user', JSON.stringify(this.user));
+      } catch (error) {
+        console.error('Ошибка загрузки пользователя:', error);
+        this.logout();
+      }
+    },
+
+    async init() {
+      if (this.token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+
+        if (!this.user) {
+          await this.fetchCurrentUser();
+        }
+      }
     },
 
     async login(email, password) {
@@ -37,6 +60,7 @@ export const useAuthStore = defineStore('auth', {
 
         this.pendingVerificationEmail = registrationData.email;
         this.user = data.user;
+        localStorage.setItem('user', JSON.stringify(data.user));
 
         return {
           success: true,
@@ -78,15 +102,24 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async forgotPassword(email) {
+    async updateUser(userData) {
       try {
-        const { data } = await axios.post('/api/forgot-password', {
-          email
-        });
-
+        const { data } = await axios.put('/api/user', userData);
+        this.user = data.user || data;
+        localStorage.setItem('user', JSON.stringify(this.user));
         return data;
       } catch (error) {
-        console.error('Ошибка отправки временного пароля:', error);
+        console.error('Ошибка обновления пользователя:', error);
+        throw error;
+      }
+    },
+
+    async deleteUser() {
+      try {
+        await axios.delete('/api/user');
+        await this.logout();
+      } catch (error) {
+        console.error('Ошибка удаления пользователя:', error);
         throw error;
       }
     },
