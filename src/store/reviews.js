@@ -96,7 +96,6 @@ export const useReviewsStore = defineStore('reviews', {
           rating: reviewData.rating,
         });
 
-        console.log('Отзыв обновлен:', data);
 
         const index = this.reviews.findIndex((r) => r.id === reviewId);
         if (index !== -1 && data.review) {
@@ -117,7 +116,6 @@ export const useReviewsStore = defineStore('reviews', {
       try {
         const { data } = await axios.delete(`/api/reviews/${reviewId}`);
 
-        console.log('Отзыв удален:', data);
 
         this.reviews = this.reviews.filter((r) => r.id !== reviewId);
 

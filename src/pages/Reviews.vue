@@ -18,6 +18,11 @@
   const editingReviewId = ref(null);
   const isEditing = computed(() => editingReviewId.value !== null);
 
+  const showSuccessMessage = ref(false);
+  const successMessageText = ref('');
+  const showErrorMessage = ref(false);
+  const errorMessageText = ref('');
+
   const itemsPerPage = 6;
   const currentPage = ref(1);
 
@@ -71,6 +76,26 @@
     }, 100);
   }
 
+  function showError(message) {
+    errorMessageText.value = message;
+    showErrorMessage.value = true;
+    showSuccessMessage.value = false;
+
+    setTimeout(() => {
+      showErrorMessage.value = false;
+    }, 4000);
+  }
+
+  function showSuccess(message) {
+    successMessageText.value = message;
+    showSuccessMessage.value = true;
+    showErrorMessage.value = false;
+
+    setTimeout(() => {
+      showSuccessMessage.value = false;
+    }, 3000);
+  }
+
   function cancelEdit() {
     editingReviewId.value = null;
     rating.value = 0;
@@ -79,17 +104,29 @@
 
   async function handleSubmitReview() {
     if (!authStore.isAuthenticated) {
-      alert('Необходимо авторизоваться для добавления отзыва');
+      showError('Необходимо авторизоваться для добавления отзыва');
       return;
     }
 
     if (rating.value === 0) {
-      alert('Пожалуйста, выберите оценку');
+      showError('Пожалуйста, выберите оценку');
       return;
     }
 
-    if (!reviewText.value.trim()) {
-      alert('Пожалуйста, напишите отзыв');
+    const trimmedText = reviewText.value.trim();
+
+    if (!trimmedText) {
+      showError('Пожалуйста, напишите отзыв');
+      return;
+    }
+
+    if (trimmedText.length < 16) {
+      showError('Отзыв слишком короткий. Минимум 16 символов');
+      return;
+    }
+
+    if (trimmedText.length > 1000) {
+      showError('Отзыв слишком длинный. Максимум 1000 символов');
       return;
     }
 
@@ -98,17 +135,17 @@
     try {
       if (isEditing.value) {
         await reviewsStore.updateReview(editingReviewId.value, {
-          text: reviewText.value.trim(),
+          text: trimmedText,
           rating: rating.value,
         });
-        alert('Отзыв обновлен!');
+        showSuccess('Отзыв успешно обновлен');
       } else {
         await reviewsStore.createReview({
-          text: reviewText.value.trim(),
+          text: trimmedText,
           rating: rating.value,
           user_id: user.value.id,
         });
-        alert('Спасибо за ваш отзыв!');
+        showSuccess('Отзыв успешно добавлен');
       }
 
       cancelEdit();
@@ -118,11 +155,12 @@
       if (error.response?.data?.errors) {
         const errors = error.response.data.errors;
         const firstError = Object.values(errors)[0];
-        alert(Array.isArray(firstError) ? firstError[0] : firstError);
+        const errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+        showError(errorMessage);
       } else if (error.response?.data?.message) {
-        alert(error.response.data.message);
+        showError(error.response.data.message);
       } else {
-        alert('Не удалось отправить отзыв. Попробуйте позже.');
+        showError('Не удалось отправить отзыв. Попробуйте позже');
       }
     } finally {
       isSubmitting.value = false;
@@ -188,6 +226,17 @@
             <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
             <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
           </button>
+          <button
+            class="reviews__filter"
+            :class="{ 'reviews__filter--active': filterRating === 1 }"
+            @click="filterByRating(1)"
+          >
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
+          </button>
         </div>
       </div>
 
@@ -237,6 +286,17 @@
       </div>
 
       <div class="reviews__form">
+        <Transition name="slide-down">
+          <div v-if="showSuccessMessage" class="reviews__message">
+            <p class="reviews__message-success">{{ successMessageText }}</p>
+          </div>
+        </Transition>
+
+        <Transition name="slide-down">
+          <div v-if="showErrorMessage" class="reviews__message">
+            <p class="reviews__message-error">{{ errorMessageText }}</p>
+          </div>
+        </Transition>
         <h2 class="reviews__form-title">
           {{ isEditing ? 'Редактировать отзыв' : 'Оставь отзыв' }}
         </h2>
@@ -277,6 +337,7 @@
               rows="6"
               :disabled="isSubmitting"
             ></textarea>
+            <span class="reviews__char-count">{{ reviewText.length }} / 1000</span>
           </div>
 
           <div class="reviews__form-buttons">
@@ -286,11 +347,7 @@
               :disabled="isSubmitting"
             >
               {{
-                isSubmitting
-                  ? 'Отправка...'
-                  : isEditing
-                    ? 'Сохранить изменения'
-                    : 'Отправить отзыв'
+                isSubmitting ? 'Отправка...' : isEditing ? 'Сохранить изменения' : 'Отправить отзыв'
               }}
             </button>
 
@@ -396,14 +453,9 @@
     }
 
     &__pagination-btn {
-      width: 2.5rem;
-      height: 2.5rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid $color-border;
-      border-radius: 50%;
-      background: $color-input-bg;
       cursor: pointer;
       transition: all 0.2s;
 
@@ -417,8 +469,8 @@
       }
 
       img {
-        width: 1rem;
-        height: 1rem;
+        width: 2.5rem;
+        height: 2.5rem;
       }
     }
 
@@ -428,13 +480,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid $color-border;
-      border-radius: 50%;
+      border-radius: $radius-xs;
       background: $color-input-bg;
       color: $color-text;
       font-size: $text-base;
       cursor: pointer;
       transition: all 0.2s;
+      font-weight: 600;
 
       &:hover {
         background: $color-input-bg-dark;
@@ -455,6 +507,62 @@
       display: flex;
       flex-direction: column;
       gap: 2rem;
+      position: relative;
+      align-items: stretch;
+    }
+
+    &__message {
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    &__message-success,
+    &__message-error {
+      padding: 1rem 2rem;
+      border-radius: $radius-xs;
+      font-size: $text-base;
+      margin: 0;
+      box-shadow: 0 7px 6px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: auto; // ✅ Ширина по содержимому
+      display: inline-block; // ✅ Или inline-block
+    }
+
+    &__message-success {
+      background: #c1f97d;
+      border: 1px solid #000000;
+    }
+
+    &__message-error {
+      background: #ee5a6f;
+      border: 1px solid #000000;
+    }
+
+    &__char-count {
+      font-size: $text-sm;
+      color: rgba($color-text, 0.6);
+      text-align: right;
+      display: block;
+      margin-top: 0.25rem;
+    }
+
+    .slide-down-enter-active {
+      transition: all 0.4s ease-out;
+    }
+
+    .slide-down-leave-active {
+      transition: all 0.4s ease-in;
+    }
+
+    .slide-down-enter-from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+
+    .slide-down-leave-to {
+      transform: translateY(-20px);
+      opacity: 0;
     }
 
     &__form-title {
@@ -464,6 +572,7 @@
       color: $color-text;
       text-align: center;
       margin: 0;
+      width: 100%;
     }
 
     &__auth-warning {
@@ -549,6 +658,7 @@
       resize: vertical;
       outline: none;
       min-height: 120px;
+      box-sizing: border-box;
 
       &:focus {
         border-color: $color-text;
