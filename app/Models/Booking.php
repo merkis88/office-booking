@@ -48,4 +48,15 @@ class Booking extends Model
     {
         return $this->belongsTo(Parking_place::class, 'parking_place_id', 'id');
     }
+    public function services()
+    {
+        return $this->hasMany(Service::class);
+    }
+
+    public function hasActiveServices()
+    {
+        return $this->services()
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->exists();
+    }
 }

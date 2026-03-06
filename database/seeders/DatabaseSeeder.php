@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Parking_place;
+use App\Models\ServiceType;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Place;
@@ -18,7 +19,8 @@ class DatabaseSeeder extends Seeder
     {
         $roleAdmin = Role::create(['role_name' => 'admin']);
         $roleUser = Role::create(['role_name' => 'user']);
-
+        $serviceTypeCleaning = ServiceType::create(['name' => 'Клиннинг', 'description' => 'Уборка помещений', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
+        $serviceTypeTO = ServiceType::create(['name' => 'ТО', 'description' => 'ТО', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
         $admin = User::create([
             'role_id' => $roleAdmin->id,
             'first_name' => 'Super',
@@ -52,12 +54,6 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        Service::create([
-            'place_id' => $place->id,
-            'date_service' => now()->addDays(5),
-            'type_service' => 'cleaning',
-            'comment' => 'Коммент',
-        ]);
 
         $parking_place = Parking_place::create([
             'place_row' => 0,
@@ -72,6 +68,16 @@ class DatabaseSeeder extends Seeder
             'start_time' => now()->addDay()->setHour(10)->setMinute(0),
             'end_time' => now()->addDay()->setHour(12)->setMinute(0),
             'pass_type' => 'qr',
+        ]);
+        Service::create([
+            'user_id' => $user->id,
+            'booking_id' => $booking->id,
+            'place_id' => $place->id,
+            'service_type_id' => $serviceTypeTO->id,
+            'service_date' => now()->addDays(5),
+            'service_time' => now()->setHour(10)->setMinute(0),
+            'status' => 'pending',
+            'comment' => 'Коммент',
         ]);
 
         Qr::create([
