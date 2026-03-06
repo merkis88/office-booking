@@ -674,6 +674,40 @@ paths:
               schema:
                 $ref: "#/components/schemas/MessageError"
 
+
+  /profile/qrs:
+    get:
+      tags: [ "Merk · Profile" ]
+      summary: List my QRs
+      description: |
+        Owner: merk
+
+        Auth: Sanctum Bearer token.
+
+        Route: GET /api/profile/qrs
+        Controller: ProfileQrController@index(Request, GetProfileQrsHandler)
+        Handler: GetProfileQrsHandler::handle(auth_user)
+
+        Возвращает QR-коды текущего авторизованного пользователя (профиль).
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Qr"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
   /admin/bookings:
     get:
       tags: ["Merk · Admin"]
@@ -864,4 +898,82 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MessageError"
+
+  /qr/{booking}/guest-qr:
+    post:
+      tags: [ "Merk · QR" ]
+      summary: Create guest QR
+      description: |
+        Owner: merk
+        Auth: Sanctum Bearer token.
+
+        Выдача qr-кода для гостя
+      parameters:
+        - in: path
+          name: booking
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ recipient_email ]
+              properties:
+                recipient_email: { type: string, format: email }
+                guest_name: { type: string, nullable: true }
+                time_window: { type: integer, nullable: true }
+      responses:
+        "201": { description: Created }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /qr/{booking}/user-qr:
+    post:
+      tags: [ "Merk · QR" ]
+      summary: Create user QR (current user)
+      description: |
+        Owner: merk
+        Auth: Sanctum Bearer token.
+
+        Выдача qr-кода для арендатора помещения
+      parameters:
+        - in: path
+          name: booking
+          required: true
+          schema: { type: integer }
+      responses:
+        "201": { description: Created }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /qr/{booking}/issue-qr:
+    post:
+      tags: [ "Merk · QR" ]
+      summary: Issue QR to another registered user
+      description: |
+        Owner: merk
+        Auth: Sanctum Bearer token.
+
+        Выдача qr-кода, другому пользователю от арендатора помещения
+      parameters:
+        - in: path
+          name: booking
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ recipient_user_id ]
+              properties:
+                recipient_user_id: { type: integer }
+      responses:
+        "201": { description: Created }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+
+
+
 

@@ -8,7 +8,9 @@ use App\Models\Qr;
 use App\Models\User;
 use App\Services\Qr\QrHashService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use App\Mail\GuestQrMail;
 
 final class CreateGuestQrHandler
 {
@@ -23,42 +25,47 @@ final class CreateGuestQrHandler
         $this->assertCanInvite($booking, $user);
         $this->assertQrAllowed($booking);
 
+        $email = mb_strtolower(trim($dto->recipientEmail));
         $window = $dto->timeWindow ?? $this->currentWindow();
 
-        $existing = Qr::query()
+        $qr = Qr::query()
             ->where('booking_id', $booking->id)
             ->where('time_window', $window)
-            ->where('recipient_email', $dto->recipientEmail)
+            ->where('recipient_email', $email)
             ->first();
 
-        if ($existing) {
-            return $existing;
+        if (!$qr) {
+            $qr = DB::transaction(function () use ($booking, $user, $dto, $window, $email) {
+
+                $existing = Qr::query()
+                    ->where('booking_id', $booking->id)
+                    ->where('time_window', $window)
+                    ->where('recipient_email', $email)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existing) {
+                    return $existing;
+                }
+
+                $hash = $this->hashService->makeForGuest($booking, $window, $email);
+
+                return Qr::query()->create([
+                    'booking_id' => $booking->id,
+                    'time_window' => $window,
+                    'user_id' => null,
+                    'recipient_email' => $email,
+                    'hash' => $hash,
+                    'used_at' => null,
+                ]);
+            });
+
         }
+        $booking->loadMissing('place');
+        Mail::to($email)->send(new GuestQrMail($booking, $qr, $dto->guestName));
 
-        return DB::transaction(function () use ($booking, $user, $dto, $window) {
+        return $qr;
 
-            $existing = Qr::query()
-                ->where('booking_id', $booking->id)
-                ->where('time_window', $window)
-                ->where('recipient_email', $dto->recipientEmail)
-                ->lockForUpdate()
-                ->first();
-
-            if ($existing) {
-                return $existing;
-            }
-
-            $hash = $this->hashService->makeForGuest($booking, $window, $dto->recipientEmail);
-
-            return Qr::query()->create([
-                'booking_id' => $booking->id,
-                'time_window' => $window,
-                'user_id' => null,
-                'recipient_email' => $dto->recipientEmail,
-                'hash' => $hash,
-                'used_at' => null,
-            ]);
-        });
     }
 
     private function currentWindow(): int
