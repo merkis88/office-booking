@@ -21,6 +21,7 @@ return new class extends Migration
             $table->time('service_time');
             $table->enum('status', ['pending', 'in_progress', 'completed', 'rejected'])->default('pending');
             $table->string('comment')->nullable();
+            $table->timestamp('completed_at')->nullable();
 
             $table->timestamps();
         });

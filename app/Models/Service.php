@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,11 +18,13 @@ class Service extends Model
         'service_date',
         'service_time',
         'comment',
-        'status'
+        'status',
+        'completed_at'
     ];
     protected $casts = [
         'service_date' => 'date',
         'service_time' => 'datetime',
+        'completed_at' => 'datetime'
     ];
     public function user()
     {
@@ -38,5 +41,25 @@ class Service extends Model
     public function serviceType()
     {
         return $this->belongsTo(ServiceType::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('completed_at');
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->whereNotNull('completed_at');
+    }
+    public function isCompleted(): bool
+    {
+        return $this->completed_at !== null;
+    }
+    public function markAsCompleted(): void
+    {
+        $this->status = 'completed';
+        $this->completed_at = Carbon::now();
+        $this->save();
     }
 }
