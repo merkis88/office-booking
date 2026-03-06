@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 
 class QrController extends Controller
 {
-    public function createGuestQr(CreateGuestQrRequest $request, Booking $booking,CreateGuestQrHandler $handler): JsonResponse
+    public function createGuestQr(CreateGuestQrRequest $request, Booking $booking, CreateGuestQrHandler $handler): JsonResponse
     {
         $create_guest_qr = $handler->handle($booking, $request->user(), $request->toDTO());
 

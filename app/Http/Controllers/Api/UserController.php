@@ -14,6 +14,8 @@ use App\DTO\Users\UpdateUserDTO;
 use App\DTO\Users\UpdatePasswordDTO;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Illuminate\Http\Request;
+use App\Handlers\Admin\DeleteUserHandler;
 
 class UserController extends Controller
 {
@@ -67,10 +69,11 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user, DeleteUserHandler $handler)
     {
-        $user->delete();
-        return response(null,204);
+        $delete_user = $handler->handler($user, $request->user());
+
+        return response()->json(['data' => $delete_user], 201);
     }
 
     public function updatePassword(UserUpdatePasswordRequest $request)

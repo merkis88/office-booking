@@ -10,8 +10,7 @@ info:
 
     Роли (users.role_id):
     - 1 = admin
-    - 2 = manager
-    - 3 = user
+    - 2 = user
 
     Админский префикс: /api/admin/* защищён middleware is_admin (EnsureUserIsAdmin).
     Manager помещения определяется также по place_managers (place_id + user_id).

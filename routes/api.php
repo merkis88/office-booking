@@ -93,6 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('users', UserController::class);
         Route::get('/bookings', [AdminBookingController::class, 'index']); // merk
         Route::get('/bookings/export', [AdminBookingController::class, 'export']); // merk
+        Route::post('/users/{user}/delete', [UserController::class, 'destroy']); // merk
 
 
         //Places admin
@@ -107,9 +108,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/places/{place}/restore', [AdminPlaceController::class, 'restore']);// Osip
         Route::get('/places/{place}/archive-status', [AdminPlaceController::class, 'archiveStatus']);// Osip
 
-        Route::apiResource('users', UserController::class); // merk
-        Route::get('/bookings', [AdminBookingController::class, 'index']); // merk
-        Route::get('/bookings/export', [AdminBookingController::class, 'export']); // merk
 
         //Notifications
         Route::post('/notifications', [AdminNotificationController::class, 'store']);// Osip
