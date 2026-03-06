@@ -13,9 +13,13 @@ return new class extends Migration
     {
         Schema::create('services', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('booking_id')->constrained('bookings')->cascadeOnDelete();
             $table->foreignId('place_id')->constrained('places')->cascadeOnDelete();
-            $table->date('date_service');
-            $table->enum('type_service', ['cleaning', 'maintenance']);
+            $table->foreignId('service_type_id')->constrained('service_types');
+            $table->date('service_date');
+            $table->time('service_time');
+            $table->enum('status', ['pending', 'in_progress', 'completed', 'rejected'])->default('pending');
             $table->string('comment')->nullable();
 
             $table->timestamps();

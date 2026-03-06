@@ -8,6 +8,10 @@ use App\Handlers\Auth\VerifyEmailHandler;
 use App\Handlers\Places\AdminArchivePlaceHandler;
 use App\Handlers\Places\AdminDeletePhotoPlaceHandler;
 use App\Handlers\Places\AdminStorePhotoPlaceHandler;
+use App\Handlers\Services\CreateServiceHandler;
+use App\Handlers\Services\GetAllServicesHandler;
+use App\Handlers\Services\GetUserServicesHandler;
+use App\Handlers\Services\UpdateServiceStatusHandler;
 use Illuminate\Support\ServiceProvider;
 use App\Handlers\Auth\LoginHandler;
 use App\Handlers\Auth\RegisterHandler;
@@ -51,6 +55,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(GetUserNotificationsHandler::class);
         $this->app->singleton(MarkNotificationAsReadHandler::class);
         $this->app->singleton(DeleteNotificationHandler::class);
+        $this->app->singleton(CreateServiceHandler::class);
+        $this->app->singleton(GetUserServicesHandler::class);
+        $this->app->singleton(GetAllServicesHandler::class);
+        $this->app->singleton(UpdateServiceStatusHandler::class);
     }
 
     /**

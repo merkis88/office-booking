@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Admin\AdminBookingController;
 use App\Http\Controllers\Api\Admin\AdminNotificationController;
 use App\Http\Controllers\Api\AdminPlaceController;
 
+use App\Http\Controllers\Api\AdminServiceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Booking\BookingController;
 use App\Http\Controllers\Api\NotificationController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Api\Qr\QrController;
 use App\Http\Controllers\Api\PlaceController;
 
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -74,10 +76,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Notifications
     Route::prefix('notifications')->group(function () {
-        Route::get('/', [NotificationController::class, 'index']);
-        Route::post('/{notification}/read', [NotificationController::class, 'markAsRead']);
-        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
-        Route::delete('/{notification}', [NotificationController::class, 'destroy']);
+        Route::get('/', [NotificationController::class, 'index']);// Osip
+        Route::post('/{notification}/read', [NotificationController::class, 'markAsRead']);// Osip
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);// Osip
+        Route::delete('/{notification}', [NotificationController::class, 'destroy']);// Osip
+    });
+    //Services
+    Route::prefix('services')->group(function () {
+        Route::get('/my-bookings', [ServiceController::class, 'getUserBookings']);// Osip
+        Route::get('/', [ServiceController::class, 'index']);// Osip
+        Route::post('/', [ServiceController::class, 'store']);// Osip
     });
 
    // Admin
@@ -105,5 +113,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //Notifications
         Route::post('/notifications', [AdminNotificationController::class, 'store']);// Osip
+
+        //Services
+        Route::prefix('services')->group(function () {
+            Route::get('/', [AdminServiceController::class, 'index']);
+            Route::get('/types', [AdminServiceController::class, 'getServiceTypes']);
+            Route::put('/{service}/status', [AdminServiceController::class, 'updateStatus']);
+        });
     });
 });

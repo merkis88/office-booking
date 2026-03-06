@@ -39,14 +39,23 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class, 'role_id', 'id');
     }
 
-    public function createdBy()
-    {
-        return $this->hasMany(Booking::class, 'created_by');
-    }
-
-    public function userId()
+//    public function createdBy()
+//    {
+//        return $this->hasMany(Booking::class, 'created_by');
+//    }
+//
+//    public function userId()
+//    {
+//        return $this->hasMany(Booking::class, 'user_id');
+//    }
+    public function bookings()
     {
         return $this->hasMany(Booking::class, 'user_id');
+    }
+
+    public function createdBookings()
+    {
+        return $this->hasMany(Booking::class, 'created_by');
     }
 
     public function reviews()
@@ -119,5 +128,9 @@ class User extends Authenticatable
     public function unreadNotifications()
     {
         return $this->notifications()->unread();
+    }
+    public function services()
+    {
+        return $this->hasMany(Service::class);
     }
 }
