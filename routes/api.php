@@ -117,6 +117,7 @@ Route::middleware('auth:sanctum')->group(function () {
         //Services
         Route::prefix('services')->group(function () {
             Route::get('/', [AdminServiceController::class, 'index']);
+            Route::get('/completed', [AdminServiceController::class, 'completed']);
             Route::get('/types', [AdminServiceController::class, 'getServiceTypes']);
             Route::put('/{service}/status', [AdminServiceController::class, 'updateStatus']);
         });

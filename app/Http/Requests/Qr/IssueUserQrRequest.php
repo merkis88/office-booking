@@ -16,6 +16,8 @@ final class IssueUserQrRequest extends FormRequest
     {
         return [
             'recipient_user_id' => ['required', 'integer', 'exists:users,id'],
+            'recipient_email' => ['nullable', 'string','email:rfc,dns', 'max:255'],
+            'guest_name' => ['nullable', 'string','max:255'],
         ];
     }
 
@@ -23,6 +25,8 @@ final class IssueUserQrRequest extends FormRequest
     {
         return new IssueUserQrDTO(
             recipientUserId: (int) $this->input('recipient_user_id'),
+            recipientEmail: mb_strtolower(trim((string) $this->input('recipient_email'))),
+            guestName: $this->input('guest_name'),
         );
     }
 }

@@ -19,6 +19,12 @@ class PlaceResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'type' => $this->type,
+            'type_name' => match($this->type) {
+                'office' => 'Офис',
+                'coworking' => 'Коворкинг',
+                'meeting' => 'Переговорная',
+                default => $this->type,
+            },
             'capacity' => $this->capacity,
             'number_place' => $this->number_place,
             'photo_url' => $this->photo ? Storage::url($this->photo) : null,
