@@ -7,14 +7,17 @@ use App\Models\Booking;
 use App\Models\User;
 use App\Services\Bookings\BookingOverlapService;
 use Illuminate\Support\Facades\DB;
+use App\Services\Bookings\BookingBusinessHoursService;
 
 final class CreateBookingHandler
 {
-    public function __construct(private readonly BookingOverlapService $overlap) {}
+    public function __construct(private readonly BookingOverlapService $overlap, private readonly BookingBusinessHoursService $hours) {}
     public function handle(CreateBookingDTO $dto, User $actor): Booking
     {
         $guestName = $dto->guestName;
         $userId = $guestName ? null : (int) $actor->id;
+
+        $this->hours->assertWithinBusinessHours($dto->startTime, $dto->endTime);
 
         return DB::transaction(function () use ($dto, $actor, $userId, $guestName) {
             $this->overlap->assertNoOverlap(
