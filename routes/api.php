@@ -33,6 +33,10 @@ Route::post('/login', [AuthController::class, 'login']);// Osip
 Route::post('/verify-email', [AuthController::class, 'verifyEmail']);// Osip
 Route::post('/resend-verification', [AuthController::class, 'resendVerification']);// Osip
 
+//Reviews
+Route::get('/reviews', [ReviewController::class, 'index']);
+Route::get('/reviews/{review}', [ReviewController::class, 'show']);
+Route::get('/users/{user}/reviews', [ReviewController::class, 'userReviews']);
 
 // Защищённые пути
 Route::middleware('auth:sanctum')->group(function () {
@@ -49,8 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile/qrs', [ProfileQrController::class, 'index']); // merk
 
     // Reviews
-    Route::apiResource('reviews', ReviewController::class)->except('create', 'edit');// Osip
-    Route::get('/users/{user}/reviews', [ReviewController::class, 'userReviews']);// Osip
+    Route::post('/reviews', [ReviewController::class, 'store']);
+    Route::put('/reviews/{review}', [ReviewController::class, 'update']);
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
 
     // Bookings
     Route::post('/bookings', [BookingController::class, 'createBooking']); // merk
