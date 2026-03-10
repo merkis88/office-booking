@@ -6,10 +6,10 @@ use App\Http\Controllers\Api\Admin\AdminNotificationController;
 use App\Http\Controllers\Api\AdminPlaceController;
 
 use App\Http\Controllers\Api\AdminServiceController;
+use App\Http\Controllers\Api\AdminServiceTypeController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Booking\BookingController;
 use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\Qr\QrController;
 
 
@@ -22,9 +22,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Profile\ProfileQrController;
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
 
 
 //восстановление пароля
@@ -118,6 +115,14 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/completed', [AdminServiceController::class, 'completed']);
             Route::get('/types', [AdminServiceController::class, 'getServiceTypes']);
             Route::put('/{service}/status', [AdminServiceController::class, 'updateStatus']);
+        });
+        //ServiceTypes
+        Route::prefix('service-types')->group(function () {
+            Route::get('/', [AdminServiceTypeController::class, 'index']);
+            Route::post('/', [AdminServiceTypeController::class, 'store']);
+            Route::get('/{serviceType}', [AdminServiceTypeController::class, 'show']);
+            Route::put('/{serviceType}', [AdminServiceTypeController::class, 'update']);
+            Route::delete('/{serviceType}', [AdminServiceTypeController::class, 'destroy']);
         });
     });
 });

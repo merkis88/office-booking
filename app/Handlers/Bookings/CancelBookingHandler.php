@@ -3,6 +3,7 @@
 namespace App\Handlers\Bookings;
 
 use App\Models\Booking;
+use App\Models\Notification;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Validation\ValidationException;
@@ -34,11 +35,32 @@ final class CancelBookingHandler
 
         $booking->status = 'cancelled';
         $booking->save();
-
+        $this->sendCancellationNotification($booking); //Osip
         $booking->load('place');
 
         return $booking;
     }
+    private function sendCancellationNotification(Booking $booking): void //Osip
+    {
+
+        $userId = $booking->user_id ?? $booking->created_by;
+
+        if (!$userId) {
+            return;
+        }
+
+        $placeName = $booking->place->name;
+        $bookingTime = $booking->start_time->format('d.m.Y H:i');
+
+        Notification::create([
+            'user_id' => $userId,
+            'title' => 'Бронирование отменено',
+            'message' => "Ваше бронирование помещения {$placeName} на {$bookingTime} было отменено. Для выяснения причин позвоните по номеру +7 (999) 123-45-67",
+            'created_by' => 1,
+            'is_for_all' => false,
+        ]);
+    }
+
 
     private function assertCanView(Booking $booking, int $actorId): void
     {

@@ -2,6 +2,7 @@
 namespace App\Handlers\Places;
 
 use App\Models\Booking;
+use App\Models\Notification;
 use App\Models\Place;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -24,12 +25,16 @@ class AdminArchivePlaceHandler
 
         if ($activeBookingsCount > 0) {
             if($force){
+                $activeBookings = Booking::where('place_id', $place->id)
+                    ->where('status', 'active')
+                    ->get();
                 $updated = DB::table('bookings')
                     ->where('place_id', $place->id)
                     ->where('status', 'active')
                     ->update(['status' => 'cancelled']);
 
                 if ($updated > 0) {
+                    $this->sendCancellationNotifications($activeBookings, $place);
                     $place->update(['is_active' => false]);
                 } else {
                     throw new \Exception('Не удалось отменить бронирования');
@@ -45,6 +50,26 @@ class AdminArchivePlaceHandler
         }
 
         return $place->fresh();
+    }
+    private function sendCancellationNotifications($bookings, Place $place): void
+    {
+        foreach ($bookings as $booking) {
+            $userId = $booking->user_id ?? $booking->created_by;
+
+            if (!$userId) {
+                continue;
+            }
+
+            $bookingTime = $booking->start_time->format('d.m.Y H:i');
+
+            Notification::create([
+                'user_id' => $userId,
+                'title' => 'Бронирование отменено (архивация помещения)',
+                'message' => "Помещение {$place->name} отправлено в архив. Ваше бронирование на {$bookingTime} было отменено. Для выяснения причин позвоните по номеру +7 (999) 123-45-67",
+                'created_by' => 1,
+                'is_for_all' => false,
+            ]);
+        }
     }
 
     public function restore(Place $place): Place
