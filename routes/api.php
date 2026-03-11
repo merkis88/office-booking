@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\PlaceController;
 
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\Api\ServiceExportController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -25,7 +26,7 @@ use App\Http\Controllers\Api\Profile\ProfileQrController;
 
 
 //восстановление пароля
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);// Osip
 
 // Аутентификация
 Route::post('/register', [AuthController::class, 'register']);// Osip
@@ -34,9 +35,9 @@ Route::post('/verify-email', [AuthController::class, 'verifyEmail']);// Osip
 Route::post('/resend-verification', [AuthController::class, 'resendVerification']);// Osip
 
 //Reviews
-Route::get('/reviews', [ReviewController::class, 'index']);
-Route::get('/reviews/{review}', [ReviewController::class, 'show']);
-Route::get('/users/{user}/reviews', [ReviewController::class, 'userReviews']);
+Route::get('/reviews', [ReviewController::class, 'index']);// Osip
+Route::get('/reviews/{review}', [ReviewController::class, 'show']);// Osip
+Route::get('/users/{user}/reviews', [ReviewController::class, 'userReviews']);// Osip
 
 // Защищённые пути
 Route::middleware('auth:sanctum')->group(function () {
@@ -53,9 +54,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile/qrs', [ProfileQrController::class, 'index']); // merk
 
     // Reviews
-    Route::post('/reviews', [ReviewController::class, 'store']);
-    Route::put('/reviews/{review}', [ReviewController::class, 'update']);
-    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
+    Route::post('/reviews', [ReviewController::class, 'store']);// Osip
+    Route::put('/reviews/{review}', [ReviewController::class, 'update']);// Osip
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);// Osip
 
     // Bookings
     Route::post('/bookings', [BookingController::class, 'createBooking']); // merk
@@ -88,7 +89,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/my-bookings', [ServiceController::class, 'getUserBookings']);// Osip
         Route::get('/', [ServiceController::class, 'index']);// Osip
         Route::post('/', [ServiceController::class, 'store']);// Osip
+        //ServicePdf
+        Route::get('/{service}/export', [ServiceExportController::class, 'export']);
     });
+
+
 
    // Admin
     Route::middleware('is_admin')->prefix('admin')->group(function () {
@@ -116,18 +121,18 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //Services
         Route::prefix('services')->group(function () {
-            Route::get('/', [AdminServiceController::class, 'index']);
-            Route::get('/completed', [AdminServiceController::class, 'completed']);
-            Route::get('/types', [AdminServiceController::class, 'getServiceTypes']);
-            Route::put('/{service}/status', [AdminServiceController::class, 'updateStatus']);
+            Route::get('/', [AdminServiceController::class, 'index']);// Osip
+            Route::get('/completed', [AdminServiceController::class, 'completed']);// Osip
+            Route::get('/types', [AdminServiceController::class, 'getServiceTypes']);// Osip
+            Route::put('/{service}/status', [AdminServiceController::class, 'updateStatus']);// Osip
         });
         //ServiceTypes
         Route::prefix('service-types')->group(function () {
-            Route::get('/', [AdminServiceTypeController::class, 'index']);
-            Route::post('/', [AdminServiceTypeController::class, 'store']);
-            Route::get('/{serviceType}', [AdminServiceTypeController::class, 'show']);
-            Route::put('/{serviceType}', [AdminServiceTypeController::class, 'update']);
-            Route::delete('/{serviceType}', [AdminServiceTypeController::class, 'destroy']);
+            Route::get('/', [AdminServiceTypeController::class, 'index']);// Osip
+            Route::post('/', [AdminServiceTypeController::class, 'store']);// Osip
+            Route::get('/{serviceType}', [AdminServiceTypeController::class, 'show']);// Osip
+            Route::put('/{serviceType}', [AdminServiceTypeController::class, 'update']);// Osip
+            Route::delete('/{serviceType}', [AdminServiceTypeController::class, 'destroy']);// Osip
         });
     });
 });
