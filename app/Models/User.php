@@ -133,4 +133,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Service::class);
     }
+
+    public function blocks()
+    {
+        return $this->hasMany(UserBlock::class, 'user_id');
+    }
+
+    public function blockedUsers()
+    {
+        return $this->hasMany(UserBlock::class, 'blocked_by');
+    }
 }

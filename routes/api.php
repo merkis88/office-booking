@@ -40,7 +40,7 @@ Route::get('/reviews/{review}', [ReviewController::class, 'show']);// Osip
 Route::get('/users/{user}/reviews', [ReviewController::class, 'userReviews']);// Osip
 
 // Защищённые пути
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     }); // Osip
@@ -101,6 +101,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/bookings', [AdminBookingController::class, 'index']); // merk
         Route::get('/bookings/export', [AdminBookingController::class, 'export']); // merk
         Route::post('/users/{user}/delete', [UserController::class, 'destroy']); // merk
+        Route::post('/users/block', [UserController::class, 'block']);     // merk
+        Route::post('/users/unblock', [UserController::class, 'unBlock']); // merk
 
 
         //Places admin

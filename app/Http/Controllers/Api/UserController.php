@@ -14,8 +14,13 @@ use App\DTO\Users\UpdateUserDTO;
 use App\DTO\Users\UpdatePasswordDTO;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Handlers\Admin\DeleteUserHandler;
+use App\Handlers\Admin\BlockUserHandler;
+use App\Handlers\Admin\UnblockUserHandler;
+use App\Http\Requests\Admin\User\BlockUserRequest;
+use App\Http\Requests\Admin\User\UnblockUserRequest;
 
 class UserController extends Controller
 {
@@ -69,11 +74,11 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, User $user, DeleteUserHandler $handler)
+    public function destroy(Request $request, User $user, DeleteUserHandler $handler): JsonResponse // merk
     {
         $delete_user = $handler->handler($user, $request->user());
 
-        return response()->json(['data' => $delete_user], 201);
+        return response()->json(['data' => $delete_user], 200);
     }
 
     public function updatePassword(UserUpdatePasswordRequest $request)
@@ -90,5 +95,19 @@ class UserController extends Controller
                 'errors' => $e->errors()
             ],422);
         }
+    }
+
+    public function block(BlockUserRequest $request, BlockUserHandler $handler): JsonResponse // merk
+    {
+        $block_user = $handler->handle($request->toDTO(), $request->user());
+
+        return response()->json(['data' => $block_user], 200);
+    }
+
+    public function unBlock(UnblockUserRequest $request, UnblockUserHandler $handler): JsonResponse // merk
+    {
+        $unBlock_user = $handler->handle($request->getEmail(), $request->user());
+
+        return response()->json(['data' => $unBlock_user], 200);
     }
 }
