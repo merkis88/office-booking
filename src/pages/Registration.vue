@@ -35,7 +35,6 @@
     return emailRegex.test(email);
   }
 
-  // Очистка всех ошибок
   function clearErrors() {
     errors.value = {
       firstName: '',
@@ -48,23 +47,22 @@
     };
   }
 
-  // Валидация формы
   function validateForm() {
     clearErrors();
     let isValid = true;
 
     if (!firstName.value.trim()) {
-      errors.value.firstName = 'Ошибка: Неверно введено имя';
+      errors.value.firstName = 'Ошибка: Введите Имя';
       isValid = false;
     }
 
     if (!lastName.value.trim()) {
-      errors.value.lastName = 'Ошибка: Неверно введено имя';
+      errors.value.lastName = 'Ошибка: Введитя Фамилию';
       isValid = false;
     }
 
     if (!email.value.trim()) {
-      errors.value.email = 'Ошибка: Неверно введено имя';
+      errors.value.email = 'Ошибка: Введите почту';
       isValid = false;
     } else if (!isValidEmail(email.value)) {
       errors.value.email = 'Ошибка: Неверно введена почта';
@@ -72,15 +70,31 @@
     }
 
     if (!password.value) {
-      errors.value.password = 'Ошибка: Неверно введено имя';
+      errors.value.password = 'Ошибка: Введите пароль';
       isValid = false;
-    } else if (password.value.length < 8) {
+    } else if (password.value.length < 6) {
       errors.value.password = 'Пароль должен содержать минимум 8 символов';
+      isValid = false;
+    } else if (password.value.length > 65) {
+      errors.value.password = 'Пароль может содержать не более 64 символов';
+      isValid = false;
+    } else if (!/^[a-zA-Z0-9!@#$%^&*()_+=\-]+$/.test(password.value)) {
+      errors.value.password =
+        'Пароль должен содержать только латинские буквы, цифры и спецсимволы (!@#$%^&*()_+=-)';
+      isValid = false;
+    } else if (!/[A-Z]/.test(password.value)) {
+      errors.value.password = 'Пароль должен содержать хотя бы одну заглавную букву';
+      isValid = false;
+    } else if (!/[a-z]/.test(password.value)) {
+      errors.value.password = 'Пароль должен содержать хотя бы одну строчную букву';
+      isValid = false;
+    } else if (!/[0-9]/.test(password.value)) {
+      errors.value.password = 'Пароль должен содержать хотя бы одну цифру';
       isValid = false;
     }
 
     if (!repeatPassword.value) {
-      errors.value.repeatPassword = 'Ошибка: Неверно введено имя';
+      errors.value.repeatPassword = 'Ошибка: Введите пароль';
       isValid = false;
     } else if (password.value !== repeatPassword.value) {
       errors.value.repeatPassword = 'Пароли не совпадают';

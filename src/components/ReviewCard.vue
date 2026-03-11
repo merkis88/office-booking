@@ -2,6 +2,7 @@
   import { computed } from 'vue';
   import { useAuthStore } from '@/store/auth';
   import { useReviewsStore } from '@/store/reviews';
+  import { storeToRefs } from 'pinia';
 
   const authStore = useAuthStore();
   const reviewsStore = useReviewsStore();
@@ -15,16 +16,13 @@
 
   const emit = defineEmits(['edit', 'delete']);
 
-  // Генерируем массив звезд
   const stars = Array.from({ length: 5 }, (_, i) => i < props.review.rating);
 
-  // ✅ Проверка - это отзыв текущего пользователя?
   const isCurrentUserReview = computed(() => {
     if (!authStore.user) return false;
     return props.review.user_id === authStore.user.id;
   });
 
-  // Имя автора
   const authorName = computed(() => {
     if (props.review.user) {
       const { first_name, last_name, patronymic } = props.review.user;
@@ -37,7 +35,6 @@
     return 'Аноним';
   });
 
-  // Аватар
   const avatarSrc = computed(() => {
     if (props.review.user?.photo) {
       return props.review.user.photo;
@@ -45,7 +42,6 @@
     return '/avatar-default.png';
   });
 
-  // Дата
   const reviewDate = computed(() => {
     if (!props.review.created_at) return 'Дата не указана';
 
@@ -61,16 +57,10 @@
     return props.review.created_at;
   });
 
-  const handleImageError = (event) => {
-    event.target.src = '/avatar-default.png';
-  };
-
-  // ✅ Редактировать отзыв
   function handleEdit() {
     emit('edit', props.review);
   }
 
-  // ✅ Удалить отзыв
   async function handleDelete() {
     const confirmed = confirm('Вы уверены, что хотите удалить этот отзыв?');
 
@@ -88,27 +78,14 @@
 
 <template>
   <div class="review-card">
-    <!-- Левая часть: Автор, дата, звезды, текст -->
     <div class="review-card__content">
-      <!-- Заголовок -->
       <div class="review-card__header">
         <div class="review-card__author-info">
           <h3 class="review-card__author">{{ authorName }}</h3>
           <p class="review-card__date">{{ reviewDate }}</p>
         </div>
-
-        <!-- ✅ Кнопки редактирования/удаления (только для своих отзывов) -->
-        <div v-if="isCurrentUserReview" class="review-card__actions">
-          <button class="review-card__action-btn" @click="handleEdit" aria-label="Редактировать">
-            <img src="/edit-icon.svg" alt="Редактировать" />
-          </button>
-          <button class="review-card__action-btn" @click="handleDelete" aria-label="Удалить">
-            <img src="/delete-icon.svg" alt="Удалить" />
-          </button>
-        </div>
       </div>
 
-      <!-- Звезды рейтинга -->
       <div class="review-card__rating">
         <img
           v-for="(filled, index) in stars"
@@ -119,18 +96,19 @@
         />
       </div>
 
-      <!-- Текст отзыва -->
       <p class="review-card__text">{{ review.text }}</p>
     </div>
 
-    <!-- Правая часть: Аватар -->
     <div class="review-card__avatar-wrapper">
-      <img
-        :src="avatarSrc"
-        :alt="authorName"
-        class="review-card__avatar"
-        @error="handleImageError"
-      />
+      <img src="/avatar.png" class="review-card__avatar" alt="Аватар" />
+      <div v-if="isCurrentUserReview" class="review-card__actions">
+        <button class="review-card__action-btn" @click="handleEdit" aria-label="Редактировать">
+          <img src="/edit-icon.svg" alt="Редактировать" />
+        </button>
+        <button class="review-card__action-btn" @click="handleDelete" aria-label="Удалить">
+          <img src="/delete-icon.svg" alt="Удалить" />
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -140,13 +118,13 @@
 
   .review-card {
     padding: 1.5rem;
-    background: $color-card-bg;
+    background: $color-btn-profile;
     border: 1px solid $color-border;
     border-radius: $radius-lg;
     display: flex;
     gap: 1.5rem;
     transition: all 0.2s;
-    position: relative; // ✅ Для абсолютного позиционирования кнопок
+    position: relative;
 
     &:hover {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -165,7 +143,7 @@
       align-items: flex-start;
       gap: 1rem;
       padding-bottom: 0.5rem;
-      border-bottom: 1px solid rgba($color-border, 0.3);
+      border-bottom: 2px solid rgba($color-border, 0.5);
     }
 
     &__author-info {
@@ -189,9 +167,7 @@
       white-space: nowrap;
     }
 
-    // ✅ Кнопки в правом нижнем углу
     &__actions {
-      position: absolute;
       bottom: 1.5rem;
       right: 1.5rem;
       display: flex;
@@ -200,21 +176,15 @@
     }
 
     &__action-btn {
-      width: 2.5rem;
-      height: 2.5rem;
       display: flex;
       align-items: center;
       justify-content: center;
       border: none;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.9);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
       cursor: pointer;
       transition: all 0.2s;
 
       &:hover {
-        background: white;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         transform: scale(1.1);
       }
 
@@ -223,9 +193,9 @@
       }
 
       img {
-        width: 1.25rem;
-        height: 1.25rem;
-        filter: brightness(0) saturate(100%); // Делаем иконки черными
+        width: 1.5rem;
+        height: 1.5rem;
+        filter: brightness(0) saturate(100%);
       }
     }
 
@@ -235,8 +205,8 @@
     }
 
     &__star {
-      width: 1.25rem;
-      height: 1.25rem;
+      width: 1.75rem;
+      height: 1.75rem;
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     }
 
@@ -246,18 +216,21 @@
       color: $color-text;
       margin: 0;
       word-break: break-word;
-      padding-right: 5rem; // ✅ Отступ для кнопок
+      padding-right: 5rem;
     }
 
     &__avatar-wrapper {
       flex-shrink: 0;
       display: flex;
-      align-items: flex-start;
+      flex-direction: column;
+      align-items: end;
+      justify-content: space-between;
+      gap: 30px;
     }
 
     &__avatar {
-      width: 5rem;
-      height: 5rem;
+      width: 8rem;
+      height: 8rem;
       border-radius: 50%;
       object-fit: cover;
       background: $color-input-bg;

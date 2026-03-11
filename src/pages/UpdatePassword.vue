@@ -18,18 +18,59 @@
   const handleSubmit = async () => {
     error.value = '';
 
-    if (!currentPassword.value) {
-      error.value = 'Ошибка:Введите текущий пароль';
+    if (!password.value) {
+      error.value = 'Ошибка: Введите новый пароль';
       return;
     }
 
     if (password.value.length < 8) {
-      error.value = 'Ошибка:Пароль должен содержать не менее 8 символов';
+      error.value = 'Пароль должен содержать минимум 8 символов';
+      return;
+    }
+
+    if (password.value.length > 64) {
+      error.value = 'Пароль может содержать не более 64 символов';
+      return;
+    }
+
+    if (/[а-яА-ЯёЁ]/.test(password.value)) {
+      error.value = 'Пароль не должен содержать кирилицу';
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9!@#$%^&*()_+=\-]+$/.test(password.value)) {
+      error.value =
+        'Пароль должен содержать только латинские буквы, цифры и спецсимволы (!@#$%^&*()_+=-)';
+      return;
+    }
+
+    if (!/[A-Z]/.test(password.value)) {
+      error.value = 'Пароль должен содержать хотя бы одну заглавную букву';
+      return;
+    }
+
+    if (!/[a-z]/.test(password.value)) {
+      error.value = 'Пароль должен содержать хотя бы одну строчную букву';
+      return;
+    }
+
+    if (!/[0-9]/.test(password.value)) {
+      error.value = 'Пароль должен содержать хотя бы одну цифру';
+      return;
+    }
+
+    if (!confirmPassword.value) {
+      error.value = 'Ошибка: Подтвердите новый пароль';
       return;
     }
 
     if (password.value !== confirmPassword.value) {
-      error.value = 'Ошибка:Пароли не совпадают';
+      error.value = 'Ошибка: Пароли не совпадают';
+      return;
+    }
+
+    if (currentPassword.value === password.value) {
+      error.value = 'Новый пароль должен отличаться от текущего';
       return;
     }
 

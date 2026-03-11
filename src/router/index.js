@@ -9,6 +9,8 @@ import PrivacyPolicy from '@/pages/PrivacyPolicy.vue';
 import Profile from '@/pages/Profile.vue';
 import UpdatePassword from '@/pages/UpdatePassword.vue';
 import Reviews from '@/pages/Reviews.vue';
+import Offices from '@/pages/Offices.vue';
+import Coworking from '@/pages/Coworking.vue';
 
 const routes = [
   {
@@ -55,6 +57,21 @@ const routes = [
     path: '/reviews',
     name: 'Reviews',
     component: Reviews,
+  },
+  {
+    path: '/offices',
+    name: 'Offices',
+    component: Offices,
+  },
+  {
+    path: '/coworking',
+    name: 'Coworking',
+    component: Coworking,
+  },
+  {
+    path: '/meeting-rooms',
+    name: 'MeetingRooms',
+    component: MeetingRooms,
   },
 ];
 

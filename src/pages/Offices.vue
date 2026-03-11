@@ -3,5 +3,5 @@
 </script>
 
 <template>
-  <PlacesPage type="meeting" />
+  <PlacesPage type="office" />
 </template>

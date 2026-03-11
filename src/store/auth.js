@@ -19,9 +19,21 @@ export const useAuthStore = defineStore('auth', {
       this.token = token;
       this.user = user;
       this.pendingVerificationEmail = null;
+
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
+
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    },
+
+    async init() {
+      if (this.token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+
+        if (!this.user) {
+          await this.fetchCurrentUser();
+        }
+      }
     },
 
     async fetchCurrentUser() {
@@ -34,16 +46,6 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Ошибка загрузки пользователя:', error);
         this.logout();
-      }
-    },
-
-    async init() {
-      if (this.token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
-
-        if (!this.user) {
-          await this.fetchCurrentUser();
-        }
       }
     },
 
@@ -102,6 +104,16 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async forgotPassword(email) {
+      try {
+        const { data } = await axios.post('/api/forgot-password', { email });
+        return data;
+      } catch (error) {
+        console.error('Ошибка отправки временного пароля:', error);
+        throw error;
+      }
+    },
+
     async changePassword(currentPassword, newPassword, passwordConfirmation) {
       try {
         const { data } = await axios.put('/api/user/password', {
@@ -125,8 +137,10 @@ export const useAuthStore = defineStore('auth', {
         this.token = null;
         this.user = null;
         this.pendingVerificationEmail = null;
+
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+
         delete axios.defaults.headers.common['Authorization'];
       }
     },

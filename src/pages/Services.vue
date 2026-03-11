@@ -25,7 +25,7 @@
             только комфортная обстановка, в которой легко принимать важные решения и строить
             долгосрочные партнёрства.
           </p>
-          <router-link to="/meeting_rooms" class="service-section__btn">Арендовать</router-link>
+          <router-link to="/meeting-rooms" class="service-section__btn">Арендовать</router-link>
         </div>
       </div>
     </section>
@@ -44,7 +44,7 @@
             Каждое помещение продумано до мелочей. Мы берём на себя заботу об инфраструктуре — вы
             сосредотачиваетесь на главном: на своём бизнесе.
           </p>
-          <a href="#" class="service-section__btn">Арендовать</a>
+          <router-link to="/offices" class="service-section__btn">Арендовать</router-link>
         </div>
 
         <div class="service-section__image-wrap">
@@ -73,7 +73,7 @@
             Где каждая деталь способствует вдохновению, а окружение добавляет мотивацию на
             результат.
           </p>
-          <a href="#" class="service-section__btn">Арендовать</a>
+          <router-link to="/coworking" class="service-section__btn">Арендовать</router-link>
         </div>
       </div>
     </section>
