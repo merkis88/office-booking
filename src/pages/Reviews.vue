@@ -525,8 +525,8 @@
       margin: 0;
       box-shadow: 0 7px 6px rgba(0, 0, 0, 0.2);
       text-align: center;
-      width: auto; // ✅ Ширина по содержимому
-      display: inline-block; // ✅ Или inline-block
+      width: auto;
+      display: inline-block;
     }
 
     &__message-success {

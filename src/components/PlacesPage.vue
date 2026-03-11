@@ -53,7 +53,6 @@
     }
   }
 
-  // ✅ Функция для загрузки мест с фильтрами
   async function loadPlaces() {
     await placesStore.fetchPlaces({
       type: props.type,
@@ -62,22 +61,19 @@
       date: selectedDate.value || undefined,
     });
 
-    // Сбрасываем на первую страницу при изменении фильтров
     currentPage.value = 1;
   }
 
-  // ✅ Следим за изменением типа места (при переходе между страницами)
+
   watch(
     () => props.type,
     () => {
-      // Сбрасываем фильтры при смене типа
       priceRange.value = [400, 5000];
       selectedDate.value = '';
       loadPlaces();
     },
   );
 
-  // ✅ Следим за изменением диапазона цен с debounce
   let priceDebounceTimer = null;
   watch(
     priceRange,
@@ -85,17 +81,15 @@
       clearTimeout(priceDebounceTimer);
       priceDebounceTimer = setTimeout(() => {
         loadPlaces();
-      }, 500); // Задержка 500ms для избежания частых запросов
+      }, 500);
     },
     { deep: true },
   );
 
-  // ✅ Следим за изменением даты
   watch(selectedDate, () => {
     loadPlaces();
   });
 
-  // ✅ Начальная загрузка при монтировании
   onMounted(() => {
     loadPlaces();
   });
@@ -108,12 +102,10 @@
         <h1 class="places-page__title">{{ pageTitle }}</h1>
 
         <div class="places-page__filters">
-          <!-- Фильтр по дате -->
           <div class="places-page__filter places-page__filter--date">
             <DatePicker v-model="selectedDate" />
           </div>
 
-          <!-- Фильтр по цене -->
           <div class="places-page__filter places-page__filter--price">
             <div class="places-page__price-controls">
               <input
@@ -133,8 +125,6 @@
                 placeholder="До"
               />
             </div>
-
-            <!-- Двойной ползунок -->
             <RangeSlider v-model="priceRange" :min="0" :max="5000" :step="50" />
           </div>
         </div>

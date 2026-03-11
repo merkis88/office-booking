@@ -16,7 +16,6 @@
   const showRepeatPassword = ref(false);
   const acceptTerms = ref(false);
 
-  // Отдельные ошибки для каждого поля
   const errors = ref({
     firstName: '',
     lastName: '',

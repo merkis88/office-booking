@@ -9,13 +9,11 @@ export const usePlacesStore = defineStore('places', {
   }),
 
   actions: {
-    // ✅ Обновленный метод с параметрами фильтрации
     async fetchPlaces(filters = {}) {
       this.isLoading = true;
       this.error = null;
 
       try {
-        // Формируем параметры запроса
         const params = {};
 
         if (filters.type) {
@@ -36,7 +34,6 @@ export const usePlacesStore = defineStore('places', {
 
         console.log('Запрос с параметрами:', params);
 
-        // ✅ Отправляем запрос с параметрами
         const { data } = await axios.get('/api/places', { params });
 
         console.log('Места загружены:', data);

@@ -8,10 +8,8 @@
     },
   });
 
-  // Форматирование времени
   const formattedStartTime = computed(() => {
     if (!props.place.booking_start_time) return '';
-    // Извлекаем время из datetime "2024-01-01 08:00:00" -> "08:00"
     const timeStr = props.place.booking_start_time;
     if (timeStr.includes(' ')) {
       return timeStr.split(' ')[1].substring(0, 5);
@@ -28,7 +26,6 @@
     return timeStr.substring(0, 5);
   });
 
-  // Перевод типа места
   const placeTypeLabel = computed(() => {
     const types = {
       office: 'Аренда офиса',
