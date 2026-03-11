@@ -4,9 +4,16 @@ import 'package:wordpice/core/theme/app_colors.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_surface_card.dart';
 
 class ProfileInfoCard extends StatelessWidget {
-  const ProfileInfoCard({super.key, required this.onEditTap});
+  const ProfileInfoCard({
+    super.key,
+    required this.onEditTap,
+    required this.email,
+    required this.company,
+  });
 
   final VoidCallback onEditTap;
+  final String email;
+  final String company;
 
   @override
   Widget build(BuildContext context) {
@@ -16,13 +23,13 @@ class ProfileInfoCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _ProfileInfoField(label: 'Почта', value: 'почта@mail.ru'),
-                  SizedBox(height: 10),
-                  _ProfileInfoField(label: 'Компания', value: 'ООО "Офис"'),
+                  _ProfileInfoField(label: 'Почта', value: email),
+                  const SizedBox(height: 10),
+                  _ProfileInfoField(label: 'Компания', value: company),
                 ],
               ),
             ),

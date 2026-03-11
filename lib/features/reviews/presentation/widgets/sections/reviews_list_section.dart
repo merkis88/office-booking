@@ -10,10 +10,16 @@ class ReviewsListSection extends StatelessWidget {
     super.key,
     required this.reviews,
     required this.controller,
+    required this.onDeleteReview,
+    required this.onEditReview,
+    this.deletingReviewId,
   });
 
   final List<ReviewItem> reviews;
   final PageController controller;
+  final ValueChanged<ReviewItem> onDeleteReview;
+  final ValueChanged<ReviewItem> onEditReview;
+  final int? deletingReviewId;
 
   @override
   Widget build(BuildContext context) {
@@ -36,13 +42,26 @@ class ReviewsListSection extends StatelessWidget {
                 scrollDirection: Axis.vertical,
                 padEnds: false,
                 itemCount: reviews.length,
-                itemBuilder: (context, index) => Align(
-                  alignment: Alignment.topCenter,
-                  child: SizedBox(
-                    height: 230,
-                    child: ReviewCard(item: reviews[index]),
-                  ),
-                ),
+                itemBuilder: (context, index) {
+                  final review = reviews[index];
+
+                  return Align(
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                      height: 230,
+                      child: ReviewCard(
+                        item: review,
+                        isDeleting: deletingReviewId == review.id,
+                        onEdit: review.isOwnedByCurrentUser
+                            ? () => onEditReview(review)
+                            : null,
+                        onDelete: review.isOwnedByCurrentUser
+                            ? () => onDeleteReview(review)
+                            : null,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
     );

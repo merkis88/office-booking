@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
+import 'package:wordpice/features/auth/domain/entities/registered_user.dart';
 import 'package:wordpice/features/profile/presentation/widgets/profile_identity_avatar.dart';
 import 'package:wordpice/features/profile/presentation/widgets/styles/edit_profile_styles.dart';
 
@@ -11,10 +12,11 @@ class EditProfileField {
 }
 
 class EditProfilePreviewCard extends StatelessWidget {
-  const EditProfilePreviewCard({super.key});
+  const EditProfilePreviewCard({super.key, required this.user});
 
-  static const String _name = 'Фамилия Имя Отчество';
   static const String _role = 'Должность';
+
+  final RegisteredUser user;
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +34,13 @@ class EditProfilePreviewCard extends StatelessWidget {
         children: [
           const ProfileIdentityAvatar(size: 58),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_name, style: EditProfileStyles.previewNameStyle),
-                SizedBox(height: 4),
-                Text(_role, style: EditProfileStyles.previewRoleStyle),
+                Text(user.fullName, style: EditProfileStyles.previewNameStyle),
+                const SizedBox(height: 4),
+                const Text(_role, style: EditProfileStyles.previewRoleStyle),
               ],
             ),
           ),
@@ -99,10 +101,7 @@ class EditProfileEditorCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Center(
-              child: _ActionButton(
-                label: _deleteLabel,
-                onPressed: onDeleteTap,
-              ),
+              child: _ActionButton(label: _deleteLabel, onPressed: onDeleteTap),
             ),
           ],
         ),
@@ -112,10 +111,7 @@ class EditProfileEditorCard extends StatelessWidget {
 }
 
 class _ActionButton extends StatelessWidget {
-  const _ActionButton({
-    required this.label,
-    required this.onPressed,
-  });
+  const _ActionButton({required this.label, required this.onPressed});
 
   final String label;
   final VoidCallback onPressed;

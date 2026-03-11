@@ -12,7 +12,7 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final deps = AppDependencies.mock();
+    final deps = AppDependencies.create();
 
     return AppScope(
       dependencies: deps,

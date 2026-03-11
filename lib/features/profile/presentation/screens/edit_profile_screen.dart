@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wordpice/app/navigation/app_tab_navigator.dart';
 import 'package:wordpice/core/widgets/layout/app_constrained_scroll_view.dart';
 import 'package:wordpice/core/widgets/layout/app_shell.dart';
+import 'package:wordpice/features/auth/domain/entities/registered_user.dart';
 import 'package:wordpice/features/profile/presentation/screens/change_password_screen.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/edit_profile_cards.dart';
 import 'package:wordpice/features/profile/presentation/widgets/delete_account_modal.dart';
@@ -9,7 +10,9 @@ import 'package:wordpice/features/profile/presentation/widgets/sections/edit_pro
 import 'package:wordpice/features/profile/presentation/widgets/styles/edit_profile_styles.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  const EditProfileScreen({super.key, required this.user});
+
+  final RegisteredUser user;
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -43,6 +46,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     EditProfileField(label: 'Компания', controller: _companyController),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = widget.user.firstName;
+    _middleNameController.text = widget.user.patronymic ?? '';
+    _lastNameController.text = widget.user.lastName;
+    _emailController.text = widget.user.email;
+    _positionController.text = widget.user.post ?? '';
+    _companyController.text = widget.user.company ?? '';
+  }
+
   void _onBottomChanged(int index) {
     if (index == _tabIndex) {
       Navigator.of(context).pop();
@@ -56,9 +70,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _changePassword() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ChangePasswordScreen()));
   }
 
   Future<void> _showDeleteAccountDialog() => DeleteAccountModal.show(context);
@@ -81,7 +95,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         padding: EditProfileStyles.screenPadding,
         child: Column(
           children: [
-            const EditProfilePreviewCard(),
+            EditProfilePreviewCard(user: widget.user),
             const SizedBox(height: 30),
             SizedBox(
               width: EditProfileStyles.editorWidth,

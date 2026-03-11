@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/core/theme/app_input_decorations.dart';
 import 'package:wordpice/core/widgets/layout/app_logo_top_left.dart';
+import 'package:wordpice/features/auth/data/datasources/auth_data_source.dart';
+import 'package:wordpice/features/auth/domain/entities/register_params.dart';
 import 'package:wordpice/features/auth/presentation/screens/account_confirmation_screen.dart';
 import 'package:wordpice/features/auth/presentation/screens/auth_screen.dart';
 import 'package:wordpice/features/auth/presentation/screens/privacy_policy_screen.dart';
+import 'package:wordpice/features/auth/presentation/states/register_form_error_state.dart';
 import 'package:wordpice/features/auth/presentation/widgets/buttons/auth_action_button.dart';
 import 'package:wordpice/features/auth/presentation/widgets/cards/auth_form_card.dart';
 import 'package:wordpice/features/auth/presentation/widgets/sections/auth_text.dart';
@@ -27,6 +31,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isPersonalDataAccepted = false;
+  bool _isSubmitting = false;
+  RegisterFormErrorState _errors = RegisterFormErrorState.empty;
 
   @override
   void dispose() {
@@ -47,7 +53,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _goToAccountConfirmation() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const AccountConfirmationScreen()),
+      MaterialPageRoute(
+        builder: (_) => AccountConfirmationScreen(
+          initialEmail: _emailController.text.trim(),
+        ),
+      ),
     );
   }
 
@@ -55,6 +65,74 @@ class _RegisterScreenState extends State<RegisterScreen> {
     Navigator.of(
       context,
     ).pushReplacement(MaterialPageRoute(builder: (_) => const AuthScreen()));
+  }
+
+  bool _validateForm({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+  }) {
+    _errors = RegisterFormErrorState.validate(
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: password,
+      passwordConfirmation: passwordConfirmation,
+      isPersonalDataAccepted: _isPersonalDataAccepted,
+    );
+    return !_errors.hasErrors;
+  }
+
+  Future<void> _submitRegistration() async {
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final patronymic = _middleNameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final passwordConfirmation = _confirmPasswordController.text;
+
+    final isValid = _validateForm(
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: password,
+      passwordConfirmation: passwordConfirmation,
+    );
+
+    setState(() {});
+    if (!isValid) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final repository = AppScope.of(context).authRepository;
+      await repository.register(
+        RegisterParams(
+          firstName: firstName,
+          lastName: lastName,
+          patronymic: patronymic,
+          email: email,
+          password: password,
+          passwordConfirmation: passwordConfirmation,
+        ),
+      );
+
+      if (!mounted) return;
+      _goToAccountConfirmation();
+    } on AuthRequestException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _errors = RegisterFormErrorState.fromApi(error.fieldErrors);
+      });
+    } catch (_) {
+      // Intentionally ignore connection errors in the UI.
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   @override
@@ -81,18 +159,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           controller: _firstNameController,
                           decoration: AppInputDecorations.authField(
                             hintText: 'Введите имя',
+                            errorText: _errors.firstName,
                           ),
                         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 24),
                         const AuthLabelText('Фамилия*'),
                         const SizedBox(height: 4),
                         TextField(
                           controller: _lastNameController,
                           decoration: AppInputDecorations.authField(
                             hintText: 'Введите фамилию',
+                            errorText: _errors.lastName,
                           ),
                         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 24),
                         const AuthLabelText('Отчество (необязательно)'),
                         const SizedBox(height: 4),
                         TextField(
@@ -101,7 +181,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             hintText: 'Введите отчество',
                           ),
                         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 24),
                         const AuthLabelText('Эл.почта*'),
                         const SizedBox(height: 4),
                         TextField(
@@ -109,9 +189,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           keyboardType: TextInputType.emailAddress,
                           decoration: AppInputDecorations.authField(
                             hintText: 'Введите электронную почту',
+                            errorText: _errors.email,
                           ),
                         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 24),
                         const AuthLabelText('Пароль*'),
                         const SizedBox(height: 4),
                         TextField(
@@ -119,6 +200,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           obscureText: _obscurePassword,
                           decoration: AppInputDecorations.authField(
                             hintText: 'Введите пароль',
+                            errorText: _errors.password,
                             suffixIcon: IconButton(
                               onPressed: () {
                                 setState(
@@ -133,7 +215,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 24),
                         const AuthLabelText('Подтвердите пароль*'),
                         const SizedBox(height: 4),
                         TextField(
@@ -141,6 +223,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           obscureText: _obscureConfirmPassword,
                           decoration: AppInputDecorations.authField(
                             hintText: 'Введите пароль',
+                            errorText: _errors.confirmPassword,
                             suffixIcon: IconButton(
                               onPressed: () {
                                 setState(() {
@@ -168,6 +251,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 onChanged: (value) {
                                   setState(() {
                                     _isPersonalDataAccepted = value ?? false;
+                                    _errors = _errors.copyWith(
+                                      firstName: _errors.firstName,
+                                      lastName: _errors.lastName,
+                                      email: _errors.email,
+                                      password: _errors.password,
+                                      confirmPassword: _errors.confirmPassword,
+                                      personalData: null,
+                                    );
                                   });
                                 },
                                 materialTapTargetSize:
@@ -182,6 +273,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ],
                         ),
+                        if (_errors.personalData != null) ...[
+                          const SizedBox(height: 6),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 32),
+                            child: Text(
+                              _errors.personalData!,
+                              style: AuthStyles.helperText.copyWith(
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 8),
                         Center(
                           child: InkWell(
@@ -193,7 +296,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 vertical: 2,
                               ),
                               child: AuthPolicyText(
-                                'Нажимая на кнопку “Зарегистрироваться”,\nя соглашаюсь с условиями\nПолитики конфиденциальности',
+                                'Нажимая на кнопку "Зарегистрироваться",\nя соглашаюсь с условиями\nПолитики конфиденциальности',
                               ),
                             ),
                           ),
@@ -201,8 +304,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 12),
                         Center(
                           child: AuthActionButton(
-                            label: 'Зарегистрироваться',
-                            onPressed: _goToAccountConfirmation,
+                            label: _isSubmitting
+                                ? 'Регистрация...'
+                                : 'Зарегистрироваться',
+                            onPressed: _isSubmitting
+                                ? null
+                                : _submitRegistration,
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -214,7 +321,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            child: const AuthBodyText('Уже есть аккаунт? Авторизация',),
+                            child: const AuthBodyText(
+                              'Уже есть аккаунт? Авторизация',
+                            ),
                           ),
                         ),
                       ],

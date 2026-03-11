@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/app/navigation/app_tab_navigator.dart';
 import 'package:wordpice/core/widgets/layout/app_constrained_scroll_view.dart';
 import 'package:wordpice/core/widgets/layout/app_shell.dart';
+import 'package:wordpice/features/auth/domain/entities/registered_user.dart';
 import 'package:wordpice/features/profile/data/mock/profile_pass_mock_data.dart';
 import 'package:wordpice/features/profile/presentation/models/profile_activity_filter.dart';
 import 'package:wordpice/features/profile/presentation/screens/edit_profile_screen.dart';
@@ -39,11 +41,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   int _selectedBottomIndex = _tabIndex;
   int _carouselIndex = 0;
+  bool _isLoading = true;
+  bool _hasLoadedOnce = false;
+  RegisteredUser? _user;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedOnce) return;
+    _hasLoadedOnce = true;
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final dependencies = AppScope.of(context);
+    final sessionUser = dependencies.appSession.currentUser;
+
+    if (sessionUser != null) {
+      setState(() {
+        _user = sessionUser;
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+
+    try {
+      final freshUser = await dependencies.profileRepository
+          .getCurrentProfile();
+
+      if (!mounted) return;
+      setState(() {
+        _user = freshUser;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   void _openEditScreen() {
+    final user = _user;
+    if (user == null) return;
+
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const EditProfileScreen()));
+    ).push(MaterialPageRoute(builder: (_) => EditProfileScreen(user: user)));
   }
 
   void _onBottomChanged(int index) {
@@ -67,6 +115,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildBody() {
+    if (_isLoading && _user == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final user = _user;
+    if (user == null) {
+      return const Center(child: Text('Данные профиля недоступны.'));
+    }
+
+    return _ProfileContent(
+      user: user,
+      onEditTap: _openEditScreen,
+      carouselItems: _carouselItems,
+      carouselIndex: _carouselIndex,
+      onCarouselChanged: (index) => setState(() => _carouselIndex = index),
+      selectedActivityFilter: _selectedActivityFilter,
+      onShowPassQr: _showPassQr,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppShell(
@@ -75,14 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: AppConstrainedScrollView(
         maxWidth: _contentWidth,
         padding: const EdgeInsets.fromLTRB(16, 40, 16, 28),
-        child: _ProfileContent(
-          onEditTap: _openEditScreen,
-          carouselItems: _carouselItems,
-          carouselIndex: _carouselIndex,
-          onCarouselChanged: (index) => setState(() => _carouselIndex = index),
-          selectedActivityFilter: _selectedActivityFilter,
-          onShowPassQr: _showPassQr,
-        ),
+        child: _buildBody(),
       ),
     );
   }
@@ -90,6 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
 class _ProfileContent extends StatelessWidget {
   const _ProfileContent({
+    required this.user,
     required this.onEditTap,
     required this.carouselItems,
     required this.carouselIndex,
@@ -98,6 +161,7 @@ class _ProfileContent extends StatelessWidget {
     required this.onShowPassQr,
   });
 
+  final RegisteredUser user;
   final VoidCallback onEditTap;
   final List<String> carouselItems;
   final int carouselIndex;
@@ -109,9 +173,17 @@ class _ProfileContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ProfileUserCard(onEditTap: onEditTap),
+        ProfileUserCard(onEditTap: onEditTap, fullName: user.fullName),
         const SizedBox(height: 30),
-        _NarrowCard(child: ProfileInfoCard(onEditTap: onEditTap)),
+        _NarrowCard(
+          child: ProfileInfoCard(
+            onEditTap: onEditTap,
+            email: user.email,
+            company: user.company?.trim().isNotEmpty == true
+                ? user.company!
+                : 'Не указана',
+          ),
+        ),
         const SizedBox(height: 30),
         _NarrowCard(
           child: ProfilePassCard(
