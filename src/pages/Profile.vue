@@ -1,14 +1,39 @@
 <script setup>
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, watch } from 'vue';
   import { useAuthStore } from '@/store/auth';
+  import { useBookingsStore } from '@/store/bookings';
   import { storeToRefs } from 'pinia';
   import { useRouter } from 'vue-router';
+  import QRCode from 'qrcode';
 
+  onMounted(() => {
+    bookingsStore.fetchMyBookings();
+  });
+
+  onMounted(async () => {
+    const res = await fetch('/api/qr-data');
+    const data = await res.json();
+
+    qr.value = await QRCode.toDataURL(data.qrString);
+  });
+
+  const qrImages = ref([]);
   const authStore = useAuthStore();
+  const bookingsStore = useBookingsStore();
   const router = useRouter();
   const { user } = storeToRefs(authStore);
 
   const isLoading = ref(false);
+  const isEditing = ref(false);
+
+  const editableUser = ref({
+    first_name: '',
+    last_name: '',
+    patronymic: '',
+    email: '',
+    post: '',
+    company: '',
+  });
 
   onMounted(async () => {
     if (!authStore.isAuthenticated) {
@@ -21,13 +46,79 @@
       try {
         await authStore.fetchCurrentUser();
       } catch (error) {
-        console.error('Ошибка загрузки профиля:', error);
         await router.push('/authorization');
       } finally {
         isLoading.value = false;
       }
     }
+
+    await fetchQrs();
   });
+
+  watch(
+    user,
+    (newUser) => {
+      if (newUser) {
+        editableUser.value = { ...newUser };
+      }
+    },
+    { immediate: true },
+  );
+
+  const fetchQrs = async () => {
+    try {
+      const res = await fetch('/api/profile/qrs', {
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+          Accept: 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error('Ошибка загрузки QR');
+      }
+
+      const data = await res.json();
+
+      // data.data = ["string", "string"]
+      const images = await Promise.all(data.data.map((qrString) => QRCode.toDataURL(qrString)));
+
+      qrImages.value = images;
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      // Заглушка запроса
+      console.log('Отправка данных:', editableUser.value);
+
+      // await authStore.updateUser(editableUser.value)
+
+      user.value = { ...editableUser.value };
+
+      isEditing.value = false;
+    } catch (e) {
+      console.error('Ошибка сохранения', e);
+    }
+  };
+
+  const handleCancel = () => {
+    editableUser.value = { ...user.value };
+    isEditing.value = false;
+  };
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('ru-RU');
+  };
+
+  const formatTime = (date) => {
+    return new Date(date).toLocaleTimeString('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 </script>
 
 <template>
@@ -46,47 +137,54 @@
           <div class="profile__contact">
             <div class="profile__row">
               <div class="profile__field">
-                <div class="profile__display">
-                  <span class="profile__value">{{ user.last_name }}</span>
-                </div>
+                <input
+                  v-model="editableUser.last_name"
+                  class="profile__input"
+                  placeholder="Фамилия"
+                />
               </div>
 
               <div class="profile__field">
-                <div class="profile__display">
-                  <span class="profile__value">{{ user.first_name }}</span>
-                </div>
+                <input v-model="editableUser.first_name" class="profile__input" placeholder="Имя" />
               </div>
 
               <div class="profile__field">
-                <div class="profile__display">
-                  <span v-if="user.patronymic" class="profile__value">{{ user.patronymic }}</span>
-                  <span v-else class="profile__value">Отчество</span>
-                </div>
+                <input
+                  v-model="editableUser.patronymic"
+                  class="profile__input"
+                  placeholder="Отчество"
+                />
               </div>
             </div>
 
             <div class="profile__row">
               <div class="profile__field">
-                <div class="profile__display">
-                  <span class="profile__value">{{ user.email }}</span>
-                </div>
+                <input
+                  v-model="editableUser.email"
+                  class="profile__input"
+                  placeholder="Электронная почта"
+                />
               </div>
 
               <div class="profile__field">
-                <div class="profile__display">
-                  <span v-if="user.post" class="profile__value">{{ user.post }}</span>
-                  <span v-else class="profile__value">Должность</span>
-                </div>
+                <input v-model="editableUser.post" class="profile__input" placeholder="Должность" />
               </div>
 
               <div class="profile__field">
-                <div class="profile__display">
-                  <span v-if="user.company" class="profile__value">{{ user.company }}</span>
-                  <span v-else class="profile__value">Компания</span>
-                </div>
+                <input
+                  v-model="editableUser.company"
+                  class="profile__input"
+                  placeholder="Компания"
+                />
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="profile__actions">
+          <button class="profile__btn" @click="handleSave">Сохранить</button>
+
+          <button class="profile__btn" @click="handleCancel">Не сохранять</button>
         </div>
 
         <div class="profile__pass-section">
@@ -95,7 +193,13 @@
           <div class="profile__pass-wrapper">
             <div class="profile__pass-card">
               <div class="profile__qr">
-                <img src="/qr.png" alt="QR код" class="profile__qr-image" />
+                <img
+                  v-for="(qr, index) in qrImages"
+                  :key="index"
+                  :src="qr"
+                  class="profile__qr-image"
+                  alt="QR-код"
+                />
               </div>
 
               <div class="profile__pass-info">
@@ -109,7 +213,55 @@
 
             <div class="profile__pass-actions">
               <button class="profile__btn profile__btn--action">Добавить парковку</button>
-              <router-link to="/update-password" class="profile__btn profile__btn--action">Сменить пароль</router-link>
+              <router-link to="/update-password" class="profile__btn profile__btn--action">
+                Сменить пароль
+              </router-link>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile__bottom">
+          <div class="profile__tabs">
+            <button class="profile__tab profile__tab--active">Активные аренды</button>
+            <button class="profile__tab">Избранное</button>
+            <button class="profile__tab">История аренды</button>
+            <button class="profile__tab">Заявки</button>
+          </div>
+
+          <div class="profile__bottom-content">
+            <div v-if="bookingsStore.isLoading">Загрузка...</div>
+
+            <div
+              v-else
+              v-for="booking in bookingsStore.bookings"
+              :key="booking.id"
+              class="profile__booking-card"
+            >
+              <div class="profile__booking-info">
+                <h3>
+                  {{ booking.place.name }}
+                </h3>
+
+                <p>
+                  {{ formatDate(booking.start_time) }} — {{ formatTime(booking.start_time) }} -
+                  {{ formatTime(booking.end_time) }}
+                </p>
+
+                <p>Вместимость: {{ booking.place.capacity }} человек</p>
+
+                <p>Статус: {{ booking.status }}</p>
+              </div>
+            </div>
+
+            <div class="profile__pagination" v-if="bookingsStore.lastPage > 1">
+              <button
+                v-for="page in bookingsStore.lastPage"
+                :key="page"
+                @click="bookingsStore.setPage(page)"
+                :class="['profile__page-btn', { active: page === bookingsStore.currentPage }]"
+              >
+                {{ page }}
+              </button>
             </div>
           </div>
         </div>
@@ -191,6 +343,32 @@
       font-size: $text-base;
       color: $color-text;
       font-weight: 400;
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    &__input {
+      padding: 0.875rem 1.25rem;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      background: $color-input-bg;
+      font-size: $text-base;
+      min-height: 3.5rem;
+      width: 15rem;
+      outline: none;
+      transition: 0.2s;
+
+      &:focus {
+        background: $color-input-bg-dark;
+      }
+    }
+
+    &__actions {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      margin-top: 1.5rem;
     }
 
     &__contact {
@@ -313,6 +491,81 @@
       flex-direction: column;
       gap: 1rem;
       min-width: 20rem;
+    }
+
+    &__bottom {
+      margin-top: 4rem;
+    }
+
+    &__tabs {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    &__tab {
+      padding: 0.75rem 2rem;
+      border-radius: $radius-sm;
+      border: 1px solid $color-border;
+      background: $color-input-bg;
+      font-size: $text-base;
+      transition: 0.2s;
+
+      &:hover {
+        background: $color-input-bg-dark;
+      }
+
+      &--active {
+        background: white;
+      }
+    }
+
+    &__bottom-content {
+      display: flex;
+      justify-content: center;
+    }
+
+    &__placeholder-card {
+      width: 60%;
+      padding: 2rem;
+      background: $color-card-bg;
+      border-radius: $radius-lg;
+      border: 1px solid $color-border;
+      text-align: center;
+    }
+
+    &__booking-card {
+      width: 60%;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      background: $color-card-bg;
+      border-radius: $radius-lg;
+      border: 1px solid $color-border;
+    }
+
+    &__booking-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    &__pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+
+    &__page-btn {
+      padding: 0.5rem 1rem;
+      border-radius: $radius-sm;
+      border: 1px solid $color-border;
+      background: $color-input-bg;
+
+      &.active {
+        background: white;
+      }
     }
 
     @media (max-width: 1024px) {
