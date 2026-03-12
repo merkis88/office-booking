@@ -33,6 +33,7 @@ const routes = [
       { path: 'offices', component: Offices },
       { path: 'coworking', component: Coworking },
       { path: 'meeting-rooms', component: MeetingRooms },
+      {path: '/requests', component: Requests },
     ],
   },
   {
@@ -44,11 +45,6 @@ const routes = [
         component: BookingHistory,
       },
     ],
-  },
-  {
-    path: '/requests',
-    name: 'Requests',
-    component: Requests,
   },
 ];
 

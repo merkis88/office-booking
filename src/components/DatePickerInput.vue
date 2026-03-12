@@ -103,9 +103,7 @@
       transition: all 0.2s;
       position: relative;
 
-      &:hover {
-        border-color: darken($color-border, 10%);
-      }
+
     }
 
     &__value {
@@ -314,9 +312,7 @@
         color: $color-bg;
         font-weight: 700;
 
-        &:hover {
-          background: darken($color-text, 10%);
-        }
+
       }
 
       &.prevMonthDay,

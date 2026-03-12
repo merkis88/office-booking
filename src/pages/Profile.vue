@@ -80,7 +80,6 @@
 
       const data = await res.json();
 
-      // data.data = ["string", "string"]
       const images = await Promise.all(data.data.map((qrString) => QRCode.toDataURL(qrString)));
 
       qrImages.value = images;
@@ -91,10 +90,8 @@
 
   const handleSave = async () => {
     try {
-      // Заглушка запроса
       console.log('Отправка данных:', editableUser.value);
 
-      // await authStore.updateUser(editableUser.value)
 
       user.value = { ...editableUser.value };
 

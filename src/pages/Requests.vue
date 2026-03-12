@@ -1,13 +1,16 @@
 <script setup>
   import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
-  import axios from 'axios';
+  import { useServicesStore } from '@/store/services';
+  import { storeToRefs } from 'pinia';
   import DatePickerInput from '@/components/DatePickerInput.vue';
+  import RequestConfirmModal from '@/components/modals/RequestConfirmModal.vue';
+
+  const servicesStore = useServicesStore();
+  const { bookings, isLoading: isLoadingBookings } = storeToRefs(servicesStore);
 
   const bookingList = ref(null);
   const bookingLabel = ref('');
-  const bookings = ref([]);
   const showBookingDropdown = ref(false);
-  const isLoadingBookings = ref(false);
 
   const selectedDate = ref('');
   const selectedTime = ref(null);
@@ -19,6 +22,9 @@
   const comment = ref('');
   const isSubmitting = ref(false);
   const showRequestTypeDropdown = ref(false);
+
+  const showConfirmModal = ref(false);
+  const pendingRequestData = ref(null);
 
   const requestTypes = [
     { id: 1, label: 'Клининг' },
@@ -39,67 +45,45 @@
   });
 
   async function loadBookings() {
-    isLoadingBookings.value = true;
-    try {
-      const { data } = await axios.get('/api/services/my-bookings');
-
-      console.log('Бронирования загружены:', data);
-
-      if (data.success && Array.isArray(data.data)) {
-        bookings.value = data.data;
-      } else {
-        bookings.value = [];
-      }
-    } catch (error) {
-      console.error('Ошибка загрузки бронирований:', error);
-      bookings.value = [];
-    } finally {
-      isLoadingBookings.value = false;
-    }
+    await servicesStore.fetchMyBookings();
   }
 
   function selectBooking(booking) {
     bookingList.value = booking.id;
-    bookingLabel.value = `${booking.place_name} №${booking.place_number} - ${booking.date} ${booking.time}`;
+    bookingLabel.value = `${booking.place_name} №${booking.place_number}`;
     showBookingDropdown.value = false;
   }
 
-  // ✅ Переключение выпадающего списка бронирований
   function toggleBookingDropdown() {
     showBookingDropdown.value = !showBookingDropdown.value;
     showTimeDropdown.value = false;
     showRequestTypeDropdown.value = false;
   }
 
-  // ✅ Выбор времени
   function selectTime(timeSlot) {
     selectedTime.value = timeSlot.value;
     selectedTimeLabel.value = timeSlot.label;
     showTimeDropdown.value = false;
   }
 
-  // ✅ Переключение выпадающего списка времени
   function toggleTimeDropdown() {
     showTimeDropdown.value = !showTimeDropdown.value;
     showBookingDropdown.value = false;
     showRequestTypeDropdown.value = false;
   }
 
-  // ✅ Выбор типа заявки
   function selectRequestType(type) {
     requestType.value = type.id;
     requestTypeLabel.value = type.label;
     showRequestTypeDropdown.value = false;
   }
 
-  // ✅ Переключение выпадающего списка типов
   function toggleRequestTypeDropdown() {
     showRequestTypeDropdown.value = !showRequestTypeDropdown.value;
     showBookingDropdown.value = false;
     showTimeDropdown.value = false;
   }
 
-  // ✅ Закрытие при клике вне
   function handleClickOutside(event) {
     const bookingDropdown = document.querySelector('.requests__dropdown--booking');
     const bookingInput = document.querySelector('.requests__booking-input');
@@ -142,45 +126,57 @@
     document.removeEventListener('click', handleClickOutside);
   });
 
-  async function handleSubmit() {
+  function handleSubmit() {
     if (!bookingList.value || !selectedDate.value || !selectedTime.value || !requestType.value) {
-      alert('Пожалуйста, заполните все обязательные поля');
+
       return;
     }
 
+    pendingRequestData.value = {
+      booking_id: bookingList.value,
+      booking_label: bookingLabel.value,
+      service_type_id: requestType.value,
+      service_type_label: requestTypeLabel.value,
+      service_date: selectedDate.value,
+      service_time: selectedTime.value,
+      comment: comment.value || null,
+    };
+
+    showConfirmModal.value = true;
+  }
+
+  async function handleConfirmRequest() {
+    if (!pendingRequestData.value) return;
+
     isSubmitting.value = true;
+    showConfirmModal.value = false;
 
     try {
-      const requestData = {
-        booking_id: bookingList.value,
-        date: selectedDate.value,
-        time: selectedTime.value, // ✅ Отправляем круглое время (например, "09:00")
-        service_type_id: requestType.value,
-        comment: comment.value || null,
-      };
+      const result = await servicesStore.createServiceRequest(pendingRequestData.value);
 
-      console.log('Отправка заявки:', requestData);
+      if (result.success) {
 
-      // TODO: Отправка на сервер
-      // const response = await axios.post('/api/requests', requestData);
-
-      alert('Заявка успешно отправлена!');
-
-      // Сброс формы
-      bookingList.value = null;
-      bookingLabel.value = '';
-      selectedDate.value = '';
-      selectedTime.value = null;
-      selectedTimeLabel.value = '';
-      requestType.value = null;
-      requestTypeLabel.value = '';
-      comment.value = '';
+        bookingList.value = null;
+        bookingLabel.value = '';
+        selectedDate.value = '';
+        selectedTime.value = null;
+        selectedTimeLabel.value = '';
+        requestType.value = null;
+        requestTypeLabel.value = '';
+        comment.value = '';
+        pendingRequestData.value = null;
+      } else {
+      }
     } catch (error) {
-      console.error('Ошибка отправки заявки:', error);
-      alert('Не удалось отправить заявку. Попробуйте позже.');
+      console.error('Непредвиденная ошибка:', error)
     } finally {
       isSubmitting.value = false;
     }
+  }
+
+  function handleCancelRequest() {
+    showConfirmModal.value = false;
+    pendingRequestData.value = null;
   }
 </script>
 
@@ -196,7 +192,6 @@
 
         <div class="requests__form-wrapper">
           <form class="requests__form" @submit.prevent="handleSubmit">
-            <!-- ✅ Список бронирований -->
             <div class="requests__field">
               <label class="requests__label">Список бронирований*</label>
               <div class="requests__select-wrapper">
@@ -248,13 +243,11 @@
               </div>
             </div>
 
-            <!-- Дата -->
             <div class="requests__field">
               <label class="requests__label">Дата*</label>
               <DatePickerInput v-model="selectedDate" />
             </div>
 
-            <!-- ✅ Время с выпадающим списком -->
             <div class="requests__field">
               <label class="requests__label">Время*</label>
               <div class="requests__select-wrapper">
@@ -296,7 +289,6 @@
               </div>
             </div>
 
-            <!-- ✅ Тип заявки -->
             <div class="requests__field">
               <label class="requests__label">Тип заявки*</label>
               <div class="requests__select-wrapper">
@@ -338,7 +330,6 @@
               </div>
             </div>
 
-            <!-- Комментарий -->
             <div class="requests__field">
               <label class="requests__label">Комментарий (необязательно)</label>
               <textarea
@@ -356,6 +347,14 @@
         </div>
       </div>
     </div>
+
+    <RequestConfirmModal
+      :is-open="showConfirmModal"
+      :request-data="pendingRequestData || {}"
+      @confirm="handleConfirmRequest"
+      @cancel="handleCancelRequest"
+      @close="handleCancelRequest"
+    />
   </div>
 </template>
 
