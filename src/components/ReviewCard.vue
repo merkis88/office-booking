@@ -68,10 +68,8 @@
 
     try {
       await reviewsStore.deleteReview(props.review.id);
-      alert('Отзыв удален');
     } catch (error) {
       console.error('Ошибка удаления отзыва:', error);
-      alert('Не удалось удалить отзыв');
     }
   }
 </script>

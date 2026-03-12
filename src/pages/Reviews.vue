@@ -100,6 +100,8 @@
     editingReviewId.value = null;
     rating.value = 0;
     reviewText.value = '';
+    showSuccessMessage.value = false;
+    showErrorMessage.value = false;
   }
 
   async function handleSubmitReview() {
@@ -149,6 +151,13 @@
       }
 
       cancelEdit();
+
+      setTimeout(() => {
+        const grid = document.querySelector('.reviews__grid');
+        if (grid) {
+          grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     } catch (error) {
       console.error('Ошибка отправки отзыва:', error);
 
@@ -626,6 +635,7 @@
 
       &:hover:not(:disabled) {
         transform: scale(1.2);
+        filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.2));
       }
 
       &:disabled {

@@ -1,13 +1,23 @@
 <script setup>
   import { useAuthStore } from '@/store/auth';
+  import { useRoute } from 'vue-router';
   import router from '@/router/index.js';
 
   const authStore = useAuthStore();
+  const route = useRoute();
 
   async function handleLogout() {
     await authStore.logout();
     await router.push('/authorization');
   }
+
+  const isActive = (path) => {
+    return route.path === path || route.path.startsWith(path);
+  };
+
+  const isActiveRoute = (name) => {
+    return route.name === name;
+  };
 </script>
 
 <template>
@@ -21,20 +31,50 @@
       </router-link>
 
       <ul class="header__nav">
-        <router-link to="/service"><li>Аренда помещений</li></router-link>
-        <router-link to="/reviews"><li>Отзывы</li></router-link>
-        <router-link to="/profile" v-if="authStore.isAuthenticated">
+        <router-link to="/service" :class="{ 'header__link--active': isActive('/service') }">
+          <li>Аренда помещений</li>
+        </router-link>
+
+        <router-link to="/reviews" :class="{ 'header__link--active': isActive('/reviews') }">
+          <li>Отзывы</li>
+        </router-link>
+
+        <router-link
+          to="/requests"
+          v-if="authStore.isAuthenticated"
+          :class="{ 'header__link--active': isActive('/requests') }"
+        >
+          <li>Заявки</li>
+        </router-link>
+
+        <router-link
+          to="/profile"
+          v-if="authStore.isAuthenticated"
+          :class="{ 'header__link--active': isActive('/profile') }"
+        >
           <li>Личный кабинет</li>
         </router-link>
-        <router-link to="/authorization" v-if="!authStore.isAuthenticated">
+
+        <router-link
+          to="/authorization"
+          v-if="!authStore.isAuthenticated"
+          :class="{ 'header__link--active': isActive('/authorization') }"
+        >
           <li>Авторизация</li>
         </router-link>
-        <router-link to="/registration" v-if="!authStore.isAuthenticated">
+
+        <router-link
+          to="/registration"
+          v-if="!authStore.isAuthenticated"
+          :class="{ 'header__link--active': isActive('/registration') }"
+        >
           <li>Регистрация</li>
         </router-link>
+
         <router-link to="/authorization" v-if="authStore.isAuthenticated">
           <li class="header__button" @click="handleLogout">Выход</li>
         </router-link>
+
         <router-link to="/" v-if="authStore.isAuthenticated">
           <li><img class="header__img" src="/notification.svg" alt="" /></li>
         </router-link>
@@ -49,6 +89,7 @@
 
   .header {
     margin-top: 1.5rem;
+
     &__container {
       @include container;
       display: flex;
@@ -84,6 +125,20 @@
       gap: 2.5rem;
       font-size: $text-lg;
       list-style: none;
+
+      a {
+        color: $color-text;
+        transition: opacity 0.2s ease;
+
+        &:hover {
+          opacity: 0.6;
+        }
+
+        &.header__link--active {
+          color: #d6e7f6;
+          filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.2));
+        }
+      }
 
       li {
         cursor: pointer;

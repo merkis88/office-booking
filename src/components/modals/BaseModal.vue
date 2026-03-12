@@ -136,7 +136,7 @@
   }
 
   .modal-back:hover {
-    background: rgba(255, 255, 255, 0.8);
+    transform: translateY(-3px);
   }
 
   .modal-title {

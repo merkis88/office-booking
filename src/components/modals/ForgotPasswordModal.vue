@@ -21,7 +21,7 @@
   const email = ref('');
   const isLoading = ref(false);
   const errorMessage = ref('');
-  const isSuccess = ref(false);
+  const isSuccess = ref(true);
 
   watch(
     () => props.modelValue,
@@ -34,6 +34,11 @@
       }
     },
   );
+
+  function closeModal() {
+    emit('update:modelValue', false);
+    emit('close');
+  }
 
   function handleClose() {
     emit('update:modelValue', false);
@@ -134,10 +139,9 @@
           Мы отправили вам временный пароль для входа в аккаунт, проверьте пожалуйста свой почтовый
           ящик
         </p>
+        <button @click="closeModal">Авторизация</button>
       </div>
     </div>
-
-
   </BaseModal>
 </template>
 
@@ -162,6 +166,16 @@
       max-width: 25rem;
       line-height: 1.5;
       margin: 0;
+      font-size: $text-lg;
+    }
+
+    img {
+      width: 3rem;
+    }
+
+    button {
+      font-size: $text-lg;
+      margin: 1rem 0;
     }
   }
 

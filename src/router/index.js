@@ -11,6 +11,7 @@ import UpdatePassword from '@/pages/UpdatePassword.vue';
 import Reviews from '@/pages/Reviews.vue';
 import Offices from '@/pages/Offices.vue';
 import Coworking from '@/pages/Coworking.vue';
+import Requests from '@/pages/Requests.vue';
 
 const routes = [
   {
@@ -72,6 +73,11 @@ const routes = [
     path: '/meeting-rooms',
     name: 'MeetingRooms',
     component: MeetingRooms,
+  },
+  {
+    path: '/requests',
+    name: 'Requests',
+    component: Requests,
   },
 ];
 
