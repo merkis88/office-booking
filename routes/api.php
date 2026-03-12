@@ -1,20 +1,15 @@
 <?php
 
-
 use App\Http\Controllers\Api\Admin\AdminBookingController;
 use App\Http\Controllers\Api\Admin\AdminNotificationController;
 use App\Http\Controllers\Api\AdminPlaceController;
-
 use App\Http\Controllers\Api\AdminServiceController;
 use App\Http\Controllers\Api\AdminServiceTypeController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Booking\BookingController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Qr\QrController;
-
-
 use App\Http\Controllers\Api\PlaceController;
-
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\ServiceExportController;
@@ -22,6 +17,7 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Profile\ProfileQrController;
+use App\Http\Controllers\Api\Place\PlaceFavoriteController;
 
 
 
@@ -72,10 +68,11 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
     Route::post('/qr/{booking}/user-qr', [QrController::class, 'createUserQr']); // merk
     Route::post('/qr/{booking}/issue-qr', [QrController::class, 'issueUserQr']); // merk
 
-
     //Places
     Route::get('/places', [PlaceController::class, 'index']);// Osip
     Route::get('/places/{place}', [PlaceController::class, 'show']);// Osip
+    Route::post('/places/{place}/store-favorite', [PlaceFavoriteController::class, 'store']); // merk
+    Route::delete('/places/{place}/remove-favorite', [PlaceFavoriteController::class, 'remove']); // merk
 
     //Notifications
     Route::prefix('notifications')->group(function () {
@@ -84,6 +81,7 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
         Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);// Osip
         Route::delete('/{notification}', [NotificationController::class, 'destroy']);// Osip
     });
+
     //Services
     Route::prefix('services')->group(function () {
         Route::get('/my-bookings', [ServiceController::class, 'getUserBookings']);// Osip
@@ -93,8 +91,6 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
         Route::get('/{service}/export', [ServiceExportController::class, 'export']);
     });
 
-
-
    // Admin
     Route::middleware('is_admin')->prefix('admin')->group(function () {
         Route::apiResource('users', UserController::class);
@@ -103,7 +99,6 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
         Route::post('/users/{user}/delete', [UserController::class, 'destroy']); // merk
         Route::post('/users/block', [UserController::class, 'block']);     // merk
         Route::post('/users/unblock', [UserController::class, 'unBlock']); // merk
-
 
         //Places admin
         Route::get('/places', [AdminPlaceController::class, 'index']);// Osip
@@ -117,7 +112,6 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
         Route::post('/places/{place}/restore', [AdminPlaceController::class, 'restore']);// Osip
         Route::get('/places/{place}/archive-status', [AdminPlaceController::class, 'archiveStatus']);// Osip
 
-
         //Notifications
         Route::post('/notifications', [AdminNotificationController::class, 'store']);// Osip
 
@@ -128,6 +122,7 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
             Route::get('/types', [AdminServiceController::class, 'getServiceTypes']);// Osip
             Route::put('/{service}/status', [AdminServiceController::class, 'updateStatus']);// Osip
         });
+
         //ServiceTypes
         Route::prefix('service-types')->group(function () {
             Route::get('/', [AdminServiceTypeController::class, 'index']);// Osip
