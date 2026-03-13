@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
+import MainLayout from '@/layouts/MainLayout.vue';
+import AdminLayout from '@/layouts/AdminLayout.vue';
+
 import Authorization from '../pages/Authorization.vue';
 import Main from '../pages/Main.vue';
 import Registration from '../pages/Registration.vue';
@@ -9,69 +12,39 @@ import PrivacyPolicy from '@/pages/PrivacyPolicy.vue';
 import Profile from '@/pages/Profile.vue';
 import UpdatePassword from '@/pages/UpdatePassword.vue';
 import Reviews from '@/pages/Reviews.vue';
+import BookingHistory from '@/pages/admin/BookingHistory.vue';
 import Offices from '@/pages/Offices.vue';
 import Coworking from '@/pages/Coworking.vue';
+import Requests from '@/pages/Requests.vue';
 
 const routes = [
   {
     path: '/',
-    name: 'Main',
-    component: Main,
+    component: MainLayout,
+    children: [
+      { path: '', component: Main },
+      { path: 'authorization', component: Authorization },
+      { path: 'registration', component: Registration },
+      { path: 'service', component: Services },
+      { path: 'privacy-policy', component: PrivacyPolicy },
+      { path: 'profile', component: Profile },
+      { path: 'update-password', component: UpdatePassword },
+      { path: 'reviews', component: Reviews },
+      { path: 'offices', component: Offices },
+      { path: 'coworking', component: Coworking },
+      { path: 'meeting-rooms', component: MeetingRooms },
+      {path: '/requests', component: Requests },
+    ],
   },
   {
-    path: '/authorization',
-    name: 'Authorization',
-    component: Authorization,
-  },
-  {
-    path: '/registration',
-    name: 'Registration',
-    component: Registration,
-  },
-  {
-    path: '/service',
-    name: 'Service',
-    component: Services,
-  },
-  {
-    path: '/meeting_rooms',
-    name: 'MeetingRooms',
-    component: MeetingRooms,
-  },
-  {
-    path: '/privacy-policy',
-    name: 'Privacy Policy',
-    component: PrivacyPolicy,
-  },
-  {
-    path: '/profile',
-    name: 'Profile',
-    component: Profile,
-  },
-  {
-    path: '/update-password',
-    name: 'UpdatePassword',
-    component: UpdatePassword,
-  },
-  {
-    path: '/reviews',
-    name: 'Reviews',
-    component: Reviews,
-  },
-  {
-    path: '/offices',
-    name: 'Offices',
-    component: Offices,
-  },
-  {
-    path: '/coworking',
-    name: 'Coworking',
-    component: Coworking,
-  },
-  {
-    path: '/meeting-rooms',
-    name: 'MeetingRooms',
-    component: MeetingRooms,
+    path: '/admin',
+    component: AdminLayout,
+    children: [
+      {
+        path: 'booking-history',
+        component: BookingHistory,
+      },
+    ],
   },
 ];
 
@@ -86,7 +59,5 @@ const router = createRouter({
     }
   },
 });
-
-
 
 export default router;

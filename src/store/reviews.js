@@ -75,8 +75,28 @@ export const useReviewsStore = defineStore('reviews', {
 
         console.log('Отзыв создан:', data);
 
+        let newReview = null;
+
         if (data.review) {
-          this.reviews.unshift(data.review);
+          newReview = data.review;
+        } else if (data.data && data.data.review) {
+          newReview = data.data.review;
+        } else if (data.data && data.data.id) {
+          newReview = data.data;
+        } else if (data.id) {
+          newReview = data;
+        }
+
+        if (newReview) {
+          if (!Array.isArray(this.reviews)) {
+            this.reviews = [];
+          }
+
+          this.reviews.unshift(newReview);
+          console.log('Новый отзыв добавлен в список:', newReview);
+        } else {
+          console.warn('Не удалось извлечь новый отзыв из ответа, перезагружаем список');
+          await this.fetchReviews();
         }
 
         return data;
@@ -96,10 +116,40 @@ export const useReviewsStore = defineStore('reviews', {
           rating: reviewData.rating,
         });
 
+        console.log('Отзыв обновлен:', data);
 
-        const index = this.reviews.findIndex((r) => r.id === reviewId);
-        if (index !== -1 && data.review) {
-          this.reviews[index] = data.review;
+        let updatedReview = null;
+
+        if (data.review) {
+          updatedReview = data.review;
+        } else if (data.data && data.data.review) {
+          updatedReview = data.data.review;
+        } else if (data.data && data.data.id) {
+          updatedReview = data.data;
+        } else if (data.id) {
+          updatedReview = data;
+        }
+
+        if (Array.isArray(this.reviews)) {
+          const index = this.reviews.findIndex((r) => r.id === reviewId);
+
+          if (index !== -1) {
+            if (updatedReview) {
+              this.reviews[index] = updatedReview;
+              console.log('Отзыв обновлен в списке:', updatedReview);
+            } else {
+              this.reviews[index] = {
+                ...this.reviews[index],
+                text: reviewData.text,
+                rating: reviewData.rating,
+                updated_at: new Date().toISOString(),
+              };
+              console.log('Отзыв обновлен локально');
+            }
+          } else {
+            console.warn('Отзыв не найден в списке, перезагружаем');
+            await this.fetchReviews();
+          }
         }
 
         return data;
@@ -116,8 +166,12 @@ export const useReviewsStore = defineStore('reviews', {
       try {
         const { data } = await axios.delete(`/api/reviews/${reviewId}`);
 
+        console.log('Отзыв удален:', data);
 
-        this.reviews = this.reviews.filter((r) => r.id !== reviewId);
+        if (Array.isArray(this.reviews)) {
+          this.reviews = this.reviews.filter((r) => r.id !== reviewId);
+          console.log('Отзыв удален из списка, осталось:', this.reviews.length);
+        }
 
         return data;
       } catch (error) {
