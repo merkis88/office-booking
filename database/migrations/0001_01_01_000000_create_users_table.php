@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('post')->nullable();
             $table->string('company')->nullable();
             $table->boolean('is_verified')->default(false);
+            $table->boolean('is_blocked')->default(false);
             $table->string('verification_code')->nullable();
             $table->timestamp('verification_code_expires_at')->nullable();
             $table->timestamp('email_verified_at')->nullable();

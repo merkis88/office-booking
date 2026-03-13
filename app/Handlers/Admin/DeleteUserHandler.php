@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Storage;
 
 final class DeleteUserHandler
 {
-    public function handler(User $target, User $user): User
+    public function handler(User $target, User $admin): User
     {
-        if ($target->id === $user->id) {
+        if ($target->id === $admin->id) {
             throw ValidationException::withMessages([
                 'user' => ['Нельзя удалить самого себя']
             ]);

@@ -25,6 +25,11 @@ class LoginHandler
             throw new InvalidCredentialsException();
         }
 
+        if ($user->is_blocked) { // merk
+            throw ValidationException::withMessages([ // merk
+                'email' => ['Ваш профиль заблокирован'], // merk
+            ]);
+        }
 
         if (!$user->is_verified) {
             throw ValidationException::withMessages([

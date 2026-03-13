@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Place extends Model
 {
@@ -20,7 +21,6 @@ class Place extends Model
         'description'
     ];
 
-
     public function service()
     {
         return $this->hasMany(Service::class, 'place_id');
@@ -29,5 +29,10 @@ class Place extends Model
     public function booking()
     {
         return $this->hasMany(Booking::class, 'place_id');
+    }
+
+    public function favoredByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'favorite_places');
     }
 }

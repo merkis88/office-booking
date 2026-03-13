@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Api\Qr;
 
 use App\DTO\Qr\IssueUserQrDTO;
 use App\Handlers\Qr\CreateUserQrHandler;
+use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Qr;
 use App\Models\User;
 
-final class IssueUserQrController
+final class IssueUserQrController extends Controller
 {
     public function __construct(private readonly CreateUserQrHandler $createUserQr){}
 

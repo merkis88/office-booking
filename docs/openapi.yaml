@@ -3960,4 +3960,204 @@ paths:
 
 
 
+  /admin/users/block:
+    post:
+      tags: [ "Merk · Admin" ]
+      summary: Block user by email
+      description: |
+        Owner: merk
+
+        Middleware:
+        - auth:sanctum
+        - is_admin
+
+        Handler: BlockUserHandler
+
+        Логика:
+        - admin передаёт email пользователя в body
+        - система ищет пользователя по email
+        - если пользователь не найден -> 422
+        - если admin пытается заблокировать сам себя -> 422
+        - если пользователь уже заблокирован -> 422
+        - иначе users.is_blocked = true
+        - создаётся запись в user_blocks:
+          - user_id
+          - blocked_by
+          - reason
+        - при последующем login пользователь получает ошибку "Ваш профиль заблокирован"
+        - middleware not_blocked запрещает доступ заблокированному пользователю к защищённым маршрутам
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ email ]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@user.com
+                reason:
+                  type: string
+                  nullable: true
+                  example: Нарушение правил бронирования
+
+      responses:
+        "200":
+          description: User blocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/User"
+
+        "401":
+          description: Unauthorized
+
+        "403":
+          description: Forbidden
+
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+
+  /admin/users/unblock:
+    post:
+      tags: [ "Merk · Admin" ]
+      summary: Unblock user by email
+      description: |
+        Owner: merk
+
+        Middleware:
+        - auth:sanctum
+        - is_admin
+
+        Handler: UnblockUserHandler
+
+        Логика:
+        - admin передаёт email пользователя в body
+        - система ищет пользователя по email
+        - если пользователь не найден -> 422
+        - если admin пытается разблокировать сам себя этим методом -> 422
+        - если пользователь не заблокирован -> 422
+        - иначе users.is_blocked = false
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ email ]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@user.com
+
+      responses:
+        "200":
+          description: User unblocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/User"
+
+        "401":
+          description: Unauthorized
+
+        "403":
+          description: Forbidden
+
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+
+  /places/{place}/store-favorite:
+    post:
+      tags: [ "Merk · Places" ]
+      summary: Add place to favorites
+      description: |
+        Добавляет помещение в избранное текущего авторизованного пользователя.
+
+        Логика:
+        - используется auth user
+        - создаётся запись в `favorite_places` с парой `user_id + place_id`
+        - если запись уже существует, дубликат не создаётся
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: place
+          required: true
+          schema:
+            type: integer
+          description: ID помещения
+      responses:
+        "200":
+          description: Помещение успешно добавлено в избранное
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Place"
+        "401":
+          description: Неавторизованный пользователь
+
+        "404":
+          description: Помещение не найдено
+
+
+  /places/{place}/delete-favorite:
+    delete:
+      tags: [ "Merk · Places" ]
+      summary: Remove place from favorites
+      description: |
+        Удаляет помещение из избранного текущего авторизованного пользователя.
+
+        Логика:
+        - используется auth user
+        - удаляется запись из `favorite_places` по паре `user_id + place_id`
+        - если записи нет, запрос всё равно считается успешным
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: place
+          required: true
+          schema:
+            type: integer
+          description: ID помещения
+      responses:
+        "200":
+          description: Помещение успешно удалено из избранного
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Place"
+        "401":
+          description: Неавторизованный пользователь
+
+        "404":
+          description: Помещение не найдено
 

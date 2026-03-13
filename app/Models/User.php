@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
@@ -133,4 +134,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(Service::class);
     }
+
+    public function blocks()
+    {
+        return $this->hasMany(UserBlock::class, 'user_id');
+    }
+
+    public function blockedUsers()
+    {
+        return $this->hasMany(UserBlock::class, 'blocked_by');
+    }
+
+    public function favoritePlaces(): BelongsToMany
+    {
+        return $this->belongsToMany(Place::class, 'favorite_places');
+    }
+
 }
