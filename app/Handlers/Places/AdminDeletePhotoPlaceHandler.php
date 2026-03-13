@@ -10,13 +10,18 @@ class AdminDeletePhotoPlaceHandler
 
     public function handle(Place $place): Place
     {
-        if($place->photo){
-            $fullPath = self::PHOTO_DIRECTORY . '/' . $place->photo;
-            if(Storage::exists($fullPath)){
-                Storage::delete($fullPath);
+        if ($place->photo) {
+            try {
+                if (Storage::disk('public')->exists($place->photo)) {
+                    Storage::disk('public')->delete($place->photo);
+                }
+
+                $place->update(['photo' => null]);
+            } catch (\Exception $e) {
+                throw $e;
             }
-            $place->update(['photo' => null]);
         }
+
         return $place->fresh();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Places;
 
 use App\DTO\Places\FilterPlaceDTO;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 
 class FilterPlaceRequest extends FormRequest
@@ -25,6 +26,7 @@ class FilterPlaceRequest extends FormRequest
         return [
             'min_price' => ['nullable', 'numeric', 'min:0'],
             'max_price' => ['nullable', 'numeric', 'min:0', 'gte:min_price'],
+            'date' => ['nullable', 'date'],
         ];
     }
     public function messages(): array
@@ -40,6 +42,7 @@ class FilterPlaceRequest extends FormRequest
         return new FilterPlaceDTO(
             min_price: $this->filled('min_price') ? (float) $this->input('min_price') : null,
             max_price: $this->filled('max_price') ? (float) $this->input('max_price') : null,
+            date: $this->filled('date') ? CarbonImmutable::parse($this->input('date')) : null,
         );
     }
 }
