@@ -1,13 +1,27 @@
 {
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "dev": "vite",
-        "build": "vite build"
-    },
-    "devDependencies": {
-        "axios": "^1.6.4",
-        "laravel-vite-plugin": "^1.0.0",
-        "vite": "^5.0.0"
-    }
+  "name": "operating-point",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vueform/slider": "^2.1.10",
+    "axios": "^1.13.5",
+    "flatpickr": "^4.6.13",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.24",
+    "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@yandex/ymaps3-types": "^1.0.18540164",
+    "autoprefixer": "^10.4.24",
+    "prettier": "3.8.1",
+    "sass": "^1.97.3",
+    "vite": "^7.2.4"
+  }
 }

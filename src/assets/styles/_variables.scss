@@ -1,0 +1,62 @@
+// --- Colors ---
+$color-bg: #b2c1cb;
+$color-text: #000000;
+$color-input-bg: #d1dfe8;
+$color-input-bg-dark: #b8c5d5;
+$color-header-bg: #8b9dad;
+$color-footer-bg: #7c8fa0;
+$color-footer-text: #1a1a1a;
+$color-card-bg: #ffffff;
+$color-border: #000000;
+$color-shadow-from: #fed7aa;
+$color-shadow-to: #fca5a5;
+$color-btn-profile: #E6F2FA;
+
+// --- Typography ---
+$font-base: 'Inter', sans-serif;
+$font-heading: 'Unbounded', serif;
+$font-title: 'Montserrat Alternates', serif;
+
+$text-sm: 0.875rem;
+$text-base: 1rem;
+$text-lg: 1.125rem;
+$text-xl: 1.25rem;
+$text-2xl: 1.5rem;
+$text-3xl: 1.875rem;
+
+// --- Spacing ---
+$gap-xs: 0.5rem;
+$gap-sm: 1rem;
+$gap-md: 1.75rem;
+$gap-lg: 2.5rem;
+$gap-xl: 3.75rem;
+
+// --- Section gaps ---
+$section-gap-md: 8rem;
+$section-gap-lg: 12.5rem;
+
+// --- Container ---
+$container-width: 1260px;
+
+// --- Header ---
+$header-pad-x: 2.25rem;
+$header-pad-y: 2.25rem;
+
+// --- Footer ---
+$footer-pad-y: 3.75rem;
+
+// --- Cards ---
+$card-size: 20rem;
+$card-radius: 0.75rem;
+$card-offset: 0.875rem;
+
+// --- Map ---
+$map-height: 36.25rem;
+$map-min-w: 42rem;
+
+// --- Radius ---
+$radius-xxs: 0.3rem;
+$radius-xs: 0.5rem;
+$radius-sm: 0.75rem;
+$radius-md: 1rem;
+$radius-lg: 1.5rem;
