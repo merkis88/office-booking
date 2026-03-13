@@ -34,6 +34,26 @@ tags:
     description: "Owner: merk. Bookings endpoints."
   - name: "Merk · Admin"
     description: "Owner: merk. Admin bookings/export/approve (+ minimal admin users)."
+  - name: "Osip · Auth"
+    description: "Авторизация и регистрация"
+  - name: "Osip · User Profile"
+    description: "Профиль пользователя"
+  - name: "Osip · Reviews"
+    description: "Отзывы"
+  - name: "Osip · Places Public"
+    description: "Помещения (публичные)"
+  - name: "Osip · Places Admin"
+    description: "Администрирование помещений"
+  - name: "Osip · Notifications User"
+    description: "Уведомления пользователя"
+  - name: "Osip · Notifications Admin"
+    description: "Администрирование уведомлений"
+  - name: "Osip · Services User"
+    description: "Заявки на обслуживание (пользователь)"
+  - name: "Osip · Services Admin"
+    description: "Администрирование заявок"
+  - name: "Osip · Service Types Admin"
+    description: "Администрирование типов услуг"
 
 components:
   securitySchemes:
@@ -57,7 +77,7 @@ components:
       properties:
         message:
           type: string
-          example: "The given data was invalid."
+          example: "Ошибка валидации"
         errors:
           type: object
           additionalProperties:
@@ -65,6 +85,306 @@ components:
             items:
               type: string
       required: [message, errors]
+
+    UnauthenticatedError:
+      type: object
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          example: "Не авторизован"
+      required: [ message ]
+
+    ForbiddenError:
+      type: object
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          example: "Доступ запрещен"
+      required: [ message ]
+
+    NotFoundError:
+      type: object
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          example: "Ресурс не найден"
+      required: [ message ]
+
+    ReviewAccessError:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Ошибка"
+        errors:
+          type: object
+          properties:
+            error:
+              type: array
+              items:
+                type: string
+                example: "Вы не можете удалить чужой отзыв"
+      required: [ success, message, errors ]
+
+    PasswordUpdateError:
+      type: object
+      additionalProperties: false
+      properties:
+        errors:
+          type: object
+          properties:
+            current_password:
+              type: array
+              items:
+                type: string
+                example: "Текущий пароль неверен!"
+            password:
+              type: array
+              items:
+                type: string
+                example: "Пароли не совпадают!"
+      required: [ errors ]
+
+    LoginError:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Неверный логин или пароль!"
+      required: [ success, message ]
+
+    EmailNotVerifiedError:
+      type: object
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          example: "Email не подтвержден. Пожалуйста, подтвердите регистрацию"
+        errors:
+          type: object
+          properties:
+            email:
+              type: array
+              items:
+                type: string
+                example: "Email не подтвержден. Пожалуйста, подтвердите регистрацию"
+      required: [ message, errors ]
+
+    PlaceArchiveError:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Ошибка при архивации"
+        errors:
+          type: object
+          properties:
+            place:
+              type: array
+              items:
+                type: string
+                example: "У помещения 2 активных бронирований. Используйте force = 1 для принудительной архивации, все брони будут отменены"
+      required: [ success, message, errors ]
+
+    PlaceDeleteError:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Ошибка при удалении"
+        errors:
+          type: object
+          properties:
+            place:
+              type: array
+              items:
+                type: string
+                example: "Нельзя удалить помещение с активными бронированиями"
+      required: [ success, message, errors ]
+
+    PlaceRestoreError:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Ошибка при восстановлении"
+        errors:
+          type: object
+          properties:
+            place:
+              type: array
+              items:
+                type: string
+                example: "Помещение \"Офис 101\" не находится в архиве"
+      required: [ success, message, errors ]
+
+    PlaceUpdateError:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Ошибка валидации"
+        errors:
+          type: object
+          properties:
+            place:
+              type: array
+              items:
+                type: string
+                example: "Нельзя обновлять помещение, находящееся в архиве"
+      required: [ success, message, errors ]
+
+    ServiceAccessError:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Ошибка при экспорте"
+        errors:
+          type: object
+          properties:
+            service:
+              type: array
+              items:
+                type: string
+                example: "У вас нет доступа к этой заявке"
+      required: [ success, message, errors ]
+
+    ServiceBookingError:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Ошибка при создании заявки"
+        errors:
+          type: object
+          properties:
+            booking_id:
+              type: array
+              items:
+                type: string
+                example: "У вас нет активной аренды этого помещения"
+            service_time:
+              type: array
+              items:
+                type: string
+                example: "На это время уже есть активная заявка"
+      required: [ success, message, errors ]
+
+    ServiceStatusError:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Ошибка при обновлении статуса"
+        errors:
+          type: object
+          properties:
+            status:
+              type: array
+              items:
+                type: string
+                example: "Нельзя изменить статус выполненой заявки"
+      required: [ success, message, errors ]
+
+    NotificationAccessError:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Ошибка"
+        errors:
+          type: object
+          properties:
+            notification:
+              type: array
+              items:
+                type: string
+                example: "Уведомление не принадлежит этому пользователю"
+      required: [ success, message, errors ]
+
+    ForgotPasswordError:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Ошибка"
+        errors:
+          type: object
+          properties:
+            email:
+              type: array
+              items:
+                type: string
+                example: "Пользователя с такой почтой не найден"
+      required: [ success, message, errors ]
+
+    ServiceDataError:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Ошибка при экспорте"
+        errors:
+          type: object
+          properties:
+            service:
+              type: array
+              items:
+                type: string
+                example: "Данные о бронировании или помещении не найдены"
+      required: [ success, message, errors ]
 
     Role:
       type: object
@@ -126,6 +446,24 @@ components:
           allOf:
             - $ref: "#/components/schemas/Organization"
           nullable: true
+        available_slots:
+          type: array
+          description: "Доступные слоты на выбранную дату"
+          items:
+            type: object
+            properties:
+              start:
+                type: string
+                example: "09:00"
+                description: "Время начала"
+              end:
+                type: string
+                example: "10:00"
+                description: "Время окончания"
+              time:
+                type: string
+                example: "09:00 - 10:00"
+                description: "Строка для отображения"
       required: [id, name, is_active]
 
     ParkingPlace:
@@ -226,6 +564,147 @@ components:
         total: { type: integer, example: 42 }
       required: [current_page, data]
 
+    Review:
+      type: object
+      additionalProperties: false
+      properties:
+        id: { type: integer, example: 1 }
+        text: { type: string, example: "ФУ, мне не понравилось, но обслуживание на 3 потянет" }
+        rating: { type: integer, minimum: 1, maximum: 5, example: 3 }
+        user_id: { type: integer, example: 2 }
+        created_at: { type: string, format: date-time, example: "2026-03-10T14:30:00Z" }
+        updated_at: { type: string, format: date-time, example: "2026-03-10T14:30:00Z" }
+        user:
+          allOf:
+            - $ref: "#/components/schemas/User"
+          nullable: true
+      required: [ id, text, rating, user_id, created_at ]
+
+    Service:
+      type: object
+      additionalProperties: false
+      properties:
+        id: { type: integer, example: 1 }
+        user_id: { type: integer, example: 2 }
+        booking_id: { type: integer, example: 1 }
+        service_type_id: { type: integer, example: 1 }
+        service_date: { type: string, format: date, example: "2026-03-20" }
+        service_time: { type: string, format: time, example: "14:30" }
+        comment: { type: string, nullable: true, example: "Нужно помыть окна" }
+        status:
+          type: string
+          enum: [ pending, in_progress, completed, rejected ]
+          example: pending
+        status_name: { type: string, example: "В ожидании" }
+        created_at: { type: string, format: date-time, example: "2026-03-10T14:30:00Z" }
+        user:
+          allOf:
+            - $ref: "#/components/schemas/User"
+          nullable: true
+        booking:
+          allOf:
+            - $ref: "#/components/schemas/Booking"
+          nullable: true
+        place:
+          allOf:
+            - $ref: "#/components/schemas/Place"
+          nullable: true
+        service_type:
+          type: object
+          properties:
+            id: { type: integer, example: 1 }
+            name: { type: string, example: "ТО" }
+      required: [ id, user_id, booking_id, service_type_id, service_date, service_time, status ]
+
+    ServiceType:
+      type: object
+      additionalProperties: false
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: "Клининг" }
+        description: { type: string, nullable: true, example: "Уборка помещений" }
+        is_active: { type: boolean, example: true }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+      required: [ id, name, is_active ]
+
+    Notification:
+      type: object
+      additionalProperties: false
+      properties:
+        id: { type: integer, example: 1 }
+        title: { type: string, example: "Новое уведомление" }
+        message: { type: string, example: "Текст уведомления" }
+        is_read: { type: boolean, example: false }
+        read_at: { type: string, format: date-time, nullable: true, example: null }
+        created_at: { type: string, format: date-time, example: "2026-03-10T14:30:00Z" }
+        creator:
+          allOf:
+            - $ref: "#/components/schemas/User"
+          nullable: true
+      required: [ id, title, message, created_at ]
+
+    PaginatedNotifications:
+      type: object
+      additionalProperties: true
+      properties:
+        current_page: { type: integer, example: 1 }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        per_page: { type: integer, example: 10 }
+        total: { type: integer, example: 50 }
+        unread_count: { type: integer, example: 3 }
+      required: [ current_page, data ]
+
+    PlaceWithFilters:
+      type: object
+      additionalProperties: false
+      properties:
+        success: { type: boolean, example: true }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Place"
+        filters:
+          type: object
+          properties:
+            price_range:
+              type: object
+              properties:
+                min_price: { type: number, example: 1000 }
+                max_price: { type: number, example: 5000 }
+            current:
+              type: object
+              properties:
+                min_price: { type: number, example: 1000 }
+                max_price: { type: number, example: 5000 }
+
+    ArchiveStatus:
+      type: object
+      additionalProperties: false
+      properties:
+        success: { type: boolean, example: true }
+        data:
+          type: object
+          properties:
+            is_active: { type: boolean, example: true }
+            is_archived: { type: boolean, example: false }
+            active_bookings_count: { type: integer, example: 2 }
+            can_archive: { type: boolean, example: true }
+            can_restore: { type: boolean, example: false }
+            force_available: { type: boolean, example: true }
+
+    MyBookingForService:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        place_name: { type: string, example: "Переговорная А" }
+        place_number: { type: integer, example: 101 }
+        date: { type: string, example: "15.03.2026" }
+        time: { type: string, example: "10:00 - 12:00" }
+
   responses:
     Forbidden:
       description: Forbidden (abort(403, ...))
@@ -262,6 +741,33 @@ components:
                 errors:
                   status:
                     - "Нельзя переносить бронирование в текущем статусе"
+    UnauthenticatedResponse:
+      description: Не авторизован
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/UnauthenticatedError"
+
+    ForbiddenResponse:
+      description: Доступ запрещен
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ForbiddenError"
+
+    NotFoundResponse:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/NotFoundError"
+
+    ValidationFailedResponse:
+      description: Ошибка валидации
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationError"
 
 security:
   - bearerAuth: []
@@ -971,6 +1477,2485 @@ paths:
       responses:
         "201": { description: Created }
         "403": { $ref: "#/components/responses/Forbidden" }
+
+  /register:
+    post:
+      tags: [ "Osip · Auth" ]
+      summary: Регистрация нового пользователя
+      description: |
+        Owner: osip
+
+        FormRequest: RegisterRequest
+        - first_name required string max:255
+        - last_name required string max:255
+        - patronymic nullable string max:255
+        - email required email unique:users
+        - password required confirmed (Password::defaults())
+        - password_confirmation required string
+        - role_id exists:roles,id (default 2)
+        - post nullable string max:255
+        - company nullable string max:255
+        - photo nullable string max:255
+
+        Handler: RegisterHandler
+        - создаёт пользователя с is_verified = false
+        - отправляет код подтверждения через SendVerificationHandler
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [ first_name, last_name, email, password, password_confirmation ]
+              properties:
+                first_name: { type: string, example: "Иван" }
+                last_name: { type: string, example: "Иванов" }
+                patronymic: { type: string, nullable: true, example: "Иванович" }
+                email: { type: string, format: email, example: "user@example.com" }
+                password: { type: string, format: password, example: "Password123!" }
+                password_confirmation: { type: string, format: password, example: "Password123!" }
+                role_id: { type: integer, nullable: true, example: 2 }
+                post: { type: string, nullable: true, example: "Разработчик" }
+                company: { type: string, nullable: true, example: "ООО Ромашка" }
+                photo: { type: string, nullable: true, example: "photo.jpg" }
+      responses:
+        "201":
+          description: Успешная регистрация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Регистрация прошла успешно!" }
+                  user:
+                    $ref: "#/components/schemas/User"
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "The given data was invalid." }
+                  errors:
+                    type: object
+                    properties:
+                      email:
+                        type: array
+                        items:
+                          type: string
+                          example: "Пользователь с таким email уже существует"
+                      password:
+                        type: array
+                        items:
+                          type: string
+                          example: "Пароли не совпадают"
+        "401":
+          $ref: "#/components/responses/UnauthenticatedResponse"
+
+  /login:
+    post:
+      tags: ["Osip · Auth"]
+      summary: Авторизация пользователя
+      description: |
+        Owner: osip
+
+        FormRequest: LoginRequest
+        -email required email
+        -password required string
+
+        Handler: LoginHandler
+        - проверяет существование пользователя и пароль
+        - проверяет is_verified (иначе 422)
+        - создает токен (createToken)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email,password]
+              properties:
+                email: { type: string, format: email, example: "user@example.com" }
+                password: { type: string, format: password, example: "Password123!" }
+      responses:
+        "200":
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Авторизация прошла успешно" }
+                  user:
+                    $ref: "#/components/schemas/User"
+                  token: { type: string, example: "1|s0m3R4nd0mT0k3nStr1ng" }
+        "401":
+          description: Неверные учетные данные
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginError"
+        "422":
+          description: Email не подтвержден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailNotVerifiedError"
+
+  /logout:
+    post:
+      tags: [ "Osip · Auth" ]
+      summary: Выход из системы
+      description: |
+        Owner: osip
+
+        Handler: LogoutHandler
+        - удаляет текущий токен доступа
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Успешный выход
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Вы успешно вышли" }
+        "401":
+          $ref: "#/components/responses/UnauthenticatedResponse"
+
+  /me:
+    get:
+      tags: [ "Osip · Auth" ]
+      summary: Информация о текущем пользователе
+      description: |
+        Owner: osip
+
+        Возвращает данные авторизованного пользователя
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Данные пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  user:
+                    $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/UnauthenticatedResponse"
+
+  /verify-email:
+    post:
+      tags: [ "Osip · Auth" ]
+      summary: Подтверждение email
+      description: |
+        Owner: osip
+
+        FormRequest: VerifyEmailRequest
+        - email required email exists:users
+        - code required string size:6
+
+        Handler: VerifyEmailHandler
+        - проверяет код подтверждения
+        - если код верный - помечает пользователя как верифицированного
+        - создаёт токен
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [ email, code ]
+              properties:
+                email: { type: string, format: email, example: "user@example.com" }
+                code: { type: string, example: "123456" }
+      responses:
+        "200":
+          description: Email подтвержден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Email успешно подтвержден" }
+                  user:
+                    $ref: "#/components/schemas/User"
+                  token: { type: string, example: "1|s0m3R4nd0mT0k3nStr1ng" }
+        "422":
+          description: Ошибка подтверждения
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка подтверждения" }
+                  errors:
+                    type: object
+                    properties:
+                      email:
+                        type: array
+                        items:
+                          type: string
+                          example: "Пользователь с таким email не найден"
+                      code:
+                        type: array
+                        items:
+                          type: string
+                          example: "Неверный код подтверждения"
+
+  /resend-verification:
+    post:
+      tags: [ "Osip · Auth" ]
+      summary: Повторная отправка кода подтверждения
+      description: |
+        Owner: osip
+
+        FormRequest: ResendVerificationRequest
+        - email required email exists:users
+
+        Handler: SendVerificationHandler::resend
+        - генерирует новый код и отправляет на email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [ email ]
+              properties:
+                email: { type: string, format: email, example: "user@example.com" }
+      responses:
+        "200":
+          description: Код отправлен повторно
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Код подтверждения отправлен повторно" }
+        "422":
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка" }
+                  errors:
+                    type: object
+                    properties:
+                      email:
+                        type: array
+                        items:
+                          type: string
+                          example: "Пользователь с таким email не найден"
+
+  /forgot-password:
+    post:
+      tags: ["Osip · Auth"]
+      summary: Восстановление пароля (sendTemporaryPassword)
+      description: |
+        Owner: osip
+
+        FormRequest: ForgotPasswordRequest
+        - email required email exists:users
+
+        Handler: SendTemporaryPasswordHandler
+        - генерирует временный пароль (Str::random(8))
+        - сохраняет его в БД (хэшированный)
+        - отправляет на email через TemporaryPasswordMail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email]
+              properties:
+                email: { type: string, format: email, example: "user@example.com" }
+      responses:
+        "200":
+          description: Временный пароль отправлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Временный пароль отправлен на вашу почту" }
+        "422":
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForgotPasswordError"
+        "500":
+          description: Ошибка отправки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка при отправке" }
+
+  /user/password:
+    put:
+      tags: [ "Osip · User Profile" ]
+      summary: Обновление пароля текущего пользователя (updatePassword)
+      description: |
+        Owner: osip
+
+        FormRequest: UserUpdatePasswordRequest
+        - current_password required|current_password
+        - password required|string|min:8|confirmed
+        - password_confirmation required|string
+
+        Handler: UpdatePasswordHandler
+        - проверяет текущий пароль (Hash::check)
+        - обновляет на новый
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [ current_password, password, password_confirmation ]
+              properties:
+                current_password: { type: string, format: password, example: "oldpassword123" }
+                password: { type: string, format: password, example: "newpassword123" }
+                password_confirmation: { type: string, format: password, example: "newpassword123" }
+      responses:
+        "200":
+          description: Пароль обновлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Пароль успешно обновлен" }
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasswordUpdateError"
+        "401":
+          $ref: "#/components/responses/UnauthenticatedResponse"
+
+  /reviews:
+    post:
+      tags: ["Osip · Reviews"]
+      summary: Создание нового отзыва (createReview)
+      description: |
+        Owner: osip
+
+        FormRequest: CreateReviewRequest
+        - text required string min:16 max:1000
+        - rating required integer between:1,5
+
+        Handler: CreateReviewHandler
+        - проверяет hasVerifiedEmail() (иначе 422)
+        - проверяет rating < 1 (422)
+        - создаёт отзыв с user_id = auth_user.id
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [text, rating]
+              properties:
+                text: { type: string, example: "ФУ, мне не понравилось, но обслуживание на 3 потянет" }
+                rating: { type: integer, minimum: 1, maximum: 5, example: 3 }
+      responses:
+        "201":
+          description: Отзыв создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Отзыв успешно добавлен!" }
+                  data:
+                    $ref: "#/components/schemas/Review"
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка валидации" }
+                  errors:
+                    type: object
+                    properties:
+                      text:
+                        type: array
+                        items:
+                          type: string
+                          example: "Отзыв должен содержать минимум 16 символов"
+                      rating:
+                        type: array
+                        items:
+                          type: string
+                          example: "Выберите от 1 до 5 звёзд"
+        "401":
+          $ref: "#/components/responses/UnauthenticatedResponse"
+    get:
+      tags: [ "Osip · Reviews" ]
+      summary: Фильтра отзывов по рейтингу
+      description: |
+        Owner: osip
+
+        FormRequest: ReviewFilterRequest
+        - rating nullable integer in:1,2,3,4,5
+        - sort_by nullable string in:created_at,rating(default created_at)
+        - sort_direction nullable string in: asc,desc ( default desc)
+
+        Handler: FilterReviewHandler
+        - фильтрует по рейтингу если передан
+      parameters:
+        - in: query
+          name: rating
+          schema: { type: integer, enum: [ 1,2,3,4,5 ], example: 5 }
+        - in: query
+          name: sort_direction
+          schema: { type: string, enum: [ desc,asc ], example: "desc" }
+      responses:
+        "200":
+          description: Список отзывов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+
+  /reviews/{review}:
+    delete:
+      tags: [ "Osip · Reviews" ]
+      summary: Удаление отзыва (deleteReview)
+      description: |
+        Owner: osip
+
+        FormRequest: DeleteReviewRequest
+        - authorize: admin может всё, иначе проверка user_id
+
+        Handler: DeleteReviewHandler
+        - удаляет отзыв
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: review
+          required: true
+          schema: { type: integer, example: 8 }
+      responses:
+        "200":
+          description: Отзыв удален
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Отзыв успешно удален" }
+        "403":
+          $ref: "#/components/responses/ForbiddenResponse"
+        "422":
+          description: Ошибка доступа
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewAccessError"
+        "401":
+          $ref: "#/components/responses/UnauthenticatedResponse"
+
+    put:
+      tags: [ "Osip · Reviews" ]
+      summary: Обновление отзыва (updateReview)
+      description: |
+        Owner: osip
+
+        FormRequest: UpdateReviewRequest
+        - text sometimes min:16 max:1000
+        - rating sometimes integer in:1,2,3,4,5
+        - authorize: admin может всё, иначе проверка user_id
+
+        Handler: UpdateReviewHandler
+        - обновляет только переданные поля
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: review
+          required: true
+          schema: { type: integer, example: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: { type: string, example: "Обновленный текст отзыва" }
+                rating: { type: integer, minimum: 1, maximum: 5, example: 4 }
+      responses:
+        "200":
+          description: Отзыв обновлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Отзыв обновлен" }
+                  data:
+                    $ref: "#/components/schemas/Review"
+        "403":
+          $ref: "#/components/responses/ForbiddenResponse"
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка валидации" }
+                  errors:
+                    type: object
+                    properties:
+                      rating:
+                        type: array
+                        items:
+                          type: string
+                          example: "Выберите от 1 до 5 звёзд"
+        "401":
+          $ref: "#/components/responses/UnauthenticatedResponse"
+
+  /places:
+    get:
+      tags: [ "Osip · Places Public" ]
+      summary: Список доступных помещений (по умолчанию на сегодня)
+      description: |
+        Owner: osip
+
+        FormRequest: IndexPlaceRequest, FilterPlaceRequest
+        - type nullable in:office,coworking,meeting
+        - min_price nullable numeric
+        - max_price nullable numeric
+        - date nullable date - если не указана, используется сегодня
+
+        Handler: ListPlaceHandler, FilterPlaceHandler, PlaceAvailabilityService
+        - возвращает только is_active = true
+        - фильтрует по цене
+        - по умолчанию: дата = сегодня
+        - возвращает только помещения с доступными слотами на указанную дату
+        - для каждого помещения возвращает список свободных слотов (длительность 60 минут)
+      parameters:
+        - in: query
+          name: type
+          schema: { type: string, enum: [ office, coworking, meeting ], example: "meeting" }
+          description: "Тип помещения"
+        - in: query
+          name: min_price
+          schema: { type: number, format: float, example: 1000 }
+          description: "Минимальная цена"
+        - in: query
+          name: max_price
+          schema: { type: number, format: float, example: 5000 }
+          description: "Максимальная цена"
+        - in: query
+          name: date
+          schema: { type: string, format: date, example: "2026-03-14" }
+          description: "Дата для проверки доступности (если не указана - сегодня)"
+      responses:
+        "200":
+          description: Список помещений с доступными слотами
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Place"
+                  filters:
+                    type: object
+                    properties:
+                      price_range:
+                        type: object
+                        properties:
+                          min_price: { type: number, example: 1000 }
+                          max_price: { type: number, example: 5000 }
+                      current:
+                        type: object
+                        properties:
+                          min_price: { type: number, example: 1000 }
+                          max_price: { type: number, example: 5000 }
+                          date: { type: string, example: "2026-03-14" }
+              examples:
+                with_slots:
+                  summary: "Ответ со слотами (по умолчанию)"
+                  value:
+                    success: true
+                    data:
+                      - id: 1
+                        name: "Переговорная А"
+                        type: "meeting"
+                        capacity: 10
+                        price: 1500
+                        available_slots:
+                          - start: "09:00"
+                            end: "10:00"
+                            time: "09:00 - 10:00"
+                          - start: "10:00"
+                            end: "11:00"
+                            time: "10:00 - 11:00"
+                          - start: "11:00"
+                            end: "12:00"
+                            time: "11:00 - 12:00"
+                        occupancy_rate: 25.5
+                    filters:
+                      price_range:
+                        min_price: 1000
+                        max_price: 5000
+                      current:
+                        min_price: 1000
+                        max_price: 5000
+                        date: "2026-03-14"
+
+  /places/{place}:
+    get:
+      tags: [ "Osip · Places Public" ]
+      summary: Детальная информация о помещении (showPlaces)
+      description: |
+        Owner: osip
+
+        Handler: ShowPlaceHandler
+        - проверяет is_active = true (иначе 404)
+        - если передан параметр date - возвращает слоты на эту дату
+        - если date не передан - возвращает слоты на сегодня
+      parameters:
+        - in: path
+          name: place
+          required: true
+          schema: { type: integer, example: 3 }
+        - in: query
+          name: date
+          required: false
+          schema: { type: string, format: date, example: "2026-03-14" }
+          description: "Дата для проверки доступности (если не указана - сегодня)"
+      responses:
+        "200":
+          description: Данные помещения со слотами
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Place"
+                  availability:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        example: "2026-03-14"
+              examples:
+                with_slots:
+                  value:
+                    success: true
+                    data:
+                      id: 3
+                      name: "Переговорная А"
+                      type: "meeting"
+                      capacity: 10
+                      price: 1500
+                      available_slots:
+                        - start: "09:00"
+                          end: "10:00"
+                          time: "09:00 - 10:00"
+                        - start: "10:00"
+                          end: "11:00"
+                          time: "10:00 - 11:00"
+                      occupancy_rate: 15.38
+                    availability:
+                      date: "2026-03-14"
+        "404":
+          description: Помещение не найдено или неактивно
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Помещение не доступно для аренды" }
+
+  /admin/places:
+    post:
+      tags: ["Osip · Places Admin"]
+      summary: Создание нового помещения
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        FormRequest: AdminStorePLaceRequest (multipart/form-data)
+        - name required string max:255
+        - type required in:office,coworking,meeting
+        - capacity required integer min:1
+        - number_place required integer min:1
+        - price required numeric min:0
+        - photo required image (jpeg,png,jpg max 5MB)
+        - description required string max:5000
+        - is_active sometimes boolean
+
+        Handler: AdminCreatePlaceHandler
+        - Загружает фото в public/places
+        -создает помещение
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, type, capacity, number_place, price, photo, description]
+              properties:
+                name: { type: string, example: "Офис 101"}
+                type: { type: string,enum:[office,coworking,meeting], example: "office"}
+                capacity: { type: integer, example: 10}
+                number_place: { type: integer, example: 101}
+                price: { type: number, format: float, example: 5000}
+                photo: { type: string, format: binary}
+                description: { type: string, example: "Тыры пыры растапыры"}
+                is_active: {type: boolean, example: true}
+      responses:
+        "201":
+          description: Помещение создано
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean, example: false }
+                  message: { type: string, example: "Ошибка валидации"}
+                  data:
+                    $ref: "#/components/schemas/Place"
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  photo:
+                    type: array
+                    items:
+                      type: string
+                      example: "Размер файла не должен превышать 5MB"
+                  name:
+                    type: array
+                    items:
+                      type: string
+                      example: "Название помещения обязательно"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized"}
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован"}
+    get:
+      tags: ["Osip · Places Admin"]
+      summary: Список всех помещений(админ)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        FormRequest: AdminIndexRequest
+        - type nullable in:office,coworking,meeting
+        - is_active nullable boolean
+        - archived nullable boolean
+        - sort_by nullable in:name,created_at,capacity,number_place
+        - sort_direction nullable in:asc,desc
+        - per_page nullable integer min:1 max:100 (default 6)
+        Controller: AdminPlaceController@index
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: type
+          schema: { type: string, enum: [ office, coworking, meeting ] }
+        - in: query
+          name: is_active
+          schema: { type: boolean }
+        - in: query
+          name: archived
+          schema: { type: boolean }
+        - in: query
+          name: sort_by
+          schema: { type: string, enum: [ name, created_at, capacity, number_place ] }
+        - in: query
+          name: sort_direction
+          schema: { type: string, enum: [ asc, desc ], example: "desc" }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 100, example: 6 }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, example: 1 }
+      responses:
+          "200":
+            description: Список помещений с пагинацией
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success: { type: boolean, example: true }
+                    data:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/Place"
+                    meta:
+                      type: object
+                      properties:
+                        current_page: { type: integer, example: 1 }
+                        last_page: { type: integer, example: 5 }
+                        per_page: { type: integer, example: 6 }
+                        total: { type: integer, example: 30 }
+          "403":
+            description: Доступ запрещен
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message: { type: string, example: "This action is unauthorized." }
+          "401":
+            description: Не авторизован
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message: { type: string, example: "Не авторизован" }
+
+  /admin/places/{place}:
+    get:
+      tags: [ "Osip · Places Admin" ]
+      summary: Детали помещения (админ)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        Controller: AdminPlaceController@show
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: place
+          required: true
+          schema: { type: integer, example: 3 }
+      responses:
+        "200":
+          description: Данные помещения
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: "#/components/schemas/Place"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "404":
+          description: Помещение не найдено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Ресурс не найден" }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+    put:
+      tags: [ "Osip · Places Admin" ]
+      summary: Обновление помещения (updatePlace)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        FormRequest: AdminUpdatePlaceRequest
+        - name sometimes string max:255
+        - type sometimes in:office,coworking,meeting
+        - capacity sometimes integer min:1
+        - number_place sometimes integer min:1
+        - price sometimes numeric min:0
+        - description sometimes string max:5000
+        - is_active sometimes boolean
+
+        Handler: AdminUpdatePlaceHandler
+        - проверяет что помещение не в архиве (иначе 422)
+        - обновляет только переданные поля
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: place
+          required: true
+          schema: { type: integer, example: 3 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, example: "Переговорная Топовая (обновлено)" }
+                type: { type: string, enum: [ office, coworking, meeting ], example: "meeting" }
+                capacity: { type: integer, example: 15 }
+                number_place: { type: integer, example: 102 }
+                price: { type: number, format: float, example: 6000 }
+                description: { type: string, example: "Новое описание" }
+                is_active: { type: boolean, example: true }
+      responses:
+        "200":
+          description: Помещение обновлено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Помещение успешно обновлено" }
+                  data:
+                    $ref: "#/components/schemas/Place"
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка валидации" }
+                  errors:
+                    type: object
+                    properties:
+                      place:
+                        type: array
+                        items:
+                          type: string
+                          example: "Нельзя обновлять помещение, находящееся в архиве"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+    delete:
+      tags: [ "Osip · Places Admin" ]
+      summary: Удаление помещения (deletePlace)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        FormRequest: AdminDeletePlaceRequest
+
+        Handler: AdminDeletePlaceHandler
+        - проверяет наличие активных бронирований (иначе 422)
+        - удаляет фото если есть
+        - удаляет помещение
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: place
+          required: true
+          schema: { type: integer, example: 2 }
+      responses:
+        "200":
+          description: Помещение удалено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Помещение успешно удалено" }
+        "422":
+          description: Ошибка при удалении
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка при удалении" }
+                  errors:
+                    type: object
+                    properties:
+                      place:
+                        type: array
+                        items:
+                          type: string
+                          example: "Нельзя удалить помещение с активными бронированиями"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /admin/places/{place}/photo:
+    post:
+      tags: [ "Osip · Places Admin" ]
+      summary: Загрузка фото помещения
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        FormRequest: AdminStorePhotoPlaceRequest
+        - photo required image (jpeg,png,jpg,gif, max 5MB)
+
+        Handler: AdminStorePhotoPlaceHandler
+        - удаляет старое фото если есть
+        - загружает новое
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: place
+          required: true
+          schema: { type: integer, example: 3 }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [ photo ]
+              properties:
+                photo: { type: string, format: binary }
+      responses:
+        "200":
+          description: Фото загружено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Фото успешно загружено" }
+                  data:
+                    $ref: "#/components/schemas/Place"
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка валидации" }
+                  errors:
+                    type: object
+                    properties:
+                      photo:
+                        type: array
+                        items:
+                          type: string
+                          example: "Размер файла не должен превышать 5МБ"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+    delete:
+      tags: [ "Osip · Places Admin" ]
+      summary: Удаление фото помещения
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        Handler: AdminDeletePhotoPlaceHandler
+        - удаляет фото если есть
+        - устанавливает photo = null
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: place
+          required: true
+          schema: { type: integer, example: 3 }
+      responses:
+        "200":
+          description: Фото удалено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Фото успешно удалено" }
+                  data:
+                    $ref: "#/components/schemas/Place"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /admin/places/{place}/archive:
+    post:
+      tags: [ "Osip · Places Admin" ]
+      summary: Архивация помещения (без активных броней и с ними)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        Handler: AdminArchivePlaceHandler::archive
+        - проверяет что помещение активно (иначе 422)
+        - проверяет наличие активных бронирований
+        - если есть брони и force=0 -> 422
+        - force=1
+        - отменяет все активные бронирования
+        - отправляет уведомления пользователям
+        - архивирует помещение
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: place
+          required: true
+          schema: { type: integer, example: 3 }
+        - in: query
+          name: force
+          required: false
+          schema: { type: integer, enum: [ 0,1 ], default: 0, example: 0 }
+      responses:
+        "200":
+          description: Помещение отправлено в архив
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Помещение успешно отправлено в архив" }
+                  data:
+                    $ref: "#/components/schemas/Place"
+        "201":
+          description: Помещение принудительно архивировано
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Помещение принудительно отправлено в архив, все активные бронирования отменены" }
+                  data:
+                    $ref: "#/components/schemas/Place"
+
+        "422":
+          description: Есть активные бронирования
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка при архивации" }
+                  errors:
+                    type: object
+                    properties:
+                      place:
+                        type: array
+                        items:
+                          type: string
+                          example: "У помещения 2 активных бронирований. Используйте force = 1 для принудительной архивации, все брони будут отменены"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /admin/places/{place}/archive-status:
+    get:
+      tags: [ "Osip · Places Admin" ]
+      summary: Статус архивации помещения (archiveStatus)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        Controller: AdminPlaceController@archiveStatus
+        - возвращает статус помещения и количество активных бронирований
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: place
+          required: true
+          schema: { type: integer, example: 1 }
+      responses:
+        "200":
+          description: Статус архивации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArchiveStatus"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /admin/places/{place}/restore:
+    post:
+      tags: [ "Osip · Places Admin" ]
+      summary: Восстановление помещения из архива (restorePlace)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        Handler: AdminArchivePlaceHandler::restore
+        - проверяет что помещение в архиве (иначе 422)
+        - восстанавливает (is_active = true)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: place
+          required: true
+          schema: { type: integer, example: 3 }
+      responses:
+        "200":
+          description: Помещение восстановлено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Помещение успешно восстановленно из архива" }
+                  data:
+                    $ref: "#/components/schemas/Place"
+        "422":
+          description: Помещение не в архиве
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка при восстановлении" }
+                  errors:
+                    type: object
+                    properties:
+                      place:
+                        type: array
+                        items:
+                          type: string
+                          example: "Помещение \"Офис 101\" не находится в архиве"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /notifications:
+    get:
+      tags: [ "Osip · Notifications User" ]
+      summary: Список уведомлений пользователя (getUserNoti)
+      description: |
+        Owner: osip
+
+        Handler: GetUserNotificationsHandler
+        - возвращает уведомления текущего пользователя с пагинацией
+        - включает информацию о создателе (creator)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: query
+          name: per_page
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20, example: 10 }
+        - in: query
+          name: page
+          required: false
+          schema: { type: integer, minimum: 1, example: 1 }
+      responses:
+        "200":
+          description: Список уведомлений
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedNotifications"
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /notifications/{notification}/read:
+    post:
+      tags: [ "Osip · Notifications User" ]
+      summary: Отметить уведомление как прочитанное (markAsRead)
+      description: |
+        Owner: osip
+
+        Handler: MarkNotificationAsReadHandler
+        - проверяет что уведомление принадлежит пользователю (иначе 422)
+        - отмечает как прочитанное
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: notification
+          required: true
+          schema: { type: integer, example: 1 }
+      responses:
+        "200":
+          description: Уведомление отмечено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Уведомление отмечено как прочитанное" }
+                  data:
+                    $ref: "#/components/schemas/Notification"
+        "422":
+          description: Ошибка доступа
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "ошибка" }
+                  errors:
+                    type: object
+                    properties:
+                      notification:
+                        type: array
+                        items:
+                          type: string
+                          example: "Уведомление не принадлежит этому пользователю"
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /notifications/mark-all-read:
+    post:
+      tags: [ "Osip · Notifications User" ]
+      summary: Отметить все уведомления как прочитанные (markAllAsRead)
+      description: |
+        Owner: osip
+
+        Handler: отмечает все непрочитанные уведомления пользователя
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Все уведомления отмечены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Все уведомления отмечены как прочитанные" }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /notifications/{notification}:
+    delete:
+      tags: [ "Osip · Notifications User" ]
+      summary: Удалить уведомление (deleteNoti)
+      description: |
+        Owner: osip
+
+        Handler: DeleteNotificationHandler
+        - проверяет что уведомление принадлежит пользователю (иначе 422)
+        - удаляет уведомление
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: notification
+          required: true
+          schema: { type: integer, example: 4 }
+      responses:
+        "200":
+          description: Уведомление удалено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Сообщение удалено" }
+        "422":
+          description: Ошибка доступа
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка" }
+                  errors:
+                    type: object
+                    properties:
+                      notification:
+                        type: array
+                        items:
+                          type: string
+                          example: "Уведомление не принадлежит этому пользователю"
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /admin/notifications:
+    post:
+      tags: [ "Osip · Notifications Admin" ]
+      summary: Отправка уведомления (сотруднику или всем)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        FormRequest: CreateNotificationRequest
+        Два варианта:
+        1. Отправка сотруднику: send_to_employee = true, обязателен user_email
+        2. Отправка всем: send_to_employee = false (или отсутствует), user_email не нужен
+
+        Handler: CreateNotificationHandler
+        - отправляет персональное уведомление сотруднику или всем пользователям
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ title, message ]
+              properties:
+                title:
+                  type: string
+                  maxLength: 255
+                  example: "Уведомление"
+                message:
+                  type: string
+                  maxLength: 5000
+                  example: "Текст уведомления"
+                send_to_employee:
+                  type: boolean
+                  description: "true - сотруднику, false/отсутствует - всем"
+                  example: true
+                user_email:
+                  type: string
+                  format: email
+                  description: "Обязателен если send_to_employee = true"
+                  example: "employee@example.com"
+            examples:
+              to_employee:
+                summary: Отправка сотруднику
+                value:
+                  title: "Личное уведомление"
+                  message: "Дмитрий, внимание!"
+                  send_to_employee: true
+                  user_email: "dimassikbox@gmail.com"
+              to_all:
+                summary: Отправка всем
+                value:
+                  title: "Общее уведомление"
+                  message: "Внимание, важная информация!"
+                  send_to_employee: false
+      responses:
+        "201":
+          description: Уведомление отправлено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message:
+                    type: string
+                    example: "Уведомление отправлено сотруднику"
+              examples:
+                employee_response:
+                  summary: Ответ при отправке сотруднику
+                  value:
+                    success: true
+                    message: "Уведомление отправлено сотруднику"
+                all_response:
+                  summary: Ответ при отправке всем
+                  value:
+                    success: true
+                    message: "Уведомление отправлено всем"
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка при отправке уведомления" }
+                  errors:
+                    type: object
+                    properties:
+                      user_email:
+                        type: array
+                        items:
+                          type: string
+                          example: "Пользователь с таким email не найден"
+                      send_to_employee:
+                        type: array
+                        items:
+                          type: string
+                          example: "Поле send_to_employee обязательно"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /services/my-bookings:
+    get:
+      tags: [ "Osip · Services User" ]
+      summary: Список активных бронирований для создания заявки (getMyBookings)
+      description: |
+        Owner: osip
+
+        Controller: ServiceController@getUserBookings
+        - возвращает активные бронирования текущего пользователя
+        - форматирует для выбора при создании заявки
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Список бронирований
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer, example: 1 }
+                        place_name: { type: string, example: "Переговорная А" }
+                        place_number: { type: integer, example: 101 }
+                        date: { type: string, example: "15.03.2026" }
+                        time: { type: string, example: "10:00 - 12:00" }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /services:
+    post:
+      tags: [ "Osip · Services User" ]
+      summary: Создание новой заявки на обслуживание (createService)
+      description: |
+        Owner: osip
+
+        FormRequest: CreateServiceRequest
+        - booking_id required|integer|exists:bookings,id
+        - service_type_id required|integer|exists:service_types,id
+        - service_date required|date|after_or_equal:today
+        - service_time required|date_format:H:i
+        - comment nullable|string|max:1000
+
+        Handler: CreateServiceHandler
+        - проверяет что бронирование активно и принадлежит пользователю
+        - проверяет нет ли активной заявки на это же время
+        - создаёт заявку со статусом pending
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ booking_id, service_type_id, service_date, service_time ]
+              properties:
+                booking_id: { type: integer, example: 1 }
+                service_type_id: { type: integer, example: 1 }
+                service_date: { type: string, format: date, example: "2026-03-05" }
+                service_time: { type: string, format: time, example: "14:00" }
+                comment: { type: string, nullable: true, example: "Нужно помыть окна" }
+      responses:
+        "201":
+          description: Заявка создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Заявка успешно создана" }
+                  data:
+                    $ref: "#/components/schemas/Service"
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка при создании заявки" }
+                  errors:
+                    type: object
+                    properties:
+                      booking_id:
+                        type: array
+                        items:
+                          type: string
+                          example: "У вас нет активной аренды этого помещения"
+                      service_time:
+                        type: array
+                        items:
+                          type: string
+                          example: "На это время уже есть активная заявка"
+                      service_date:
+                        type: array
+                        items:
+                          type: string
+                          example: "Дата не может быть в прошлом"
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+    get:
+      tags: [ "Osip · Services User" ]
+      summary: Список заявок текущего пользователя (myServices)
+      description: |
+        Owner: osip
+
+        Handler: GetUserServicesHandler
+        - возвращает все заявки авторизованного пользователя с пагинацией
+        - включает связи: booking.place, serviceType
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: query
+          name: per_page
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 6, example: 6 }
+        - in: query
+          name: page
+          required: false
+          schema: { type: integer, minimum: 1, example: 1 }
+      responses:
+        "200":
+          description: Список заявок
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Service"
+                  meta:
+                    type: object
+                    properties:
+                      current_page: { type: integer, example: 1 }
+                      last_page: { type: integer, example: 3 }
+                      per_page: { type: integer, example: 6 }
+                      total: { type: integer, example: 15 }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /services/{service}/export:
+    get:
+      tags: [ "Osip · Services User" ]
+      summary: Экспорт заявки в PDF (ExportService)
+      description: |
+        Owner: osip
+
+        Request: ExportServiceRequest
+        - проверяет доступ к заявке (своя или админ)
+        - генерирует PDF с детальной информацией
+
+        Handler: ExportServiceHandler
+        - загружает связи: user, booking.place, serviceType
+        - генерирует PDF через DOMPDF
+        - возвращает файл для скачивания
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: service
+          required: true
+          schema: { type: integer, example: 7 }
+      responses:
+        "200":
+          description: PDF файл с заявкой
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "422":
+          description: Ошибка при экспорте
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка при экспорте" }
+                  errors:
+                    type: object
+                    properties:
+                      service:
+                        type: array
+                        items:
+                          type: string
+                          example: "У вас нет доступа к этой заявке"
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+        "500":
+          description: Ошибка генерации PDF
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка при генерации PDF: ..." }
+
+  /admin/services/types:
+    get:
+      tags: [ "Osip · Services Admin" ]
+      summary: Список всех типов услуг (getAllTypesServices)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        Handler: GetServiceTypeHandler
+        - возвращает все активные типы услуг
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Список типов услуг
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer, example: 1 }
+                        name: { type: string, example: "ТО" }
+                        description: { type: string, nullable: true, example: "Техническое обслуживание" }
+                        is_active: { type: boolean, example: true }
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /admin/services:
+    get:
+      tags: [ "Osip · Services Admin" ]
+      summary: Список всех заявок (getAllServices)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        Handler: GetAllServicesHandler
+        - возвращает все заявки с фильтром по статусу
+        - пагинация
+        - включает связи: user, booking.place, serviceType
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema: { type: string, enum: [ pending, in_progress, completed, rejected ], example: "pending" }
+        - in: query
+          name: per_page
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 6, example: 6 }
+        - in: query
+          name: page
+          required: false
+          schema: { type: integer, minimum: 1, example: 1 }
+      responses:
+        "200":
+          description: Список заявок
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Service"
+                  meta:
+                    type: object
+                    properties:
+                      current_page: { type: integer, example: 1 }
+                      last_page: { type: integer, example: 5 }
+                      per_page: { type: integer, example: 6 }
+                      total: { type: integer, example: 30 }
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /admin/services/completed:
+    get:
+      tags: [ "Osip · Services Admin" ]
+      summary: Список выполненных заявок (getCompletedService)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        Handler: GetCompletedServicesHandler
+        - автоматически удаляет заявки старше 3 дней
+        - возвращает выполненные заявки
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: query
+          name: per_page
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 6, example: 6 }
+        - in: query
+          name: page
+          required: false
+          schema: { type: integer, minimum: 1, example: 1 }
+      responses:
+        "200":
+          description: Список выполненных заявок
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Service"
+                  meta:
+                    type: object
+                    properties:
+                      current_page: { type: integer, example: 1 }
+                      last_page: { type: integer, example: 2 }
+                      per_page: { type: integer, example: 6 }
+                      total: { type: integer, example: 12 }
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /admin/services/{service}/status:
+    put:
+      tags: [ "Osip · Services Admin" ]
+      summary: Обновление статуса заявки (updateStatusService)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        FormRequest: UpdateServiceStatusRequest
+        - status required|in:pending,in_progress,completed,rejected
+
+        Handler: UpdateServiceStatusHandler
+        - проверяет что заявка не выполнена (иначе 422)
+        - обновляет статус
+        - если status = completed, вызывает markAsCompleted()
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: service
+          required: true
+          schema: { type: integer, example: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ status ]
+              properties:
+                status:
+                  type: string
+                  enum: [ pending, in_progress, completed, rejected ]
+                  example: "in_progress"
+      responses:
+        "200":
+          description: Статус обновлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Статус заявки обновлен" }
+                  data:
+                    $ref: "#/components/schemas/Service"
+        "422":
+          description: Ошибка при обновлении статуса
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка при обновлении статуса" }
+                  errors:
+                    type: object
+                    properties:
+                      status:
+                        type: array
+                        items:
+                          type: string
+                          example: "Нельзя изменить статус выполненой заявки"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /admin/service-types:
+    get:
+      tags: [ "Osip · Admin Service Types" ]
+      summary: Список всех типов услуг (getAllServiceTypes)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        Handler: GetServiceTypeHandler
+        - возвращает все типы услуг
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Список типов услуг
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ServiceType"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+    post:
+      tags: [ "Osip · Admin Service Types" ]
+      summary: Создание нового типа услуги (createServiceTypes)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        FormRequest: CreateServiceTypeRequest
+        - name required|string|max:255|unique:service_types
+
+        Handler: CreateServiceTypeHandler
+        - создаёт новый тип услуги
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ name ]
+              properties:
+                name: { type: string, example: "Стрипуха" }
+      responses:
+        "201":
+          description: Тип услуги создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Тип заявки создан" }
+                  data:
+                    $ref: "#/components/schemas/ServiceType"
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка при создании типа заявки" }
+                  errors:
+                    type: object
+                    properties:
+                      name:
+                        type: array
+                        items:
+                          type: string
+                          example: "Такая заявка уже существует"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+  /admin/service-types/{serviceType}:
+    put:
+      tags: [ "Osip · Admin Service Types" ]
+      summary: Обновление типа услуги (updateServiceType)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        FormRequest: UpdateServiceTypeRequest
+        - name sometimes|string|max:255|unique:service_types
+
+        Handler: UpdateServiceTypeHandler
+        - обновляет название типа услуги
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: serviceType
+          required: true
+          schema: { type: integer, example: 3 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, example: "Стриптиз VIP" }
+      responses:
+        "200":
+          description: Тип услуги обновлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Тип Заявки обновлен" }
+                  data:
+                    $ref: "#/components/schemas/ServiceType"
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка при обновлении" }
+                  errors:
+                    type: object
+                    properties:
+                      name:
+                        type: array
+                        items:
+                          type: string
+                          example: "Такое название уже существует"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+    delete:
+      tags: [ "Osip · Admin Service Types" ]
+      summary: Удаление типа услуги (deleteServiceType)
+      description: |
+        Owner: osip
+
+        Middleware: is_admin
+
+        Handler: DeleteServiceTypeHandler
+        - удаляет тип услуги
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: serviceType
+          required: true
+          schema: { type: integer, example: 4 }
+      responses:
+        "200":
+          description: Тип услуги удален
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Тип заявки удален" }
+        "422":
+          description: Ошибка при удалении
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string, example: "Ошибка при удалении" }
+                  errors:
+                    type: object
+                    properties:
+                      service_type:
+                        type: array
+                        items:
+                          type: string
+                          example: "Невозможно удалить тип, есть связанные заявки"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "This action is unauthorized." }
+        "401":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Не авторизован" }
+
+
+
+
+
+
+
+
+
+
 
 
 

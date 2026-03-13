@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('places', function (Blueprint $table) {
             $table->id();
-            $table->string('photo');
+            $table->string('photo')->nullable();
             $table->string('name');
             $table->enum('type', ['office', 'coworking', 'meeting'])->default('office');
             $table->integer('capacity')->default(1);

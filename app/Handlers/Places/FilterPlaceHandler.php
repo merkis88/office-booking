@@ -4,9 +4,13 @@ namespace App\Handlers\Places;
 use App\DTO\Places\FilterPlaceDTO;
 use App\Models\Place;
 use Illuminate\Database\Eloquent\Collection;
+use App\Services\Places\PlaceAvailabilityService;
 
 class FilterPlaceHandler
 {
+    public function __construct(
+        private PlaceAvailabilityService $availabilityService
+    ) {}
     public function handle(Collection $places, FilterPlaceDTO $dto): Collection
     {
         if($dto->min_price === null && $dto->max_price === null){
@@ -21,6 +25,11 @@ class FilterPlaceHandler
             }
             return true;
         });
+        if ($dto->date !== null) {
+            $filtered = $filtered->filter(function (Place $place) use ($dto) {
+                return $this->availabilityService->hasAvailableSlots($place, $dto->date);
+            });
+        }
         return new Collection($filtered->values()->all());
     }
 
