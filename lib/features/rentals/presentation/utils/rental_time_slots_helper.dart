@@ -1,6 +1,35 @@
 class RentalTimeSlotsHelper {
   RentalTimeSlotsHelper._();
 
+  static List<String> mergeContinuousRanges(List<String> ranges) {
+    final parsedRanges = ranges
+        .map(parseRange)
+        .whereType<(int, int)>()
+        .toList()
+      ..sort((a, b) => a.$1.compareTo(b.$1));
+
+    if (parsedRanges.isEmpty) return const <String>[];
+
+    final merged = <(int, int)>[];
+    var current = parsedRanges.first;
+
+    for (var i = 1; i < parsedRanges.length; i++) {
+      final next = parsedRanges[i];
+
+      if (next.$1 <= current.$2) {
+        current = (current.$1, next.$2 > current.$2 ? next.$2 : current.$2);
+        continue;
+      }
+
+      merged.add(current);
+      current = next;
+    }
+
+    merged.add(current);
+
+    return merged.map((range) => formatRange(range.$1, range.$2)).toList();
+  }
+
   static List<String> subtractBookedRange({
     required String sourceRange,
     required String bookedRange,

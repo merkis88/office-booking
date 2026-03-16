@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:wordpice/app/app_scope.dart';
+import 'package:wordpice/core/network/api_client.dart';
 import 'package:wordpice/core/theme/app_input_decorations.dart';
 import 'package:wordpice/core/theme/app_text_styles.dart';
+import 'package:wordpice/features/auth/data/datasources/auth_data_source.dart';
+import 'package:wordpice/features/auth/domain/entities/forgot_password_params.dart';
 import 'package:wordpice/features/auth/presentation/widgets/buttons/auth_action_button.dart';
 import 'package:wordpice/features/auth/presentation/widgets/cards/auth_form_card.dart';
 import 'package:wordpice/features/auth/presentation/widgets/sections/auth_text.dart';
@@ -18,16 +22,56 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
 
+  String? _emailError;
+  bool _isSubmitting = false;
+
   @override
   void dispose() {
     _emailController.dispose();
     super.dispose();
   }
 
-  void _goToEmailSent() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const ForgotPasswordEmailSentScreen()),
-    );
+  Future<void> _goToEmailSent() async {
+    final email = _emailController.text.trim();
+
+    setState(() {
+      _emailError = _validateEmail(email);
+    });
+
+    if (_emailError != null) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      await AppScope.of(context).authRepository.forgotPassword(
+        ForgotPasswordParams(email: email),
+      );
+
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ForgotPasswordEmailSentScreen()),
+      );
+    } on AuthRequestException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _emailError = error.fieldErrors['email'] ?? error.message;
+      });
+    } on ApiConnectionException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _emailError = error.message;
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  String? _validateEmail(String email) {
+    if (email.isEmpty) return 'Введите электронную почту';
+    if (!email.contains('@')) return 'Введите корректную электронную почту';
+    return null;
   }
 
   void _goBack() {
@@ -104,6 +148,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             keyboardType: TextInputType.emailAddress,
                             decoration: AppInputDecorations.authField(
                               hintText: 'Введите электронную почту',
+                              errorText: _emailError,
                             ),
                           ),
                           const SizedBox(height: 22),
@@ -111,8 +156,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             child: SizedBox(
                               width: 200,
                               child: AuthActionButton(
-                                label: 'Отправить',
-                                onPressed: _goToEmailSent,
+                                label: _isSubmitting
+                                    ? 'Отправка...'
+                                    : 'Отправить',
+                                onPressed: _isSubmitting ? null : _goToEmailSent,
                               ),
                             ),
                           ),

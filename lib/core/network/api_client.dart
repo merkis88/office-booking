@@ -19,8 +19,15 @@ class ApiClient {
   Future<Map<String, dynamic>> getJson(
     String path, {
     Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
   }) async {
-    final response = await _sendGetRequest(path, headers: headers);
+    final response = await _sendGetRequest(
+      path,
+      headers: headers,
+      baseUrlOverride: baseUrlOverride,
+      timeoutOverride: timeoutOverride,
+    );
     return _decodeResponse(response);
   }
 
@@ -28,8 +35,16 @@ class ApiClient {
     String path, {
     required Map<String, dynamic> body,
     Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
   }) async {
-    final response = await _sendPostRequest(path, body: body, headers: headers);
+    final response = await _sendPostRequest(
+      path,
+      body: body,
+      headers: headers,
+      baseUrlOverride: baseUrlOverride,
+      timeoutOverride: timeoutOverride,
+    );
     return _decodeResponse(response);
   }
 
@@ -37,23 +52,49 @@ class ApiClient {
     String path, {
     required Map<String, dynamic> body,
     Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
   }) async {
-    final response = await _sendPutRequest(path, body: body, headers: headers);
+    final response = await _sendPutRequest(
+      path,
+      body: body,
+      headers: headers,
+      baseUrlOverride: baseUrlOverride,
+      timeoutOverride: timeoutOverride,
+    );
     return _decodeResponse(response);
   }
 
   Future<Map<String, dynamic>> deleteJson(
     String path, {
     Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
   }) async {
-    final response = await _sendDeleteRequest(path, headers: headers);
+    final response = await _sendDeleteRequest(
+      path,
+      headers: headers,
+      baseUrlOverride: baseUrlOverride,
+      timeoutOverride: timeoutOverride,
+    );
     return _decodeResponse(response);
   }
 
   Map<String, dynamic> _decodeResponse(http.Response response) {
-    final dynamic decoded = response.body.isEmpty
-        ? <String, dynamic>{}
-        : jsonDecode(response.body);
+    final dynamic decoded;
+    if (response.body.isEmpty) {
+      decoded = <String, dynamic>{};
+    } else {
+      try {
+        decoded = jsonDecode(response.body);
+      } on FormatException {
+        return <String, dynamic>{
+          'statusCode': response.statusCode,
+          'message':
+              'Сервер вернул некорректный ответ. Проверьте адрес API и формат ответа.',
+        };
+      }
+    }
 
     if (decoded is Map<String, dynamic>) {
       return <String, dynamic>{'statusCode': response.statusCode, ...decoded};
@@ -69,15 +110,17 @@ class ApiClient {
     String path, {
     required Map<String, dynamic> body,
     Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
   }) async {
     try {
       return await _client
           .post(
-            Uri.parse('${AppApiConfig.baseUrl}$path'),
+            Uri.parse(_resolveUrl(path, baseUrlOverride: baseUrlOverride)),
             headers: _buildJsonHeaders(headers),
             body: jsonEncode(body),
           )
-          .timeout(AppApiConfig.requestTimeout);
+          .timeout(timeoutOverride ?? AppApiConfig.requestTimeout);
     } on SocketException {
       throw const ApiConnectionException(
         'Сервер недоступен. Проверьте, что backend запущен и адрес API указан верно.',
@@ -99,15 +142,17 @@ class ApiClient {
     String path, {
     required Map<String, dynamic> body,
     Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
   }) async {
     try {
       return await _client
           .put(
-            Uri.parse('${AppApiConfig.baseUrl}$path'),
+            Uri.parse(_resolveUrl(path, baseUrlOverride: baseUrlOverride)),
             headers: _buildJsonHeaders(headers),
             body: jsonEncode(body),
           )
-          .timeout(AppApiConfig.requestTimeout);
+          .timeout(timeoutOverride ?? AppApiConfig.requestTimeout);
     } on SocketException {
       throw const ApiConnectionException(
         'Сервер недоступен. Проверьте, что backend запущен и адрес API указан верно.',
@@ -128,14 +173,16 @@ class ApiClient {
   Future<http.Response> _sendGetRequest(
     String path, {
     Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
   }) async {
     try {
       return await _client
           .get(
-            Uri.parse('${AppApiConfig.baseUrl}$path'),
+            Uri.parse(_resolveUrl(path, baseUrlOverride: baseUrlOverride)),
             headers: _buildGetHeaders(headers),
           )
-          .timeout(AppApiConfig.requestTimeout);
+          .timeout(timeoutOverride ?? AppApiConfig.requestTimeout);
     } on SocketException {
       throw const ApiConnectionException(
         'Сервер недоступен. Проверьте, что backend запущен и адрес API указан верно.',
@@ -156,14 +203,16 @@ class ApiClient {
   Future<http.Response> _sendDeleteRequest(
     String path, {
     Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
   }) async {
     try {
       return await _client
           .delete(
-            Uri.parse('${AppApiConfig.baseUrl}$path'),
+            Uri.parse(_resolveUrl(path, baseUrlOverride: baseUrlOverride)),
             headers: _buildGetHeaders(headers),
           )
-          .timeout(AppApiConfig.requestTimeout);
+          .timeout(timeoutOverride ?? AppApiConfig.requestTimeout);
     } on SocketException {
       throw const ApiConnectionException(
         'Сервер недоступен. Проверьте, что backend запущен и адрес API указан верно.',
@@ -191,5 +240,10 @@ class ApiClient {
       'Accept': 'application/json',
       ...?headers,
     };
+  }
+
+  String _resolveUrl(String path, {String? baseUrlOverride}) {
+    final baseUrl = baseUrlOverride ?? AppApiConfig.baseUrl;
+    return '$baseUrl$path';
   }
 }

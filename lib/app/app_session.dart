@@ -14,6 +14,11 @@ class AppSession {
     _currentUser = user;
   }
 
+  void restore({required String token, required RegisteredUser user}) {
+    _token = token;
+    _currentUser = user;
+  }
+
   void updateUser(RegisteredUser user) {
     _currentUser = user;
   }

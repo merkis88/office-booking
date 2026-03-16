@@ -22,4 +22,18 @@ class AppApiConfig {
         return 'http://localhost/api';
     }
   }
+
+  static String get baseOrigin {
+    final uri = Uri.parse(baseUrl);
+    final port = uri.hasPort ? ':${uri.port}' : '';
+    return '${uri.scheme}://${uri.host}$port';
+  }
+
+  static String get bookingsBaseUrl {
+    return baseUrl;
+  }
+
+  static String get userPasswordBaseUrl {
+    return baseUrl;
+  }
 }

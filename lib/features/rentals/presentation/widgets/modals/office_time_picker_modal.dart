@@ -116,13 +116,13 @@ class _OfficeTimePickerModalState extends State<OfficeTimePickerModal> {
             SizedBox(
               width: 190,
               height: 34,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: AppColors.formSurface,
-                    padding: EdgeInsets.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: AppColors.formSurface,
+                  padding: EdgeInsets.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
                 onPressed: canSubmit
                     ? () => Navigator.of(context).pop(
                         '${_formatHour(_fromHour!)} - ${_formatHour(_toHour!)}',

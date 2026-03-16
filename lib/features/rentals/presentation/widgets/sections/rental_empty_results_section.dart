@@ -34,6 +34,7 @@ class RentalEmptyResultsSection extends StatelessWidget {
           minPrice: minPrice,
           maxPrice: maxPrice,
           onPriceChanged: onPriceChanged,
+          onPriceChangeEnd: onPriceChanged,
           formatPrice: formatPrice,
         ),
         const SizedBox(height: 220),

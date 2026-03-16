@@ -10,6 +10,9 @@ class NotificationCard extends StatelessWidget {
     required this.item,
     required this.isRead,
     required this.onReadChanged,
+    required this.onDeletePressed,
+    this.isReadLoading = false,
+    this.isDeleteLoading = false,
   });
 
   static const double _cardWidth = 300;
@@ -18,6 +21,9 @@ class NotificationCard extends StatelessWidget {
   final NotificationItem item;
   final bool isRead;
   final ValueChanged<bool> onReadChanged;
+  final VoidCallback onDeletePressed;
+  final bool isReadLoading;
+  final bool isDeleteLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +56,10 @@ class NotificationCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(item.message, style: NotificationStyles.messageText),
+                            Text(
+                              item.message,
+                              style: NotificationStyles.messageText,
+                            ),
                             Align(
                               alignment: Alignment.centerRight,
                               child: Text(
@@ -82,19 +91,33 @@ class NotificationCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 InkWell(
-                  onTap: () {},
+                  onTap: isDeleteLoading ? null : onDeletePressed,
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.all(2),
-                    child: SvgPicture.asset(
-                      'assets/icons/delete.svg',
-                      width: 40,
-                      height: 40,
-                      colorFilter: const ColorFilter.mode(
-                        Colors.black54,
-                        BlendMode.srcIn,
-                      ),
-                    ),
+                    child: isDeleteLoading
+                        ? const SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: Center(
+                              child: SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                          )
+                        : SvgPicture.asset(
+                            'assets/icons/delete.svg',
+                            width: 40,
+                            height: 40,
+                            colorFilter: const ColorFilter.mode(
+                              Colors.black54,
+                              BlendMode.srcIn,
+                            ),
+                          ),
                   ),
                 ),
               ],
@@ -105,6 +128,8 @@ class NotificationCard extends StatelessWidget {
               child: NotificationReadAction(
                 label: 'Прочитать уведомление',
                 value: isRead,
+                isEnabled: !isRead,
+                isLoading: isReadLoading,
                 onChanged: onReadChanged,
               ),
             ),

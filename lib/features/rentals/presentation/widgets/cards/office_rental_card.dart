@@ -3,16 +3,28 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
 import 'package:wordpice/core/widgets/buttons/favorite_heart_toggle.dart';
 import 'package:wordpice/features/rentals/presentation/models/office_rental_item.dart';
-import 'package:wordpice/features/rentals/presentation/utils/rental_time_slots_helper.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/modals/office_booking_confirmation_modal.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/modals/office_time_picker_modal.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/rental_time_slot_chip.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/styles/rental_widget_styles.dart';
 
 class OfficeRentalCard extends StatefulWidget {
-  const OfficeRentalCard({super.key, required this.item});
+  const OfficeRentalCard({
+    super.key,
+    required this.item,
+    required this.dateText,
+    required this.availableTimeSlots,
+    required this.onBook,
+    required this.onBooked,
+    required this.onFavoriteToggle,
+  });
 
   final OfficeRentalItem item;
+  final String dateText;
+  final List<String> availableTimeSlots;
+  final Future<String?> Function(String timeRange) onBook;
+  final void Function(String sourceRange, String bookedRange) onBooked;
+  final Future<String?> Function(bool nextValue) onFavoriteToggle;
 
   @override
   State<OfficeRentalCard> createState() => _OfficeRentalCardState();
@@ -21,6 +33,9 @@ class OfficeRentalCard extends StatefulWidget {
 class _OfficeRentalCardState extends State<OfficeRentalCard> {
   late final List<String> _freeTimeSlots;
   int _slotWindowStart = 0;
+  bool _isBooking = false;
+  bool _isFavorite = false;
+  bool _isFavoriteLoading = false;
 
   int get _maxWindowStart =>
       (_freeTimeSlots.length - 2).clamp(0, _freeTimeSlots.length);
@@ -28,25 +43,61 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
   @override
   void initState() {
     super.initState();
-    _freeTimeSlots = [widget.item.availableTime];
+    _freeTimeSlots = List<String>.from(widget.availableTimeSlots);
+  }
+
+  @override
+  void didUpdateWidget(covariant OfficeRentalCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.availableTimeSlots != widget.availableTimeSlots) {
+      _freeTimeSlots
+        ..clear()
+        ..addAll(widget.availableTimeSlots);
+      if (_slotWindowStart > _maxWindowStart) {
+        _slotWindowStart = _maxWindowStart;
+      }
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_isFavoriteLoading) return;
+
+    final nextValue = !_isFavorite;
+    setState(() => _isFavoriteLoading = true);
+    final errorMessage = await widget.onFavoriteToggle(nextValue);
+    if (!mounted) return;
+
+    setState(() {
+      _isFavoriteLoading = false;
+      if (errorMessage == null) {
+        _isFavorite = nextValue;
+      }
+    });
+
+    if (errorMessage != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(errorMessage)));
+    }
   }
 
   Future<void> _pickTimeRange() async {
-    if (_freeTimeSlots.isEmpty) return;
+    if (_freeTimeSlots.isEmpty || _isBooking) return;
     await _pickTimeRangeForSlot(_freeTimeSlots.first);
   }
 
   Future<void> _pickTimeRangeForSlot(String sourceRange) async {
+    if (_isBooking) return;
+
     final picked = await OfficeTimePickerModal.show(
       context,
       availableTime: sourceRange,
     );
-    if (picked == null) return;
-    if (!mounted) return;
+    if (picked == null || !mounted) return;
 
     final confirmed = await OfficeBookingConfirmationModal.show(
       context,
-      date: widget.item.dateText,
+      date: widget.dateText,
       timeRange: picked,
       title: widget.item.title,
       room: widget.item.room,
@@ -54,43 +105,30 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
     );
     if (!confirmed || !mounted) return;
 
-    setState(() {
-      final slotIndex = _freeTimeSlots.indexOf(sourceRange);
-      if (slotIndex == -1) return;
+    setState(() => _isBooking = true);
+    final errorMessage = await widget.onBook(picked);
+    if (!mounted) return;
+    setState(() => _isBooking = false);
 
-      final nextSlots = List<String>.from(_freeTimeSlots);
-      nextSlots.removeAt(slotIndex);
-      nextSlots.insertAll(
-        slotIndex,
-        RentalTimeSlotsHelper.subtractBookedRange(
-          sourceRange: sourceRange,
-          bookedRange: picked,
-        ),
-      );
+    if (errorMessage != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(errorMessage)));
+      return;
+    }
 
-      nextSlots.sort(
-        (a, b) => RentalTimeSlotsHelper.rangeStartHour(
-          a,
-        ).compareTo(RentalTimeSlotsHelper.rangeStartHour(b)),
-      );
-
-      _freeTimeSlots
-        ..clear()
-        ..addAll(nextSlots);
-
-      if (_slotWindowStart > _maxWindowStart) {
-        _slotWindowStart = _maxWindowStart;
-      }
-    });
+    widget.onBooked(sourceRange, picked);
   }
 
   void _showPreviousSlots() {
+    if (_isBooking) return;
     setState(() {
       _slotWindowStart = (_slotWindowStart - 1).clamp(0, _maxWindowStart);
     });
   }
 
   void _showNextSlots() {
+    if (_isBooking) return;
     setState(() {
       _slotWindowStart = (_slotWindowStart + 1).clamp(0, _maxWindowStart);
     });
@@ -101,6 +139,7 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
     final item = widget.item;
     final hasFreeTime = _freeTimeSlots.isNotEmpty;
     final hasSingleSlot = _freeTimeSlots.length == 1;
+    final hasPhoto = item.photoUrl != null && item.photoUrl!.trim().isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -128,10 +167,15 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
                       width: 1.5,
                     ),
                   ),
-                  child: const Icon(
-                    Icons.image_outlined,
-                    size: 28,
-                    color: Colors.white,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: hasPhoto
+                        ? Image.network(
+                            item.photoUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => const _PhotoPlaceholder(),
+                          )
+                        : const _PhotoPlaceholder(),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -146,7 +190,11 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const FavoriteHeartToggle(),
+                              FavoriteHeartToggle(
+                                filled: _isFavorite,
+                                isBusy: _isFavoriteLoading,
+                                onTap: _toggleFavorite,
+                              ),
                               const SizedBox(height: 6),
                               SvgPicture.asset(
                                 'assets/icons/nav_archive.svg',
@@ -225,7 +273,7 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    'Доступное время с ${_freeTimeSlots.first}',
+                    'Доступное время: ${_freeTimeSlots.first}',
                     textAlign: TextAlign.center,
                     style: RentalWidgetStyles.slotInfoText,
                   ),
@@ -292,6 +340,15 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
             ),
         ],
         const SizedBox(height: 10),
+        if (_isBooking)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8),
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
         Text('${item.price}р', style: RentalWidgetStyles.priceText),
       ],
     );
@@ -319,6 +376,19 @@ class _SlotArrowButton extends StatelessWidget {
           color: onTap == null ? Colors.black38 : Colors.black87,
         ),
       ),
+    );
+  }
+}
+
+class _PhotoPlaceholder extends StatelessWidget {
+  const _PhotoPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Icon(
+      Icons.image_outlined,
+      size: 28,
+      color: Colors.white,
     );
   }
 }

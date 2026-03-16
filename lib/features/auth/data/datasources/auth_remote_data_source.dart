@@ -1,6 +1,8 @@
 import 'package:wordpice/app/app_session.dart';
 import 'package:wordpice/core/network/api_client.dart';
 import 'package:wordpice/features/auth/data/datasources/auth_data_source.dart';
+import 'package:wordpice/features/auth/data/models/forgot_password_request_model.dart';
+import 'package:wordpice/features/auth/data/models/forgot_password_response_model.dart';
 import 'package:wordpice/features/auth/data/models/login_request_model.dart';
 import 'package:wordpice/features/auth/data/models/login_response_model.dart';
 import 'package:wordpice/features/auth/data/models/logout_response_model.dart';
@@ -16,6 +18,27 @@ class AuthRemoteDataSource implements AuthDataSource {
 
   final ApiClient _apiClient;
   final AppSession _appSession;
+
+  @override
+  Future<ForgotPasswordResponseModel> forgotPassword(
+    ForgotPasswordRequestModel request,
+  ) async {
+    final response = await _apiClient.postJson(
+      '/forgot-password',
+      body: request.toJson(),
+    );
+    final statusCode = response['statusCode'] as int? ?? 500;
+
+    if (statusCode >= 200 && statusCode < 300 && response['success'] == true) {
+      return ForgotPasswordResponseModel.fromJson(response);
+    }
+
+    final fieldErrors = _extractFieldErrors(response);
+    throw AuthRequestException(
+      _extractErrorMessage(response, fieldErrors),
+      fieldErrors: fieldErrors,
+    );
+  }
 
   @override
   Future<LogoutResponseModel> logout() async {

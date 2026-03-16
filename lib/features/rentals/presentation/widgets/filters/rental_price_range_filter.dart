@@ -9,6 +9,7 @@ class RentalPriceRangeFilter extends StatefulWidget {
     required this.min,
     required this.max,
     required this.onChanged,
+    required this.onChangeEnd,
     required this.formatLabel,
   });
 
@@ -16,6 +17,7 @@ class RentalPriceRangeFilter extends StatefulWidget {
   final double min;
   final double max;
   final ValueChanged<RangeValues> onChanged;
+  final ValueChanged<RangeValues> onChangeEnd;
   final String Function(double value) formatLabel;
 
   @override
@@ -29,12 +31,6 @@ class _RentalPriceRangeFilterState extends State<RentalPriceRangeFilter> {
   late final FocusNode _endFocusNode;
 
   double get _step => 1000;
-
-  int get _divisions {
-    final step = _step;
-    if (step <= 0) return 1;
-    return ((widget.max - widget.min) / step).round().clamp(1, 1000);
-  }
 
   @override
   void initState() {
@@ -103,14 +99,45 @@ class _RentalPriceRangeFilterState extends State<RentalPriceRangeFilter> {
     if (isStart) {
       final end = widget.values.end;
       final start = next <= end ? next : end;
-      widget.onChanged(RangeValues(start, end));
+      final values = RangeValues(start, end);
+      widget.onChanged(values);
+      widget.onChangeEnd(values);
       _startController.text = _displayText(start);
     } else {
       final start = widget.values.start;
       final end = next >= start ? next : start;
-      widget.onChanged(RangeValues(start, end));
+      final values = RangeValues(start, end);
+      widget.onChanged(values);
+      widget.onChangeEnd(values);
       _endController.text = _displayText(end);
     }
+  }
+
+  void _handleSliderChanged(RangeValues values) {
+    widget.onChanged(_snapValues(values));
+  }
+
+  void _handleSliderChangeEnd(RangeValues values) {
+    final snapped = _snapValues(values);
+    widget.onChanged(snapped);
+    widget.onChangeEnd(snapped);
+  }
+
+  RangeValues _snapValues(RangeValues values) {
+    final step = _step;
+
+    double snap(double value) {
+      if (step <= 0) return value;
+      final snapped = ((value - widget.min) / step).round() * step + widget.min;
+      return snapped.clamp(widget.min, widget.max);
+    }
+
+    final start = snap(values.start);
+    final end = snap(values.end);
+    return RangeValues(
+      start <= end ? start : end,
+      end >= start ? end : start,
+    );
   }
 
   Widget _valueField({
@@ -164,6 +191,8 @@ class _RentalPriceRangeFilterState extends State<RentalPriceRangeFilter> {
 
   @override
   Widget build(BuildContext context) {
+    final hasRange = widget.max > widget.min;
+
     return Row(
       children: [
         _valueField(
@@ -173,25 +202,33 @@ class _RentalPriceRangeFilterState extends State<RentalPriceRangeFilter> {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              trackHeight: 6,
-              activeTrackColor: const Color(0xFF7C8FA0),
-              inactiveTrackColor: const Color(0xFFD5DDE4),
-              thumbColor: const Color(0xFF7E94A8),
-              rangeThumbShape: const RoundRangeSliderThumbShape(
-                enabledThumbRadius: 9,
-              ),
-              overlayShape: SliderComponentShape.noOverlay,
-            ),
-            child: RangeSlider(
-              values: widget.values,
-              min: widget.min,
-              max: widget.max,
-              divisions: _divisions,
-              onChanged: widget.onChanged,
-            ),
-          ),
+          child: hasRange
+              ? SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 6,
+                    activeTrackColor: const Color(0xFF7C8FA0),
+                    inactiveTrackColor: const Color(0xFFD5DDE4),
+                    thumbColor: const Color(0xFF7E94A8),
+                    rangeThumbShape: const RoundRangeSliderThumbShape(
+                      enabledThumbRadius: 9,
+                    ),
+                    overlayShape: SliderComponentShape.noOverlay,
+                  ),
+                  child: RangeSlider(
+                    values: widget.values,
+                    min: widget.min,
+                    max: widget.max,
+                    onChanged: _handleSliderChanged,
+                    onChangeEnd: _handleSliderChangeEnd,
+                  ),
+                )
+              : Container(
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD5DDE4),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
         ),
         const SizedBox(width: 10),
         _valueField(

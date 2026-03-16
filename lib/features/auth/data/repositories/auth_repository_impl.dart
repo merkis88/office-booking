@@ -1,12 +1,16 @@
 import 'package:wordpice/app/app_session.dart';
+import 'package:wordpice/app/app_session_storage.dart';
 import 'package:wordpice/features/auth/data/datasources/auth_data_source.dart';
+import 'package:wordpice/features/auth/data/models/forgot_password_request_model.dart';
 import 'package:wordpice/features/auth/data/models/login_request_model.dart';
-import 'package:wordpice/features/auth/domain/entities/logout_result.dart';
-import 'package:wordpice/features/auth/domain/entities/login_params.dart';
-import 'package:wordpice/features/auth/domain/entities/login_result.dart';
 import 'package:wordpice/features/auth/data/models/register_request_model.dart';
 import 'package:wordpice/features/auth/data/models/resend_verification_request_model.dart';
 import 'package:wordpice/features/auth/data/models/verify_email_request_model.dart';
+import 'package:wordpice/features/auth/domain/entities/forgot_password_params.dart';
+import 'package:wordpice/features/auth/domain/entities/forgot_password_result.dart';
+import 'package:wordpice/features/auth/domain/entities/login_params.dart';
+import 'package:wordpice/features/auth/domain/entities/login_result.dart';
+import 'package:wordpice/features/auth/domain/entities/logout_result.dart';
 import 'package:wordpice/features/auth/domain/entities/register_params.dart';
 import 'package:wordpice/features/auth/domain/entities/register_result.dart';
 import 'package:wordpice/features/auth/domain/entities/resend_verification_params.dart';
@@ -16,11 +20,24 @@ import 'package:wordpice/features/auth/domain/entities/verify_email_result.dart'
 import 'package:wordpice/features/auth/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl(this._dataSource, {required AppSession appSession})
-    : _appSession = appSession;
+  AuthRepositoryImpl(
+    this._dataSource, {
+    required AppSession appSession,
+    required AppSessionStorage sessionStorage,
+  }) : _appSession = appSession,
+       _sessionStorage = sessionStorage;
 
   final AuthDataSource _dataSource;
   final AppSession _appSession;
+  final AppSessionStorage _sessionStorage;
+
+  @override
+  Future<ForgotPasswordResult> forgotPassword(ForgotPasswordParams params) async {
+    final response = await _dataSource.forgotPassword(
+      ForgotPasswordRequestModel.fromParams(params),
+    );
+    return response.toEntity();
+  }
 
   @override
   Future<LogoutResult> logout() async {
@@ -29,6 +46,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return response.toEntity();
     } finally {
       _appSession.clear();
+      await _sessionStorage.clear();
     }
   }
 
@@ -39,6 +57,7 @@ class AuthRepositoryImpl implements AuthRepository {
     );
     final result = response.toEntity();
     _appSession.setAuthenticated(token: result.token, user: result.user);
+    await _sessionStorage.saveSession(token: result.token, user: result.user);
     return result;
   }
 
@@ -58,6 +77,7 @@ class AuthRepositoryImpl implements AuthRepository {
     final result = response.toEntity();
     if (result.token.isNotEmpty) {
       _appSession.setAuthenticated(token: result.token, user: result.user);
+      await _sessionStorage.saveSession(token: result.token, user: result.user);
     }
     return result;
   }

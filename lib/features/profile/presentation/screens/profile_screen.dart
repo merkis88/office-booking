@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/app/navigation/app_tab_navigator.dart';
+import 'package:wordpice/core/network/api_client.dart';
 import 'package:wordpice/core/widgets/layout/app_constrained_scroll_view.dart';
 import 'package:wordpice/core/widgets/layout/app_shell.dart';
 import 'package:wordpice/features/auth/domain/entities/registered_user.dart';
 import 'package:wordpice/features/profile/data/mock/profile_pass_mock_data.dart';
+import 'package:wordpice/features/profile/domain/entities/profile_rentals_overview.dart';
+import 'package:wordpice/features/profile/domain/entities/rental_history_item.dart';
 import 'package:wordpice/features/profile/presentation/models/profile_activity_filter.dart';
 import 'package:wordpice/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_info_card.dart';
@@ -38,12 +41,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     'История аренды',
     'Заявки',
   ];
+  static const ProfileRentalsOverview _emptyOverview = ProfileRentalsOverview(
+    activeRentals: <RentalHistoryItem>[],
+    rentalHistory: <RentalHistoryItem>[],
+  );
 
   int _selectedBottomIndex = _tabIndex;
   int _carouselIndex = 0;
   bool _isLoading = true;
   bool _hasLoadedOnce = false;
   RegisteredUser? _user;
+  ProfileRentalsOverview _rentalsOverview = _emptyOverview;
+  final Set<int> _cancelingBookingIds = <int>{};
 
   @override
   void didChangeDependencies() {
@@ -69,12 +78,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     try {
-      final freshUser = await dependencies.profileRepository
-          .getCurrentProfile();
+      final freshUser = await dependencies.profileRepository.getCurrentProfile();
+      final rentalsOverview = await dependencies.profileRepository
+          .getRentalsOverview();
 
       if (!mounted) return;
       setState(() {
         _user = freshUser;
+        _rentalsOverview = rentalsOverview;
         _isLoading = false;
       });
     } catch (_) {
@@ -83,6 +94,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _cancelRental(RentalHistoryItem item) async {
+    final bookingId = item.bookingId;
+    if (bookingId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Не удалось определить бронирование.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _cancelingBookingIds.add(bookingId);
+    });
+
+    try {
+      final repository = AppScope.of(context).profileRepository;
+      await repository.cancelBooking(bookingId);
+
+      if (!mounted) return;
+      setState(() {
+        _rentalsOverview = ProfileRentalsOverview(
+          activeRentals: _rentalsOverview.activeRentals
+              .where((rental) => rental.bookingId != bookingId)
+              .toList(),
+          rentalHistory: _rentalsOverview.rentalHistory,
+        );
+      });
+    } catch (error) {
+      if (!mounted) return;
+      final message = error is ApiConnectionException
+          ? error.message
+          : 'Не удалось отменить бронь.';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _cancelingBookingIds.remove(bookingId);
+        });
+      }
+    }
+  }
+
+  bool _isBookingCancelling(RentalHistoryItem item) {
+    final bookingId = item.bookingId;
+    return bookingId != null && _cancelingBookingIds.contains(bookingId);
   }
 
   void _openEditScreen() {
@@ -132,7 +191,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       carouselIndex: _carouselIndex,
       onCarouselChanged: (index) => setState(() => _carouselIndex = index),
       selectedActivityFilter: _selectedActivityFilter,
+      rentalsOverview: _rentalsOverview,
       onShowPassQr: _showPassQr,
+      onCancelRental: _cancelRental,
+      isBookingCancelling: _isBookingCancelling,
     );
   }
 
@@ -158,7 +220,10 @@ class _ProfileContent extends StatelessWidget {
     required this.carouselIndex,
     required this.onCarouselChanged,
     required this.selectedActivityFilter,
+    required this.rentalsOverview,
     required this.onShowPassQr,
+    required this.onCancelRental,
+    required this.isBookingCancelling,
   });
 
   final RegisteredUser user;
@@ -167,7 +232,10 @@ class _ProfileContent extends StatelessWidget {
   final int carouselIndex;
   final ValueChanged<int> onCarouselChanged;
   final ProfileActivityFilter selectedActivityFilter;
+  final ProfileRentalsOverview rentalsOverview;
   final VoidCallback onShowPassQr;
+  final Future<void> Function(RentalHistoryItem item) onCancelRental;
+  final bool Function(RentalHistoryItem item) isBookingCancelling;
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +267,13 @@ class _ProfileContent extends StatelessWidget {
         ),
         const SizedBox(height: 30),
         _NarrowCard(
-          child: ProfileActivitySection(filter: selectedActivityFilter),
+          child: ProfileActivitySection(
+            filter: selectedActivityFilter,
+            activeRentals: rentalsOverview.activeRentals,
+            rentalHistory: rentalsOverview.rentalHistory,
+            onCancelRental: onCancelRental,
+            isBookingCancelling: isBookingCancelling,
+          ),
         ),
       ],
     );

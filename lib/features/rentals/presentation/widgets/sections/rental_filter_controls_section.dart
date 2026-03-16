@@ -11,6 +11,7 @@ class RentalFilterControlsSection extends StatelessWidget {
     required this.minPrice,
     required this.maxPrice,
     required this.onPriceChanged,
+    required this.onPriceChangeEnd,
     required this.formatPrice,
     this.dateLeftPadding = 0,
   });
@@ -21,6 +22,7 @@ class RentalFilterControlsSection extends StatelessWidget {
   final double minPrice;
   final double maxPrice;
   final ValueChanged<RangeValues> onPriceChanged;
+  final ValueChanged<RangeValues> onPriceChangeEnd;
   final String Function(double value) formatPrice;
   final double dateLeftPadding;
 
@@ -41,6 +43,7 @@ class RentalFilterControlsSection extends StatelessWidget {
           max: maxPrice,
           formatLabel: formatPrice,
           onChanged: onPriceChanged,
+          onChangeEnd: onPriceChangeEnd,
         ),
       ],
     );

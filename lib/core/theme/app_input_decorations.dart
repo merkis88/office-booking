@@ -15,6 +15,7 @@ class AppInputDecorations {
     return InputDecoration(
       hintText: hintText,
       errorText: errorText,
+      errorMaxLines: 3,
       filled: true,
       fillColor: AppColors.formSurface,
       hintStyle: AppTextStyles.body14.copyWith(color: AppColors.textSecondary),

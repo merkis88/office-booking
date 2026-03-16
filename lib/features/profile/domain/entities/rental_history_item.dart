@@ -1,5 +1,6 @@
 
 class RentalHistoryItem {
+  final int? bookingId;
   final String dateLabel; 
   final String title; 
   final String room; 
@@ -8,6 +9,7 @@ class RentalHistoryItem {
   final List<String> timeSlots;
 
   const RentalHistoryItem({
+    this.bookingId,
     required this.dateLabel,
     required this.title,
     required this.room,

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
 import 'package:wordpice/core/widgets/states/app_empty_state_text.dart';
-import 'package:wordpice/features/profile/data/mock/profile_active_rentals_mock_data.dart';
 import 'package:wordpice/features/profile/data/mock/profile_favorite_rentals_mock_data.dart';
 import 'package:wordpice/features/profile/data/mock/profile_requests_mock_data.dart';
-import 'package:wordpice/features/profile/data/mock/profile_rental_history_mock_data.dart';
+import 'package:wordpice/features/profile/domain/entities/rental_history_item.dart';
 import 'package:wordpice/features/profile/presentation/models/profile_activity_filter.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_active_rental_card.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_favorite_rental_card.dart';
@@ -12,24 +11,38 @@ import 'package:wordpice/features/profile/presentation/widgets/cards/profile_req
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_rental_history_card.dart';
 
 class ProfileActivitySection extends StatelessWidget {
-  const ProfileActivitySection({super.key, required this.filter});
+  const ProfileActivitySection({
+    super.key,
+    required this.filter,
+    required this.activeRentals,
+    required this.rentalHistory,
+    required this.onCancelRental,
+    required this.isBookingCancelling,
+  });
 
   final ProfileActivityFilter filter;
+  final List<RentalHistoryItem> activeRentals;
+  final List<RentalHistoryItem> rentalHistory;
+  final Future<void> Function(RentalHistoryItem item) onCancelRental;
+  final bool Function(RentalHistoryItem item) isBookingCancelling;
 
   @override
   Widget build(BuildContext context) {
     switch (filter) {
       case ProfileActivityFilter.activeRentals:
-        if (profileActiveRentalsMockData.isEmpty) {
+        if (activeRentals.isEmpty) {
           return const _ActivityEmptyState(text: 'У вас нет активных аренд');
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (var i = 0; i < profileActiveRentalsMockData.length; i++) ...[
-              ProfileActiveRentalCard(item: profileActiveRentalsMockData[i]),
-              if (i != profileActiveRentalsMockData.length - 1)
-                const SizedBox(height: 30),
+            for (var i = 0; i < activeRentals.length; i++) ...[
+              ProfileActiveRentalCard(
+                item: activeRentals[i],
+                onCancelPressed: onCancelRental,
+                isCancelling: isBookingCancelling(activeRentals[i]),
+              ),
+              if (i != activeRentals.length - 1) const SizedBox(height: 30),
             ],
           ],
         );
@@ -52,16 +65,15 @@ class ProfileActivitySection extends StatelessWidget {
         );
 
       case ProfileActivityFilter.rentalHistory:
-        if (profileRentalHistoryMockData.isEmpty) {
-          return const _ActivityEmptyState(text: 'У вас нет истории аренд');
+        if (rentalHistory.isEmpty) {
+          return const _ActivityEmptyState(text: 'У вас нет истории аренды');
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (var i = 0; i < profileRentalHistoryMockData.length; i++) ...[
-              ProfileRentalHistoryCard(item: profileRentalHistoryMockData[i]),
-              if (i != profileRentalHistoryMockData.length - 1)
-                const SizedBox(height: 22),
+            for (var i = 0; i < rentalHistory.length; i++) ...[
+              ProfileRentalHistoryCard(item: rentalHistory[i]),
+              if (i != rentalHistory.length - 1) const SizedBox(height: 22),
             ],
           ],
         );

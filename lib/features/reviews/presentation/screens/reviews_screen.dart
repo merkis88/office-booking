@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/app/navigation/app_tab_navigator.dart';
 import 'package:wordpice/core/network/api_client.dart';
+import 'package:wordpice/core/widgets/dialogs/app_confirmation_dialog.dart';
 import 'package:wordpice/core/widgets/layout/app_constrained_scroll_view.dart';
 import 'package:wordpice/core/widgets/layout/app_shell.dart';
 import 'package:wordpice/features/reviews/domain/entities/create_review_params.dart';
@@ -180,6 +181,18 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   }
 
   Future<void> _deleteReview(ReviewItem review) async {
+    final shouldDelete = await AppConfirmationDialog.show<bool>(
+      context,
+      title: 'Удаление',
+      message: 'Вы действительно хотите удалить отзыв?',
+      confirmLabel: 'Удалить',
+      cancelLabel: 'Отмена',
+      confirmResult: true,
+      cancelResult: false,
+    );
+
+    if (shouldDelete != true || !mounted) return;
+
     setState(() {
       _deletingReviewId = review.id;
       _successMessage = null;

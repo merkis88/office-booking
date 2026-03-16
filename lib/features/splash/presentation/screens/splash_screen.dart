@@ -1,8 +1,10 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/features/auth/presentation/screens/auth_screen.dart';
+import 'package:wordpice/features/profile/presentation/screens/profile_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,7 +13,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   static const _interval = Duration(seconds: 2);
   static const _letterInterval = Duration(milliseconds: 300);
   static const _startDelay = Duration(milliseconds: 900);
@@ -44,6 +47,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         milliseconds: _logoText.length * _letterInterval.inMilliseconds,
       ),
     )..value = 0;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       Future.delayed(_startDelay, () {
@@ -60,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _logoController.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
         _timer?.cancel();
-        _goToAuth();
+        _goNext();
       }
     });
   }
@@ -78,12 +82,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     return copy.take(3).toList();
   }
 
-  void _goToAuth() {
+  void _goNext() {
+    final nextPage = AppScope.of(context).appSession.isAuthenticated
+        ? const ProfileScreen()
+        : const AuthScreen();
+
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 1200),
         reverseTransitionDuration: const Duration(milliseconds: 1200),
-        pageBuilder: (_, _, _) => const AuthScreen(),
+        pageBuilder: (_, _, _) => nextPage,
       ),
     );
   }
@@ -101,7 +109,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 tag: 'app_logo',
                 child: Material(
                   type: MaterialType.transparency,
-                  child: _AnimatedText(controller: _logoController, text: _logoText),
+                  child: _AnimatedText(
+                    controller: _logoController,
+                    text: _logoText,
+                  ),
                 ),
               ),
             ),
@@ -115,7 +126,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   child: Text(
                     phrase,
                     key: ValueKey(phrase),
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ),
@@ -149,7 +163,9 @@ class _AnimatedText extends StatelessWidget {
           children: List.generate(total, (index) {
             final start = index / total;
             final end = (index + 1) / total;
-            final t = ((controller.value - start) / (end - start)).clamp(0, 1).toDouble();
+            final t = ((controller.value - start) / (end - start))
+                .clamp(0, 1)
+                .toDouble();
             final opacity = Curves.easeOut.transform(t);
             final dy = (1 - opacity) * 6;
 
@@ -173,4 +189,3 @@ class _AnimatedText extends StatelessWidget {
     );
   }
 }
-

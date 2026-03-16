@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'app/app.dart';
+import 'package:wordpice/app/app.dart';
+import 'package:wordpice/app/app_dependencies.dart';
 
-void main() {
-  runApp(const App());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final dependencies = await AppDependencies.create();
+  runApp(App(dependencies: dependencies));
 }

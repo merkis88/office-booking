@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
 import 'package:wordpice/core/widgets/buttons/app_outlined_icon_button.dart';
+import 'package:wordpice/core/widgets/dialogs/app_confirmation_dialog.dart';
 import 'package:wordpice/features/passes/presentation/screens/employee_pass_screen.dart';
-import 'package:wordpice/features/profile/presentation/models/rental_history_item.dart';
+import 'package:wordpice/features/profile/domain/entities/rental_history_item.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_rental_card_layout.dart';
 import 'package:wordpice/features/profile/presentation/widgets/styles/profile_card_styles.dart';
 
 class ProfileActiveRentalCard extends StatefulWidget {
-  const ProfileActiveRentalCard({super.key, required this.item});
+  const ProfileActiveRentalCard({
+    super.key,
+    required this.item,
+    required this.onCancelPressed,
+    this.isCancelling = false,
+  });
 
   final RentalHistoryItem item;
+  final Future<void> Function(RentalHistoryItem item) onCancelPressed;
+  final bool isCancelling;
 
   @override
   State<ProfileActiveRentalCard> createState() =>
@@ -55,11 +63,29 @@ class _ProfileActiveRentalCardState extends State<ProfileActiveRentalCard> {
     );
   }
 
-  void _onActionPressed(int actionIndex) {
-    if (actionIndex != 0) return;
-    Navigator.of(
+  Future<void> _onActionPressed(int actionIndex) async {
+    if (actionIndex == 0) {
+      if (!mounted) return;
+      await Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const EmployeePassScreen()));
+      return;
+    }
+
+    if (actionIndex != 2 || widget.isCancelling) return;
+
+    final shouldCancel = await AppConfirmationDialog.show<bool>(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const EmployeePassScreen()));
+      title: 'Отмена брони',
+      message: 'Вы действительно хотите отменить бронь?',
+      confirmLabel: 'Подтвердить',
+      cancelLabel: 'Отмена',
+      confirmResult: true,
+      cancelResult: false,
+    );
+
+    if (shouldCancel != true || !mounted) return;
+    await widget.onCancelPressed(widget.item);
   }
 
   @override
@@ -84,6 +110,7 @@ class _ProfileActiveRentalCardState extends State<ProfileActiveRentalCard> {
           onPrevious: _showPrevAction,
           onNext: _showNextAction,
           onActionPressed: _onActionPressed,
+          isCancelling: widget.isCancelling,
         ),
       ],
     );
@@ -96,12 +123,14 @@ class _ActiveRentalActions extends StatelessWidget {
     required this.onPrevious,
     required this.onNext,
     required this.onActionPressed,
+    required this.isCancelling,
   });
 
   final PageController controller;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
-  final ValueChanged<int> onActionPressed;
+  final Future<void> Function(int actionIndex) onActionPressed;
+  final bool isCancelling;
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +156,10 @@ class _ActiveRentalActions extends StatelessWidget {
                   index % _ProfileActiveRentalCardState._actions.length;
               return _ActionChip(
                 label: _ProfileActiveRentalCardState._actions[actionIndex],
-                onTap: () => onActionPressed(actionIndex),
+                onTap: () {
+                  onActionPressed(actionIndex);
+                },
+                isBusy: isCancelling && actionIndex == 2,
               );
             },
           ),
@@ -163,17 +195,22 @@ class _ActionArrowButton extends StatelessWidget {
 }
 
 class _ActionChip extends StatelessWidget {
-  const _ActionChip({required this.label, required this.onTap});
+  const _ActionChip({
+    required this.label,
+    required this.onTap,
+    this.isBusy = false,
+  });
 
   final String label;
   final VoidCallback onTap;
+  final bool isBusy;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: isBusy ? null : onTap,
         borderRadius: BorderRadius.circular(5),
         child: Container(
           alignment: Alignment.center,
@@ -182,7 +219,13 @@ class _ActionChip extends StatelessWidget {
             border: Border.all(color: AppColors.border, width: 1),
             borderRadius: BorderRadius.circular(5),
           ),
-          child: Text(label, style: ProfileCardStyles.body),
+          child: isBusy
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(label, style: ProfileCardStyles.body),
         ),
       ),
     );

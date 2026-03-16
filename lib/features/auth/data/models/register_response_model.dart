@@ -73,6 +73,35 @@ class RegisteredUserModel {
     );
   }
 
+  factory RegisteredUserModel.fromEntity(RegisteredUser user) {
+    return RegisteredUserModel(
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      patronymic: user.patronymic,
+      email: user.email,
+      roleName: user.roleName,
+      post: user.post,
+      company: user.company,
+      photo: user.photo,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'first_name': firstName,
+      'last_name': lastName,
+      'patronymic': patronymic,
+      'email': email,
+      'post': post,
+      'company': company,
+      'photo': photo,
+      if (roleName != null)
+        'role': <String, dynamic>{'role_name': roleName},
+    };
+  }
+
   RegisteredUser toEntity() {
     return RegisteredUser(
       id: id,
