@@ -1,10 +1,12 @@
 <script setup>
-  import { ref, onMounted, watch } from 'vue';
+  import { ref, computed, onMounted, watch } from 'vue';
   import { useAuthStore } from '@/store/auth';
   import { useBookingsStore } from '@/store/bookings';
+  import { useServicesStore } from '@/store/services';
   import { storeToRefs } from 'pinia';
   import { useRouter } from 'vue-router';
   import QRCode from 'qrcode';
+  import ServiceRequestCard from '@/components/ServiceRequestCard.vue';
 
   onMounted(() => {
     bookingsStore.fetchMyBookings();
@@ -20,8 +22,16 @@
   const qrImages = ref([]);
   const authStore = useAuthStore();
   const bookingsStore = useBookingsStore();
+  const servicesStore = useServicesStore();
   const router = useRouter();
   const { user } = storeToRefs(authStore);
+  const {
+    services,
+    isLoading: isLoadingServices,
+    currentPage,
+    lastPage,
+  } = storeToRefs(servicesStore);
+  const activeTab = ref(3);
 
   const isLoading = ref(false);
   const isEditing = ref(false);
@@ -34,6 +44,18 @@
     post: '',
     company: '',
   });
+
+  const totalPages = computed(() => lastPage.value);
+
+  async function loadServices(page = 1) {
+    await servicesStore.fetchServices(page);
+  }
+
+  function goToPage(page) {
+    if (page >= 1 && page <= totalPages.value) {
+      loadServices(page);
+    }
+  }
 
   onMounted(async () => {
     if (!authStore.isAuthenticated) {
@@ -53,6 +75,12 @@
     }
 
     await fetchQrs();
+  });
+
+  watch(activeTab, (newTab) => {
+    if (newTab === 3) {
+      loadServices();
+    }
   });
 
   watch(
@@ -91,7 +119,6 @@
   const handleSave = async () => {
     try {
       console.log('Отправка данных:', editableUser.value);
-
 
       user.value = { ...editableUser.value };
 
@@ -219,13 +246,38 @@
 
         <div class="profile__bottom">
           <div class="profile__tabs">
-            <button class="profile__tab profile__tab--active">Активные аренды</button>
-            <button class="profile__tab">Избранное</button>
-            <button class="profile__tab">История аренды</button>
-            <button class="profile__tab">Заявки</button>
+            <button
+              class="profile__tab"
+              :class="{ 'profile__tab--active': activeTab === 0 }"
+              @click="activeTab = 0"
+            >
+              Активные аренды
+            </button>
+            <button
+              class="profile__tab"
+              :class="{ 'profile__tab--active': activeTab === 1 }"
+              @click="activeTab = 1"
+            >
+              Избранное
+            </button>
+            <button
+              class="profile__tab"
+              :class="{ 'profile__tab--active': activeTab === 2 }"
+              @click="activeTab = 2"
+            >
+              История аренды
+            </button>
+            <button
+              class="profile__tab"
+              :class="{ 'profile__tab--active': activeTab === 3 }"
+              @click="activeTab = 3"
+            >
+              Заявки
+            </button>
           </div>
 
-          <div class="profile__bottom-content">
+          <!-- Активные аренды -->
+          <div v-if="activeTab === 0" class="profile__bottom-content">
             <div v-if="bookingsStore.isLoading">Загрузка...</div>
 
             <div
@@ -258,6 +310,64 @@
                 :class="['profile__page-btn', { active: page === bookingsStore.currentPage }]"
               >
                 {{ page }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="activeTab === 1" class="profile__bottom-content">
+            <div class="profile__placeholder-card">
+              <p>Избранное</p>
+            </div>
+          </div>
+
+          <div v-if="activeTab === 2" class="profile__bottom-content">
+            <div class="profile__placeholder-card">
+              <p>История аренды</p>
+            </div>
+          </div>
+
+          <div v-if="activeTab === 3" class="profile__services">
+            <div v-if="isLoadingServices" class="profile__services-loading">
+              <p>Загрузка заявок...</p>
+            </div>
+
+            <div v-else-if="services.length === 0" class="profile__services-empty">
+              <p>У вас пока нет заявок</p>
+            </div>
+
+            <div v-else class="profile__services-grid">
+              <ServiceRequestCard
+                v-for="service in services"
+                :key="service.id"
+                :service="service"
+              />
+            </div>
+
+            <div v-if="totalPages > 1" class="profile__services-pagination">
+              <button
+                class="profile__pagination-btn"
+                :disabled="currentPage === 1"
+                @click="goToPage(currentPage - 1)"
+              >
+                <img src="/arrow-left.svg" alt="Назад" />
+              </button>
+
+              <button
+                v-for="page in totalPages"
+                :key="page"
+                class="profile__pagination-number"
+                :class="{ 'profile__pagination-number--active': currentPage === page }"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="profile__pagination-btn"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(currentPage + 1)"
+              >
+                <img src="/arrow-right.svg" alt="Вперед" />
               </button>
             </div>
           </div>
@@ -502,25 +612,29 @@
     }
 
     &__tab {
-      padding: 0.75rem 2rem;
+      padding: 0.5rem 4rem;
       border-radius: $radius-sm;
       border: 1px solid $color-border;
       background: $color-input-bg;
-      font-size: $text-base;
+      font-size: $text-lg;
       transition: 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
 
       &:hover {
         background: $color-input-bg-dark;
       }
 
       &--active {
-        background: white;
+        filter: drop-shadow(0 4px 4px rgba($color-border, 0.5));
       }
     }
 
     &__bottom-content {
       display: flex;
       justify-content: center;
+      flex-direction: column;
+      align-items: center;
     }
 
     &__placeholder-card {
@@ -565,6 +679,83 @@
       }
     }
 
+    &__services {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    &__services-loading,
+    &__services-empty {
+      padding: 3rem;
+      text-align: center;
+      color: rgba($color-text, 0.6);
+      font-size: $text-lg;
+    }
+
+    &__services-grid {
+      width: 100%;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(370px, 1fr));
+      gap: 2.8rem;
+      margin-bottom: 5rem;
+    }
+
+    &__services-pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+
+    &__pagination-number {
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: $radius-xs;
+      background: $color-input-bg;
+      color: $color-text;
+      font-size: $text-base;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover:not(:disabled) {
+        background: $color-input-bg-dark;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    &__pagination-btn {
+      img {
+        width: 2.6rem;
+        height: 2.6rem;
+      }
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    &__pagination-number {
+      font-weight: 500;
+
+      &--active {
+        background: $color-header-bg;
+        font-weight: 600;
+        border-color: $color-text;
+      }
+    }
+
     @media (max-width: 1024px) {
       &__container {
         flex-direction: column;
@@ -587,6 +778,10 @@
 
       &__pass-actions {
         min-width: 100%;
+      }
+
+      &__services-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       }
     }
 
@@ -614,6 +809,15 @@
 
       &__pass-actions {
         width: 100%;
+      }
+
+      &__services-grid {
+        grid-template-columns: 1fr;
+      }
+
+      &__tabs {
+        overflow-x: auto;
+        justify-content: flex-start;
       }
     }
   }
