@@ -8,17 +8,17 @@ use App\Http\Controllers\Api\AdminServiceTypeController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Booking\BookingController;
 use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\Api\Qr\QrController;
+use App\Http\Controllers\Api\Place\PlaceFavoriteController;
 use App\Http\Controllers\Api\PlaceController;
+use App\Http\Controllers\Api\Qr\QrController;
+use App\Http\Controllers\Api\Qr\TenantQrController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\ServiceExportController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\Profile\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Profile\ProfileQrController;
-use App\Http\Controllers\Api\Place\PlaceFavoriteController;
-
 
 
 //восстановление пароля
@@ -47,7 +47,7 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
     Route::put('/user/password', [UserController::class, 'updatePassword']);// Osip
 
     // Profile
-    Route::get('/profile/qrs', [ProfileQrController::class, 'index']); // merk
+    Route::get('/profile/', [ProfileController::class, 'profile']); // merk
 
     // Reviews
     Route::post('/reviews', [ReviewController::class, 'store']);// Osip
@@ -64,6 +64,7 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
     Route::post('/bookings/{booking}/reschedule', [BookingController::class, 'rescheduleBooking']); // merk
 
     // Qr
+    Route::get('/tenant/qrs', [TenantQrController::class, 'createTenantQr']); // merk
     Route::post('/qr/{booking}/guest-qr', [QrController::class, 'createGuestQr']); // merk
     Route::post('/qr/{booking}/user-qr', [QrController::class, 'createUserQr']); // merk
     Route::post('/qr/{booking}/issue-qr', [QrController::class, 'issueUserQr']); // merk

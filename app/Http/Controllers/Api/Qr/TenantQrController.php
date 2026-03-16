@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Api\Profile;
+namespace App\Http\Controllers\Api\Qr;
 
+use App\Handlers\Qr\TenantQrHandler;
 use App\Http\Controllers\Controller;
-use App\Handlers\Profile\GetProfileQrsHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-final class ProfileQrController extends Controller
+final class TenantQrController extends Controller
 {
-    public function index(Request $request, GetProfileQrsHandler $handler): JsonResponse
+    public function createTenantQr(Request $request, TenantQrHandler $handler): JsonResponse
     {
 
         $show_qrs = $handler->handle($request->user());

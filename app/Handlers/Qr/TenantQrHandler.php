@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Handlers\Profile;
+namespace App\Handlers\Qr;
 
-use App\Handlers\Qr\CreateUserQrHandler;
 use App\Models\Booking;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
-final class GetProfileQrsHandler
+final class TenantQrHandler
 {
     public function __construct(private readonly CreateUserQrHandler $qrHandler) {}
 
