@@ -5,6 +5,7 @@
   import PlaceCard from '@/components/PlaceCard.vue';
   import DatePicker from '@/components/DatePicker.vue';
   import RangeSlider from '@/components/RangeSlider.vue';
+  import BookingModal from '@/components/modals/BookingModal.vue';
 
   const props = defineProps({
     type: {
@@ -18,7 +19,12 @@
   const { places, isLoading } = storeToRefs(placesStore);
 
   const priceRange = ref([400, 5000]);
-  const selectedDate = ref('');
+  const selectedDate = ref(getToday());
+
+  function getToday() {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  }
 
   const pageTitle = computed(() => {
     const titles = {
@@ -64,6 +70,28 @@
     currentPage.value = 1;
   }
 
+  const showBookingModal = ref(false);
+  const selectedSlots = ref([]);
+  const selectedPlace = ref(null);
+
+  function openBookingModal(data) {
+    const { place, range, availableSlots } = data;
+
+    const slotsInRange = availableSlots.filter(
+      (slot) => slot.start >= range.start && slot.end <= range.end,
+    );
+
+    selectedSlots.value = slotsInRange;
+    selectedPlace.value = place;
+
+    showBookingModal.value = true;
+  }
+
+  function createBooking(booking) {
+    console.log('Бронь создана:', booking);
+
+    loadPlaces();
+  }
 
   watch(
     () => props.type,
@@ -96,6 +124,14 @@
 </script>
 
 <template>
+  <BookingModal
+    v-model="showBookingModal"
+    :slots="selectedSlots"
+    :place="selectedPlace"
+    :date="selectedDate"
+    @close="showBookingModal = false"
+    @confirm="createBooking"
+  />
   <div class="places-page">
     <div class="places-page__container">
       <div class="places-page__header">
@@ -135,7 +171,12 @@
       </div>
 
       <div v-else-if="paginatedPlaces.length > 0" class="places-page__grid">
-        <PlaceCard v-for="place in paginatedPlaces" :key="place.id" :place="place" />
+        <PlaceCard
+          v-for="place in paginatedPlaces"
+          :key="place.id"
+          :place="place"
+          @select-slot="openBookingModal"
+        />
       </div>
 
       <div v-else class="places-page__empty">
