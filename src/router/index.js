@@ -16,6 +16,7 @@ import BookingHistory from '@/pages/admin/BookingHistory.vue';
 import Offices from '@/pages/Offices.vue';
 import Coworking from '@/pages/Coworking.vue';
 import Requests from '@/pages/Requests.vue';
+import Notifications from '@/pages/admin/Notifications.vue';
 
 const routes = [
   {
@@ -33,13 +34,17 @@ const routes = [
       { path: 'offices', component: Offices },
       { path: 'coworking', component: Coworking },
       { path: 'meeting-rooms', component: MeetingRooms },
-      {path: '/requests', component: Requests },
+      { path: '/requests', component: Requests },
     ],
   },
   {
     path: '/admin',
     component: AdminLayout,
     children: [
+      {
+        path: 'notifications',
+        component: Notifications,
+      },
       {
         path: 'booking-history',
         component: BookingHistory,

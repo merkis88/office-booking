@@ -1,10 +1,12 @@
 <script setup>
+  import { ref } from 'vue';
   import { useAuthStore } from '@/store/auth';
   import { useRoute } from 'vue-router';
   import router from '@/router/index.js';
 
   const authStore = useAuthStore();
   const route = useRoute();
+  const isAdminMenuOpen = ref(false); // ✅ Состояние меню
 
   async function handleLogout() {
     await authStore.logout();
@@ -15,9 +17,15 @@
     return route.path === path || route.path.startsWith(path);
   };
 
-  const isActiveRoute = (name) => {
-    return route.name === name;
-  };
+  // ✅ Переключение меню
+  function toggleAdminMenu() {
+    isAdminMenuOpen.value = !isAdminMenuOpen.value;
+  }
+
+  // ✅ Закрытие меню при клике вне его
+  function closeAdminMenu() {
+    isAdminMenuOpen.value = false;
+  }
 </script>
 
 <template>
@@ -71,6 +79,27 @@
           <li>Регистрация</li>
         </router-link>
 
+        <div v-if="authStore.isAdmin" class="header__admin-menu">
+          <button
+            class="header__burger"
+            @click="toggleAdminMenu"
+            :class="{ 'header__burger--active': isAdminMenuOpen }"
+            aria-label="Меню администратора"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <transition name="fade">
+            <div v-if="isAdminMenuOpen" class="header__admin-dropdown">
+              <router-link to="/admin" @click="closeAdminMenu" class="header__button">
+                Административная панель
+              </router-link>
+            </div>
+          </transition>
+        </div>
+
         <router-link to="/authorization" v-if="authStore.isAuthenticated">
           <li class="header__button" @click="handleLogout">Выход</li>
         </router-link>
@@ -81,6 +110,11 @@
       </ul>
     </div>
   </div>
+
+  <!-- ✅ Overlay для закрытия меню при клике вне -->
+  <transition name="fade">
+    <div v-if="isAdminMenuOpen" class="header__overlay" @click="closeAdminMenu"></div>
+  </transition>
 </template>
 
 <style lang="scss" scoped>
@@ -89,6 +123,8 @@
 
   .header {
     margin-top: 1.5rem;
+    position: relative;
+    z-index: 100;
 
     &__container {
       @include container;
@@ -159,5 +195,106 @@
     &__img {
       height: 35px;
     }
+
+    &__admin-menu {
+      position: relative;
+    }
+
+    &__burger {
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0.4rem;
+      background: transparent;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 0.5rem;
+
+      &:hover {
+        background: rgba($color-text, 0.05);
+      }
+
+      span {
+        width: 1.5rem;
+        height: 2px;
+        background: $color-text;
+        transition: all 0.3s ease;
+        border-radius: 2px;
+      }
+
+      &--active {
+        span {
+          &:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 6px);
+          }
+          &:nth-child(2) {
+            opacity: 0;
+          }
+          &:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -6px);
+          }
+        }
+      }
+    }
+
+    &__admin-dropdown {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      right: 0;
+      background: $color-header-bg;
+      border: 1px solid $color-border;
+      border-radius: $radius-md;
+      padding: 1rem;
+      min-width: 300px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+    }
+
+    &__admin-close {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: $color-text;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        color: #d6e7f6;
+        transform: rotate(90deg);
+      }
+    }
+
+
+    &__overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: transparent;
+      z-index: 99;
+    }
+  }
+
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity 0.2s ease;
+  }
+
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
   }
 </style>

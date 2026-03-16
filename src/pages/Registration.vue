@@ -27,7 +27,7 @@
   });
 
   const isLoading = ref(false);
-  const showVerificationModal = ref(false);
+  const showVerificationModal = ref(true);
 
   function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
