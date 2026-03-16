@@ -48,6 +48,7 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
 
     // Profile
     Route::get('/profile/', [ProfileController::class, 'profile']); // merk
+    Route::delete('/profile', [ProfileController::class, 'delete']); // merk
 
     // Reviews
     Route::post('/reviews', [ReviewController::class, 'store']);// Osip
