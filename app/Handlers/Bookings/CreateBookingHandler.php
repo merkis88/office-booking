@@ -12,14 +12,12 @@ use App\Services\Bookings\BookingBusinessHoursService;
 final class CreateBookingHandler
 {
     public function __construct(private readonly BookingOverlapService $overlap, private readonly BookingBusinessHoursService $hours) {}
-    public function handle(CreateBookingDTO $dto, User $actor): Booking
+    public function handle(CreateBookingDTO $dto, User $user): Booking
     {
-        $guestName = $dto->guestName;
-        $userId = $guestName ? null : (int) $actor->id;
 
         $this->hours->assertWithinBusinessHours($dto->startTime, $dto->endTime);
 
-        return DB::transaction(function () use ($dto, $actor, $userId, $guestName) {
+        return DB::transaction(function () use ($dto, $user) {
             $this->overlap->assertNoOverlap(
                 placeId: $dto->placeId,
                 startTime: $dto->startTime,
@@ -28,9 +26,7 @@ final class CreateBookingHandler
 
             $booking = Booking::query()->create([
                 'place_id' => $dto->placeId,
-                'created_by' => $actor->id,
-                'user_id' => $userId,
-                'guest_name' => $guestName,
+                'created_by' => $user->id,
                 'start_time' => $dto->startTime,
                 'end_time' => $dto->endTime,
                 'status' => 'pending',
