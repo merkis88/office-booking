@@ -36,6 +36,12 @@ final class GetProfileHandler
             'phone' => $user->phone,
             'email' => $user->email,
             'qr_hash' => $qr?->hash,
+            'qr_booking' => $booking ? [
+                'id' => $booking->id,
+                'place_id' => $booking->place_id,
+                'start_time' => $booking->start_time,
+                'end_time' => $booking->end_time,
+            ] : null,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
         ];
