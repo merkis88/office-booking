@@ -58,7 +58,6 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
 
     // Bookings
     Route::post('/bookings', [BookingController::class, 'createBooking']); // merk
-    Route::post('/bookings/guest', [BookingController::class, 'guestBooking']); // merk
     Route::get('/bookings/my', [BookingController::class, 'myBookings']); // merk
     Route::get('/bookings/{booking}', [BookingController::class, 'showBooking']); // merk
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancelBooking']); // merk

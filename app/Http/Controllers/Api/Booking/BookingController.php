@@ -61,13 +61,6 @@ class BookingController extends Controller
         return response()->json(['data' => $reschedule_booking], 200);
     }
 
-    public function guestBooking(CreateBookingRequest $request, CreateBookingHandler $handler): JsonResponse
-    {
-        $guest_booking = $handler->handle($request->toDTO(), $request->user());
-
-        return response()->json(['data' => $guest_booking], 201);
-    }
-
     public function extendBooking(ExtendBookingRequest $request, Booking $booking, ExtendBookingHandler $handler): JsonResponse
     {
         $updated = $handler->handle($booking, $request->user(), $request->minutes());

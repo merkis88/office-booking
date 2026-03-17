@@ -6,14 +6,14 @@ use App\Models\Booking;
 use App\Models\Qr;
 use App\Models\User;
 use App\Services\Qr\QrHashService;
+use App\Services\Qr\QrWindowService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class CreateUserQrHandler
 {
-    public function __construct(private readonly QrHashService $hashService) {}
+    public function __construct(private readonly QrHashService $hashService, private readonly QrWindowService $windowService) {}
 
-    private int $windowSeconds = 1800;
     private int $beforeMinutes = 30;
     private int $afterMinutes  = 15;
 
@@ -27,7 +27,7 @@ final class CreateUserQrHandler
         $this->assertQrAllowed($booking);
         $this->assertCanUseBooking($booking, $user);
 
-        $window = $timeWindow ?? $this->currentWindow();
+        $window = $timeWindow ?? $this->windowService->current();
 
         $existing = Qr::query()
             ->where('booking_id', $booking->id)
@@ -40,7 +40,6 @@ final class CreateUserQrHandler
         }
 
         return DB::transaction(function () use ($booking, $recipient, $window) {
-
             $existing = Qr::query()
                 ->where('booking_id', $booking->id)
                 ->where('time_window', $window)
@@ -63,11 +62,6 @@ final class CreateUserQrHandler
                 'used_at' => null,
             ]);
         });
-    }
-
-    private function currentWindow(): int
-    {
-        return intdiv(now()->timestamp, $this->windowSeconds);
     }
 
     private function assertCanUseBooking(Booking $booking, User $actor): void

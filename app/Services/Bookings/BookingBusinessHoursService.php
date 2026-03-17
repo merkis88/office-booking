@@ -9,9 +9,9 @@ final class BookingBusinessHoursService
 {
     public function assertWithinBusinessHours(CarbonImmutable $start, CarbonImmutable $end): void
     {
-        $tz = (string) config('bookings.timezone', 'UTC');
-        $openHour = (int) config('bookings.open_hour', 9);
-        $closeHour = (int) config('bookings.close_hour', 22);
+        $tz = (string) config('booking.timezone', 'UTC');
+        $openHour = (int) config('booking.open_hour', 9);
+        $closeHour = (int) config('booking.close_hour', 22);
 
         $startLocal = $start->setTimezone($tz);
         $endLocal = $end->setTimezone($tz);
