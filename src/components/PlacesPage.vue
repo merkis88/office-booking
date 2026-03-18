@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { computed, nextTick, onMounted, ref, watch } from 'vue';
   import { usePlacesStore } from '@/store/places';
   import { storeToRefs } from 'pinia';
   import PlaceCard from '@/components/PlaceCard.vue';
@@ -18,13 +18,10 @@
   const placesStore = usePlacesStore();
   const { places, isLoading, filters } = storeToRefs(placesStore);
 
-  function getToday() {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  }
-  const priceRange = ref([0, 10000]);
+  const priceRange = ref([0, 5000]);
   const selectedDate = ref('');
-  const isInitialLoad = ref(true); // ✅ Флаг первой загрузки
+  const isInitialLoad = ref(true);
+  const isPriceRangeUpdating = ref(false);
 
   const pageTitle = computed(() => {
     const titles = {
@@ -59,7 +56,6 @@
     }
   }
 
-  // ✅ Загрузка помещений
   async function loadPlaces() {
     const filterParams = {
       type: props.type,
@@ -67,21 +63,25 @@
       maxPrice: priceRange.value[1],
     };
 
-    // Добавляем дату только если она выбрана
-    if (selectedDate.value) {
+    if (selectedDate.value && selectedDate.value.trim() !== '') {
       filterParams.date = selectedDate.value;
     }
 
     await placesStore.fetchPlaces(filterParams);
 
-    // ✅ Обновляем диапазон цен ТОЛЬКО при первой загрузке
     if (isInitialLoad.value && filters.value?.price_range) {
-      await nextTick(); // Ждем обновления DOM
+      isPriceRangeUpdating.value = true;
 
-      // ✅ Отключаем watch на время обновления
+      await nextTick();
+
       priceRange.value = [filters.value.price_range.min_price, filters.value.price_range.max_price];
 
       isInitialLoad.value = false;
+
+      await nextTick();
+      setTimeout(() => {
+        isPriceRangeUpdating.value = false;
+      }, 100);
     }
 
     currentPage.value = 1;
@@ -94,11 +94,9 @@
   function openBookingModal(data) {
     const { place, range, availableSlots } = data;
 
-    const slotsInRange = availableSlots.filter(
+    selectedSlots.value = availableSlots.filter(
       (slot) => slot.start >= range.start && slot.end <= range.end,
     );
-
-    selectedSlots.value = slotsInRange;
     selectedPlace.value = place;
 
     showBookingModal.value = true;
@@ -106,32 +104,32 @@
 
   function createBooking(booking) {
     console.log('Бронь создана:', booking);
-
     loadPlaces();
   }
 
-  // ✅ При смене типа помещения
   watch(
     () => props.type,
     () => {
-      isInitialLoad.value = true; // Сбрасываем флаг
-      priceRange.value = [0, 10000];
+      isInitialLoad.value = true;
+      isPriceRangeUpdating.value = false;
+      priceRange.value = [0, 5000];
       selectedDate.value = '';
       loadPlaces();
     },
   );
 
-  // ✅ Debounce для цены - НЕ срабатывает при первой загрузке
   let priceDebounceTimer = null;
   watch(
     priceRange,
     (newVal, oldVal) => {
-      // ✅ Пропускаем если это первая загрузка
       if (isInitialLoad.value) {
         return;
       }
 
-      // ✅ Пропускаем если значения не изменились
+      if (isPriceRangeUpdating.value) {
+        return;
+      }
+
       if (newVal[0] === oldVal[0] && newVal[1] === oldVal[1]) {
         return;
       }
@@ -144,9 +142,7 @@
     { deep: true },
   );
 
-  // ✅ При выборе даты
   watch(selectedDate, (newDate, oldDate) => {
-    // Пропускаем если значение не изменилось
     if (newDate === oldDate) {
       return;
     }
@@ -188,13 +184,13 @@
                 :max="10000"
                 placeholder="От"
               />
-              <RangeSlider v-model="priceRange" :min="0" :max="10000" :step="50" />
+              <RangeSlider v-model="priceRange" :min="0" :max="5000" :step="50" />
               <input
                 v-model.number="priceRange[1]"
                 type="number"
                 class="places-page__price-input"
                 :min="0"
-                :max="10000"
+                :max="5000"
                 placeholder="До"
               />
             </div>
@@ -222,7 +218,7 @@
         </p>
       </div>
 
-      <div v-if="totalPages > 1" class="places-page__pagination">
+      <div v-if="totalPages > 1 && !isLoading" class="places-page__pagination">
         <button
           class="places-page__pagination-btn"
           :disabled="currentPage === 1"

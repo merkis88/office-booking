@@ -276,7 +276,6 @@
             </button>
           </div>
 
-          <!-- Активные аренды -->
           <div v-if="activeTab === 0" class="profile__bottom-content">
             <div v-if="bookingsStore.isLoading">Загрузка...</div>
 

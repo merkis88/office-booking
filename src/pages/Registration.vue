@@ -27,7 +27,7 @@
   });
 
   const isLoading = ref(false);
-  const showVerificationModal = ref(true);
+  const showVerificationModal = ref(false);
 
   function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -198,7 +198,6 @@
         <h2 class="auth__title">Регистрация</h2>
 
         <form @submit="handleRegister" class="auth__form">
-          <!-- Имя пользователя -->
           <div class="auth__field">
             <label>Имя пользователя*</label>
             <input
@@ -214,7 +213,6 @@
             </span>
           </div>
 
-          <!-- Фамилия пользователя -->
           <div class="auth__field">
             <label>Фамилия пользователя*</label>
             <input
@@ -230,7 +228,6 @@
             </span>
           </div>
 
-          <!-- Отчество пользователя -->
           <div class="auth__field">
             <label>Отчество пользователя(необязательно)</label>
             <input
@@ -245,7 +242,6 @@
             </span>
           </div>
 
-          <!-- Эл. почта -->
           <div class="auth__field">
             <label>Эл.почта*</label>
             <input

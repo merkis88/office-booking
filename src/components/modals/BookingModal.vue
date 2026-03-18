@@ -179,7 +179,6 @@
 <template>
   <div v-if="modelValue" class="booking-modal">
     <div class="booking-modal__box">
-      <!-- экран выбора слотов -->
       <template v-if="screen === 'slots'">
         <button class="booking-modal__back" @click="emit('update:modelValue', false)">
           <img src="/arrow-left.svg" alt="" />
@@ -206,7 +205,6 @@
         </button>
       </template>
 
-      <!-- экран подтверждения -->
       <template v-else>
         <h2 class="booking-modal__title">Подтверждение</h2>
 

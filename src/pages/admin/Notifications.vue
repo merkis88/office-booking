@@ -14,10 +14,8 @@
   });
 
   async function handleSubmit() {
-    // Очистка предыдущих сообщений
     notificationsStore.clearMessages();
 
-    // Валидация
     if (!form.value.title.trim()) {
       notificationsStore.error = 'Введите тему уведомления';
       return;
@@ -28,19 +26,16 @@
       return;
     }
 
-    // ✅ Если чекбокс отмечен - требуется email
     if (form.value.sendToEmployee && !form.value.email.trim()) {
       notificationsStore.error = 'Введите электронную почту получателя';
       return;
     }
 
-    // ✅ Проверка корректности email
     if (form.value.sendToEmployee && !validateEmail(form.value.email)) {
       notificationsStore.error = 'Введите корректный email адрес';
       return;
     }
 
-    // Отправка уведомления
     const result = await notificationsStore.sendNotification({
       title: form.value.title,
       message: form.value.message,
@@ -48,7 +43,6 @@
       email: form.value.email,
     });
 
-    // Если успешно - очищаем форму
     if (result.success) {
       form.value.title = '';
       form.value.message = '';
@@ -71,7 +65,6 @@
           <h1 class="notification-send__title">Отправка уведомлений</h1>
 
           <form @submit.prevent="handleSubmit" class="notification-send__form">
-            <!-- Тема -->
             <div class="notification-send__field">
               <label class="notification-send__label">
                 Тема
@@ -86,7 +79,6 @@
               />
             </div>
 
-            <!-- Текст уведомления -->
             <div class="notification-send__field">
               <label class="notification-send__label">
                 Текст уведомления
@@ -101,7 +93,6 @@
               ></textarea>
             </div>
 
-            <!-- ✅ Чекбокс: отправить лично сотруднику -->
             <div class="notification-send__checkbox-wrapper">
               <label class="notification-send__checkbox-label">
                 <input
@@ -116,7 +107,6 @@
               </label>
             </div>
 
-            <!-- ✅ Email - показывается ТОЛЬКО если чекбокс отмечен -->
             <div v-if="form.sendToEmployee" class="notification-send__field">
               <label class="notification-send__label">
                 Электронная почта пользователя
@@ -131,7 +121,6 @@
               />
             </div>
 
-            <!-- Сообщения об успехе/ошибке -->
             <div v-if="successMessage" class="notification-send__success">
               {{ successMessage }}
             </div>
@@ -140,14 +129,12 @@
               {{ error }}
             </div>
 
-            <!-- Кнопка отправки -->
             <button type="submit" class="notification-send__submit" :disabled="isLoading">
               {{ isLoading ? 'Отправка...' : 'Отправить' }}
             </button>
           </form>
         </div>
 
-        <!-- Иллюстрация -->
         <div class="notification-send__illustration">
           <img src="/men-notification.png" alt="Уведомления" />
         </div>

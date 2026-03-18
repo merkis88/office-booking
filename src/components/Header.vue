@@ -3,6 +3,7 @@
   import { useAuthStore } from '@/store/auth';
   import { useRoute } from 'vue-router';
   import router from '@/router/index.js';
+  import NotificationsPanel from '@/components/NotificationsPanel.vue';
 
   const authStore = useAuthStore();
   const route = useRoute();
@@ -17,12 +18,10 @@
     return route.path === path || route.path.startsWith(path);
   };
 
-  // ✅ Переключение меню
   function toggleAdminMenu() {
     isAdminMenuOpen.value = !isAdminMenuOpen.value;
   }
 
-  // ✅ Закрытие меню при клике вне его
   function closeAdminMenu() {
     isAdminMenuOpen.value = false;
   }
@@ -104,14 +103,11 @@
           <li class="header__button" @click="handleLogout">Выход</li>
         </router-link>
 
-        <router-link to="/" v-if="authStore.isAuthenticated">
-          <li><img class="header__img" src="/notification.svg" alt="" /></li>
-        </router-link>
+        <NotificationsPanel v-if="authStore.isAuthenticated" />
       </ul>
     </div>
   </div>
 
-  <!-- ✅ Overlay для закрытия меню при клике вне -->
   <transition name="fade">
     <div v-if="isAdminMenuOpen" class="header__overlay" @click="closeAdminMenu"></div>
   </transition>
@@ -275,7 +271,6 @@
         transform: rotate(90deg);
       }
     }
-
 
     &__overlay {
       position: fixed;

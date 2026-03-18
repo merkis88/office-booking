@@ -6,7 +6,7 @@ export const usePlacesStore = defineStore('places', {
     places: [],
     isLoading: false,
     error: null,
-    filters: null, // ✅ Сохраняем фильтры с backend
+    filters: null,
   }),
 
   actions: {
@@ -17,12 +17,10 @@ export const usePlacesStore = defineStore('places', {
       try {
         const params = {};
 
-        // ✅ Тип помещения - обязательный параметр
         if (filters.type) {
           params.type = filters.type;
         }
 
-        // ✅ Цена - только если указана пользователем
         if (filters.minPrice !== undefined && filters.minPrice !== null) {
           params.min_price = filters.minPrice;
         }
@@ -31,19 +29,12 @@ export const usePlacesStore = defineStore('places', {
           params.max_price = filters.maxPrice;
         }
 
-        // ✅ Дата - только если выбрана пользователем
-        // Если дата не указана, backend вернет помещения на сегодняшний день
         if (filters.date) {
           params.date = filters.date;
         }
 
-        console.log('Запрос с параметрами:', params);
-
         const { data } = await axios.get('/api/places', { params });
 
-        console.log('Места загружены:', data);
-
-        // ✅ Сохраняем места и фильтры
         this.places = data.data || data;
         this.filters = data.filters || null;
 
@@ -58,14 +49,6 @@ export const usePlacesStore = defineStore('places', {
       }
     },
 
-    async fetchPlace(id) {
-      try {
-        const { data } = await axios.get(`/api/places/${id}`);
-        return data.data || data;
-      } catch (error) {
-        console.error('Ошибка загрузки места:', error);
-        throw error;
-      }
-    },
+
   },
 });
