@@ -60,8 +60,6 @@ export const useAuthStore = defineStore('auth', {
       try {
         const { data } = await axios.post('/api/register', registrationData);
 
-        console.log('Ответ от сервера:', data);
-
         this.pendingVerificationEmail = registrationData.email;
         this.user = data.user;
         localStorage.setItem('user', JSON.stringify(data.user));
@@ -75,6 +73,7 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Ошибка в authStore.register:', error);
         throw error;
+        console.log(error)
       }
     },
 

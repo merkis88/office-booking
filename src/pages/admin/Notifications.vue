@@ -13,26 +13,33 @@
     email: '',
   });
 
+  const errors = ref({
+    title: '',
+    message: '',
+    email: '',
+  });
+
   async function handleSubmit() {
     notificationsStore.clearMessages();
+    clearFieldErrors();
 
     if (!form.value.title.trim()) {
-      notificationsStore.error = 'Введите тему уведомления';
+      errors.value.title = 'Введите тему уведомления';
       return;
     }
 
     if (!form.value.message.trim()) {
-      notificationsStore.error = 'Введите текст уведомления';
+      errors.value.message = 'Введите текст уведомления';
       return;
     }
 
     if (form.value.sendToEmployee && !form.value.email.trim()) {
-      notificationsStore.error = 'Введите электронную почту получателя';
+      errors.value.email = 'Введите электронную почту получателя';
       return;
     }
 
     if (form.value.sendToEmployee && !validateEmail(form.value.email)) {
-      notificationsStore.error = 'Введите корректный email адрес';
+      errors.value.email = 'Введите корректный email адрес';
       return;
     }
 
@@ -43,12 +50,40 @@
       email: form.value.email,
     });
 
-    if (result.success) {
+    if (!result.success && result.validationErrors) {
+      handleBackendErrors(result.validationErrors);
+    } else if (result.success) {
       form.value.title = '';
       form.value.message = '';
       form.value.sendToEmployee = false;
       form.value.email = '';
     }
+  }
+
+  function handleBackendErrors(validationErrors) {
+    if (validationErrors.title) {
+      errors.value.title = Array.isArray(validationErrors.title)
+        ? validationErrors.title[0]
+        : validationErrors.title;
+    }
+
+    if (validationErrors.message) {
+      errors.value.message = Array.isArray(validationErrors.message)
+        ? validationErrors.message[0]
+        : validationErrors.message;
+    }
+
+    if (validationErrors.user_email) {
+      errors.value.email = Array.isArray(validationErrors.user_email)
+        ? validationErrors.user_email[0]
+        : validationErrors.user_email;
+    }
+  }
+
+  function clearFieldErrors() {
+    errors.value.title = '';
+    errors.value.message = '';
+    errors.value.email = '';
   }
 
   function validateEmail(email) {
@@ -74,9 +109,13 @@
                 v-model="form.title"
                 type="text"
                 class="notification-send__input"
+                :class="{ 'notification-send__input--error': errors.title }"
                 placeholder="Введите тему уведомления"
                 :disabled="isLoading"
               />
+              <span v-if="errors.title" class="notification-send__field-error">
+                {{ errors.title }}
+              </span>
             </div>
 
             <div class="notification-send__field">
@@ -87,10 +126,14 @@
               <textarea
                 v-model="form.message"
                 class="notification-send__textarea"
+                :class="{ 'notification-send__textarea--error': errors.message }"
                 placeholder="Введите текст уведомления"
                 rows="6"
                 :disabled="isLoading"
               ></textarea>
+              <span v-if="errors.message" class="notification-send__field-error">
+                {{ errors.message }}
+              </span>
             </div>
 
             <div class="notification-send__checkbox-wrapper">
@@ -116,16 +159,23 @@
                 v-model="form.email"
                 type="email"
                 class="notification-send__input"
+                :class="{ 'notification-send__input--error': errors.email }"
                 placeholder="Введите электронную почту"
                 :disabled="isLoading"
               />
+              <span v-if="errors.email" class="notification-send__field-error">
+                {{ errors.email }}
+              </span>
             </div>
 
             <div v-if="successMessage" class="notification-send__success">
               {{ successMessage }}
             </div>
 
-            <div v-if="error" class="notification-send__error">
+            <div
+              v-if="error && !errors.title && !errors.message && !errors.email"
+              class="notification-send__error"
+            >
               {{ error }}
             </div>
 
@@ -223,6 +273,15 @@
       &::placeholder {
         color: rgba($color-text, 0.5);
       }
+
+      &--error {
+        border-color: #e74c3c;
+
+        &:focus {
+          border-color: #e74c3c;
+          box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+        }
+      }
     }
 
     &__textarea {
@@ -251,6 +310,20 @@
       &::placeholder {
         color: rgba($color-text, 0.5);
       }
+
+      &--error {
+        border-color: #e74c3c;
+
+        &:focus {
+          border-color: #e74c3c;
+          box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+        }
+      }
+    }
+    &__field-error {
+      font-size: $text-sm;
+      color: #e74c3c;
+      margin-top: 0.25rem;
     }
 
     &__checkbox-wrapper {
@@ -364,6 +437,10 @@
 
       &__title {
         font-size: $text-xl;
+      }
+
+      &__form-wrapper {
+        padding: 1.5rem 2rem;
       }
     }
   }

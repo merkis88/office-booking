@@ -1,12 +1,17 @@
 <script setup>
-  import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+  import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue';
   import { useServicesStore } from '@/store/services';
   import { storeToRefs } from 'pinia';
   import DatePickerInput from '@/components/DatePickerInput.vue';
   import RequestConfirmModal from '@/components/modals/RequestConfirmModal.vue';
 
   const servicesStore = useServicesStore();
-  const { bookings, isLoading: isLoadingBookings } = storeToRefs(servicesStore);
+  const {
+    bookings,
+    isLoading: isLoadingBookings,
+    error,
+    successMessage,
+  } = storeToRefs(servicesStore);
 
   const bookingList = ref(null);
   const bookingLabel = ref('');
@@ -26,6 +31,8 @@
   const showConfirmModal = ref(false);
   const pendingRequestData = ref(null);
 
+  const validationError = ref('');
+
   const requestTypes = [
     { id: 1, label: 'Клининг' },
     { id: 2, label: 'Техобслуживание' },
@@ -33,7 +40,7 @@
 
   const timeSlots = computed(() => {
     const slots = [];
-    for (let hour = 0; hour < 24; hour++) {
+    for (let hour = 9; hour < 19; hour++) {
       const startTime = `${hour.toString().padStart(2, '0')}:00`;
       const endTime = `${((hour + 1) % 24).toString().padStart(2, '0')}:00`;
       slots.push({
@@ -44,6 +51,15 @@
     return slots;
   });
 
+  function clearErrors() {
+    validationError.value = '';
+    servicesStore.clearMessages();
+  }
+
+  watch(selectedDate, (val) => {
+    if (val) clearErrors();
+  });
+
   async function loadBookings() {
     await servicesStore.fetchMyBookings();
   }
@@ -52,6 +68,7 @@
     bookingList.value = booking.id;
     bookingLabel.value = `${booking.place_name} №${booking.place_number}`;
     showBookingDropdown.value = false;
+    clearErrors();
   }
 
   function toggleBookingDropdown() {
@@ -64,6 +81,7 @@
     selectedTime.value = timeSlot.value;
     selectedTimeLabel.value = timeSlot.label;
     showTimeDropdown.value = false;
+    clearErrors();
   }
 
   function toggleTimeDropdown() {
@@ -76,6 +94,7 @@
     requestType.value = type.id;
     requestTypeLabel.value = type.label;
     showRequestTypeDropdown.value = false;
+    clearErrors();
   }
 
   function toggleRequestTypeDropdown() {
@@ -124,11 +143,33 @@
 
   onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside);
+    servicesStore.clearMessages();
   });
 
-  function handleSubmit() {
-    if (!bookingList.value || !selectedDate.value || !selectedTime.value || !requestType.value) {
+  function handleDateUpdate(value) {
+    selectedDate.value = value;
+  }
 
+  function handleSubmit() {
+    clearErrors();
+
+    if (!bookingList.value) {
+      validationError.value = 'Выберите бронирование';
+      return;
+    }
+
+    if (!selectedDate.value) {
+      validationError.value = 'Выберите дату';
+      return;
+    }
+
+    if (!selectedTime.value) {
+      validationError.value = 'Выберите время';
+      return;
+    }
+
+    if (!requestType.value) {
+      validationError.value = 'Выберите тип заявки';
       return;
     }
 
@@ -155,7 +196,6 @@
       const result = await servicesStore.createServiceRequest(pendingRequestData.value);
 
       if (result.success) {
-
         bookingList.value = null;
         bookingLabel.value = '';
         selectedDate.value = '';
@@ -165,10 +205,13 @@
         requestTypeLabel.value = '';
         comment.value = '';
         pendingRequestData.value = null;
-      } else {
+
+        setTimeout(() => {
+          servicesStore.clearMessages();
+        }, 5000);
       }
-    } catch (error) {
-      console.error('Непредвиденная ошибка:', error)
+    } catch (err) {
+      console.log(err);
     } finally {
       isSubmitting.value = false;
     }
@@ -192,6 +235,27 @@
 
         <div class="requests__form-wrapper">
           <form class="requests__form" @submit.prevent="handleSubmit">
+            <div v-if="successMessage" class="requests__success">
+              <div class="requests__success-icon">✓</div>
+              <div class="requests__success-text">{{ successMessage }}</div>
+              <button class="requests__success-close" @click="servicesStore.clearMessages()">
+                ✕
+              </button>
+            </div>
+
+            <div v-if="error" class="requests__error">
+              <div class="requests__error-icon">!</div>
+              <div class="requests__error-text">{{ error }}</div>
+              <button class="requests__error-close" @click="servicesStore.clearMessages()">
+                ✕
+              </button>
+            </div>
+
+            <div v-if="validationError" class="requests__validation-error">
+              <div class="requests__validation-error-icon">!</div>
+              <div class="requests__validation-error-text">{{ validationError }}</div>
+              <button class="requests__validation-error-close" @click="clearErrors()">✕</button>
+            </div>
             <div class="requests__field">
               <label class="requests__label">Список бронирований*</label>
               <div class="requests__select-wrapper">
@@ -205,7 +269,6 @@
                     class="requests__input"
                     placeholder="Выберите бронь"
                     readonly
-                    required
                   />
                   <img
                     src="/arrow-square-down.svg"
@@ -245,7 +308,7 @@
 
             <div class="requests__field">
               <label class="requests__label">Дата*</label>
-              <DatePickerInput v-model="selectedDate" />
+              <DatePickerInput :model-value="selectedDate" @update:model-value="handleDateUpdate" />
             </div>
 
             <div class="requests__field">
@@ -261,7 +324,6 @@
                     class="requests__input"
                     placeholder="Выберите время"
                     readonly
-                    required
                   />
                   <img
                     src="/arrow-square-down.svg"
@@ -302,7 +364,6 @@
                     class="requests__input"
                     placeholder="Выберите тип заявки"
                     readonly
-                    required
                   />
                   <img
                     src="/arrow-square-down.svg"
@@ -377,6 +438,147 @@
       color: $color-text;
       text-align: center;
       margin-bottom: 3rem;
+    }
+
+    &__success {
+      max-width: 1200px;
+      margin: 0 auto 2rem;
+      padding: 1rem 1.5rem;
+      background: rgba(46, 204, 113, 0.1);
+      border: 1px solid #2ecc71;
+      border-radius: $radius-sm;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      animation: slideDown 0.3s ease;
+    }
+
+    &__success-icon {
+      width: 2rem;
+      height: 2rem;
+      background: #2ecc71;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    &__success-text {
+      flex: 1;
+      color: #27ae60;
+      font-weight: 500;
+    }
+
+    &__success-close {
+      background: transparent;
+      border: none;
+      color: #27ae60;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      line-height: 1;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 0.7;
+      }
+    }
+
+    &__error {
+      max-width: 1200px;
+      margin: 0 auto 2rem;
+      padding: 1rem 1.5rem;
+      background: rgba(231, 76, 60, 0.1);
+      border: 1px solid #e74c3c;
+      border-radius: $radius-sm;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      animation: slideDown 0.3s ease;
+    }
+
+    &__error-icon {
+      width: 2rem;
+      height: 2rem;
+      background: #e74c3c;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    &__error-text {
+      flex: 1;
+      color: #c0392b;
+      font-weight: 500;
+    }
+
+    &__error-close {
+      background: transparent;
+      border: none;
+      color: #c0392b;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      line-height: 1;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 0.7;
+      }
+    }
+
+    &__validation-error {
+      max-width: 1200px;
+      margin: 0 auto 2rem;
+      padding: 1rem 1.5rem;
+      background: rgba(255, 193, 7, 0.1);
+      border: 1px solid #ffc107;
+      border-radius: $radius-sm;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      animation: slideDown 0.3s ease;
+    }
+
+    &__validation-error-icon {
+      width: 2rem;
+      height: 2rem;
+      background: #ffc107;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    &__validation-error-text {
+      flex: 1;
+      color: #f57c00;
+      font-weight: 500;
+    }
+
+    &__validation-error-close {
+      background: transparent;
+      border: none;
+      color: #f57c00;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      line-height: 1;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 0.7;
+      }
     }
 
     &__content {
@@ -638,6 +840,17 @@
       &__select-wrapper {
         width: 100%;
       }
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 

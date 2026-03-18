@@ -1,6 +1,32 @@
 <script setup>
   import Header from '@/components/Header.vue';
   import Footer from '@/components/Footer.vue';
+
+  import { onMounted, watch } from 'vue';
+  import { useRoute } from 'vue-router';
+  import { useAuthStore } from '@/store/auth';
+  import { useNotificationsStore } from '@/store/notifications';
+
+  const route = useRoute();
+  const authStore = useAuthStore();
+  const notificationsStore = useNotificationsStore();
+
+  async function loadNotifications() {
+    if (authStore.isAuthenticated) {
+      await notificationsStore.fetchNotifications();
+    }
+  }
+
+  onMounted(() => {
+    loadNotifications();
+  });
+
+  watch(
+    () => route.path,
+    () => {
+      loadNotifications();
+    },
+  );
 </script>
 
 <template>

@@ -7,6 +7,7 @@ export const useServicesStore = defineStore('services', {
     services: [],
     isLoading: false,
     error: null,
+    successMessage: null,
     validationErrors: null,
     currentPage: 1,
     lastPage: 1,
@@ -22,8 +23,6 @@ export const useServicesStore = defineStore('services', {
       try {
         const { data } = await axios.get('/api/services/my-bookings');
 
-        console.log('Бронирования загружены:', data);
-
         if (data.success && Array.isArray(data.data)) {
           this.bookings = data.data;
         } else if (Array.isArray(data)) {
@@ -34,7 +33,6 @@ export const useServicesStore = defineStore('services', {
 
         return { success: true, data: this.bookings };
       } catch (error) {
-        console.error('Ошибка загрузки бронирований:', error);
         this.error = 'Ошибка загрузки бронирований';
         this.bookings = [];
         return { success: false, error: this.error };
@@ -51,7 +49,6 @@ export const useServicesStore = defineStore('services', {
         const { data } = await axios.get('/api/services', {
           params: { page },
         });
-
 
         if (data.success && Array.isArray(data.data)) {
           this.services = data.data;
@@ -70,7 +67,6 @@ export const useServicesStore = defineStore('services', {
 
         return { success: true, data: this.services };
       } catch (error) {
-        console.error('Ошибка загрузки заявок:', error);
         this.error = 'Ошибка загрузки заявок';
         this.services = [];
         return { success: false, error: this.error };
@@ -82,6 +78,7 @@ export const useServicesStore = defineStore('services', {
     async createServiceRequest(requestData) {
       this.isLoading = true;
       this.error = null;
+      this.successMessage = null;
       this.validationErrors = null;
 
       try {
@@ -99,14 +96,14 @@ export const useServicesStore = defineStore('services', {
           this.services.unshift(data.data);
         }
 
+        this.successMessage = data.message || 'Заявка успешно создана';
+
         return {
           success: true,
-          message: data.message || 'Заявка успешно создана',
+          message: this.successMessage,
           data: data.data || data,
         };
       } catch (error) {
-        console.error('Ошибка создания заявки:', error);
-
         let errorMessage = 'Не удалось создать заявку';
 
         if (error.response?.data?.message) {
@@ -124,8 +121,9 @@ export const useServicesStore = defineStore('services', {
       }
     },
 
-    clearError() {
+    clearMessages() {
       this.error = null;
+      this.successMessage = null;
       this.validationErrors = null;
     },
   },

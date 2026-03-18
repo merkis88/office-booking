@@ -647,7 +647,6 @@
     &__star {
       width: 2rem;
       height: 2rem;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     }
 
     &__textarea-section {

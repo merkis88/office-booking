@@ -31,10 +31,11 @@ export const usePlacesStore = defineStore('places', {
 
         if (filters.date) {
           params.date = filters.date;
+
         }
 
         const { data } = await axios.get('/api/places', { params });
-
+        console.log(data);
         this.places = data.data || data;
         this.filters = data.filters || null;
 

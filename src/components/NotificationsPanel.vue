@@ -103,7 +103,6 @@
               class="notification-item"
               :class="{
                 'notification-item--unread': !notification.is_read,
-                'notification-item--deleting': deletingNotification === notification.id,
               }"
             >
               <div class="notification-item__body">
@@ -189,10 +188,10 @@
 
     &__badge {
       position: absolute;
-      top: -5px;
-      right: -5px;
-      background: #e74c3c;
-      color: white;
+      top: -1px;
+      right: -1px;
+      color: $color-border;
+      border: 2px solid $color-border;
       border-radius: 50%;
       width: 20px;
       height: 20px;
@@ -201,6 +200,7 @@
       justify-content: center;
       font-size: 12px;
       font-weight: 600;
+      background: $color-header-bg;
     }
 
     &__overlay {
@@ -218,13 +218,12 @@
       top: 26px;
       right: 60px;
       width: 400px;
-      min-height: 700px;
+      max-height: calc(100vh - 52px);
       background: $color-bg;
       box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
       z-index: 999;
       display: flex;
       flex-direction: column;
-      align-items: center;
       border-radius: $radius-sm;
     }
 
@@ -233,6 +232,7 @@
       display: flex;
       flex-direction: column;
       gap: 1rem;
+      flex-shrink: 0;
     }
 
     &__close {
@@ -270,7 +270,9 @@
       background: transparent;
       border: none;
       cursor: pointer;
-      padding: 0;
+      padding: 0 1.5rem;
+      margin-bottom: 0.5rem;
+      flex-shrink: 0;
       transition: opacity 0.2s;
 
       &:disabled {
@@ -320,7 +322,8 @@
     &__content {
       flex: 1;
       overflow-y: auto;
-      width: 100%;
+      overflow-x: hidden;
+      min-height: 0;
     }
 
     &__loading {
@@ -332,6 +335,7 @@
       padding: 3rem;
       color: rgba($color-text, 0.6);
       font-size: $text-base;
+      min-height: 200px;
     }
 
     &__spinner {
@@ -350,6 +354,7 @@
       padding: 3rem;
       color: rgba($color-text, 0.6);
       font-size: $text-base;
+      min-height: 200px;
     }
 
     &__list {
@@ -543,6 +548,9 @@
       &__panel {
         width: 100%;
         right: 0;
+        top: 0;
+        max-height: 100vh;
+        border-radius: 0;
       }
     }
   }

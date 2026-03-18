@@ -31,7 +31,7 @@
     currentPage,
     lastPage,
   } = storeToRefs(servicesStore);
-  const activeTab = ref(3);
+  const activeTab = ref(0);
 
   const isLoading = ref(false);
   const isEditing = ref(false);
@@ -342,7 +342,7 @@
               />
             </div>
 
-            <div v-if="totalPages > 1" class="profile__services-pagination">
+            <div v-if="totalPages > 1 && !isLoading" class="profile__services-pagination">
               <button
                 class="profile__pagination-btn"
                 :disabled="currentPage === 1"

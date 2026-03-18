@@ -67,6 +67,7 @@
       filterParams.date = selectedDate.value;
     }
 
+
     await placesStore.fetchPlaces(filterParams);
 
     if (isInitialLoad.value && filters.value?.price_range) {
