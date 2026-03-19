@@ -17,7 +17,7 @@ final class UpdateProfileHandler
         }
 
         if (array_key_exists('patronymic', $data)) {
-            $user->middle_name = $data['patronymic'];
+            $user->patronymic = $data['patronymic'];
         }
 
         if (array_key_exists('phone', $data)) {
