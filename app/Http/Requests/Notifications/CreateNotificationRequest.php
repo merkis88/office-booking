@@ -34,7 +34,7 @@ class CreateNotificationRequest extends FormRequest
             ]
         ];
     }
-    public function message(): array
+    public function messages(): array
     {
         return [
             'title.required' => 'Тема уведомления обязательна',
