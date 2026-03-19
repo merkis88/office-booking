@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('place_id')->constrained('places')->cascadeOnDelete();
             $table->foreignId('created_by')->constrained('users');
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('parking_place_id')->nullable()->constrained('parking_places')->nullOnDelete();
             $table->string('guest_name')->nullable();
             $table->decimal('price', 8,2)->default(0);
             $table->dateTime('start_time');

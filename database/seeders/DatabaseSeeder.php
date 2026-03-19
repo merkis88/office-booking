@@ -55,11 +55,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
 
-        $parking_place = Parking_place::create([
-            'place_row' => 0,
-            'status' => 'free'
-        ]);
-
         $booking = Booking::create([
             'place_id' => $place->id,
             'created_by' => $user->id,

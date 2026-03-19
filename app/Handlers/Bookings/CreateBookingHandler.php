@@ -3,11 +3,11 @@
 namespace App\Handlers\Bookings;
 
 use App\DTO\Bookings\CreateBookingDTO;
+use App\Handlers\Qr\CreateUserQrHandler;
 use App\Models\Booking;
 use App\Models\User;
-use App\Services\Bookings\BookingOverlapService;
 use App\Services\Bookings\BookingBusinessHoursService;
-use App\Handlers\Qr\CreateUserQrHandler;
+use App\Services\Bookings\BookingOverlapService;
 use Illuminate\Support\Facades\DB;
 
 final class CreateBookingHandler
@@ -43,7 +43,7 @@ final class CreateBookingHandler
                 $this->qrHandler->handle($booking, $user);
             }
 
-            return $booking->load('place', 'user', 'creator');
+            return $booking->load('place', 'user', 'creator', 'qrs');
         });
     }
 }

@@ -14,19 +14,23 @@ return new class extends Migration
         Schema::create('qrs', function (Blueprint $table) {
             $table->id();
 
+
             $table->foreignId('booking_id')->constrained('bookings')->cascadeOnDelete();
-            $table->unsignedInteger('time_window');
+            $table->unsignedBigInteger('time_window');
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('recipient_email')->nullable();
             $table->string('hash')->unique();
             $table->dateTime('used_at')->nullable();
             $table->timestamps();
-            $table->index(['booking_id', 'time_window']);
+            $table->index('booking_id');
+            $table->index('time_window');
             $table->index('user_id');
             $table->index('recipient_email');
-            $table->unique(['booking_id', 'time_window', 'user_id']);
-            $table->unique(['booking_id', 'time_window', 'recipient_email']);
+            $table->index(['booking_id', 'time_window']);
+            $table->unique(['booking_id', 'time_window', 'user_id'], 'qrs_booking_window_user_unique');
+            $table->unique(['booking_id', 'time_window', 'recipient_email'], 'qrs_booking_window_email_unique');
         });
+
 
 
     }
