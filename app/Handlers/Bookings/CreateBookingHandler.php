@@ -5,10 +5,12 @@ namespace App\Handlers\Bookings;
 use App\DTO\Bookings\CreateBookingDTO;
 use App\Handlers\Qr\CreateUserQrHandler;
 use App\Models\Booking;
+use App\Models\Place;
 use App\Models\User;
 use App\Services\Bookings\BookingBusinessHoursService;
 use App\Services\Bookings\BookingOverlapService;
 use Illuminate\Support\Facades\DB;
+use App\Services\Bookings\BookingPriceService;
 
 final class CreateBookingHandler
 {
@@ -16,6 +18,7 @@ final class CreateBookingHandler
         private readonly BookingOverlapService $overlap,
         private readonly BookingBusinessHoursService $hours,
         private readonly CreateUserQrHandler $qrHandler,
+        private readonly BookingPriceService $price
     ) {}
 
     public function handle(CreateBookingDTO $dto, User $user): Booking
@@ -29,6 +32,10 @@ final class CreateBookingHandler
                 endTime: $dto->endTime
             );
 
+            $place = Place::query()->findOrFail($dto->placeId);
+
+            $price = $this->price->calculate($place, $dto->startTime, $dto->endTime);
+
             $booking = Booking::query()->create([
                 'place_id' => $dto->placeId,
                 'user_id' => $user->id,
@@ -37,6 +44,7 @@ final class CreateBookingHandler
                 'end_time' => $dto->endTime,
                 'status' => 'active',
                 'pass_type' => $dto->passType,
+                'price' => $price,
             ]);
 
             if ($dto->passType === 'qr') {
