@@ -1,4 +1,4 @@
-FROM php:8.2-fpm-alpine
+FROM php:8.2.30-fpm-alpine
 
 # Зависимости для PHP-расширений
 RUN apk add --no-cache \
@@ -22,7 +22,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     pcntl
 
 # Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.9.5 /usr/bin/composer /usr/bin/composer
 
 # Конфиги
 COPY php.ini /usr/local/etc/php/php.ini

@@ -1,65 +1,201 @@
-# Office Booking (Laravel API)
+# Office Booking
 
-> **ВАЖНО:** **не устанавливайте** PHP, MySQL, Nginx/Apache на свой ПК.
+> **ВАЖНО:** **Не устанавливайте** PHP, MySQL, Nginx/Apache на свой ПК.
 > **Не используйте** XAMPP/WAMP/OSPanel и не запускайте проект локально через `php artisan serve`.
-> Мы работаем **только через Docker** - так у всех одинаковое окружение.
+> Бэкенд работает **только через Docker** — так у всех одинаковое окружение.
 
 ---
 
 ## Быстрый старт
 
-### 1) Клонируем репозиторий
+### 1. Клонируем репозиторий
 ```bash
 git clone <ссылка на репо>
 cd office-booking
 ```
 
-### 2) Настраиваем .env
+### 2. Настраиваем .env
 ```bash
 cp .env.example .env
 ```
 
-### 3) Поднимаем контейнеры
+### 3. Поднимаем контейнеры
 ```bash
 docker compose up -d --build
 ```
-### 4) Устанавливаем зависимости и генерим ключ
+
+### 4. Устанавливаем PHP-зависимости и генерируем ключ
 ```bash
-docker compose exec laravel.test composer install
-docker compose exec laravel.test php artisan key:generate
-```
-### 5) Поднимаем БД и сиды
-```bash
-docker compose exec laravel.test php artisan migrate --seed
+docker compose exec php composer install
+docker compose exec php php artisan key:generate
 ```
 
-**После выполнения миграций и сидов будут созданы тестовые пользователи:**
+### 5. Поднимаем БД и сиды
+```bash
+docker compose exec php php artisan migrate --seed
+```
 
-Admin: `admin@admin.com / password`
+### 6. Собираем фронтенд
+```bash
+npm install
+npm run build
+```
 
-User: `user@user.com / password`
+**Тестовые пользователи (после seed):**
+
+| Роль  | Email               | Пароль     |
+|-------|---------------------|------------|
+| Admin | `admin@admin.com`   | `password` |
+| User  | `user@user.com`     | `password` |
 
 ---
 
-## **Как попасть в Swagger**
+## Контейнеры
 
-Swagger доступен **после запуска контейнеров**.
+| Сервис       | Контейнер    | Описание                          |
+|--------------|--------------|-----------------------------------|
+| **php**      | PHP 8.2-FPM  | Laravel API (FastCGI на порту 9000) |
+| **web**      | Nginx        | Веб-сервер, Swagger UI            |
+| **mysql**    | MySQL 8.0    | База данных                       |
+| **phpmyadmin** | phpMyAdmin | Управление БД через браузер       |
 
-**URL SWAGGER:** `http://localhost:8088/`
+### Управление контейнерами
+
+```bash
+# Поднять контейнеры
+docker compose up -d --build
+
+# Остановить
+docker compose down
+
+# Логи конкретного контейнера
+docker compose logs -f php
+docker compose logs -f web
+
+# Выполнить artisan-команду
+docker compose exec php php artisan <command>
+
+# Миграции
+docker compose exec php php artisan migrate --seed
+
+# Сброс БД
+docker compose exec php php artisan migrate:fresh --seed
+
+# Установка PHP-зависимостей
+docker compose exec php composer install
+
+# Тесты
+docker compose exec php php artisan test
+docker compose exec php php artisan test --filter=TestClassName
+
+# Линтер (Laravel Pint)
+docker compose exec php ./vendor/bin/pint
+```
 
 ---
 
-## **Как не развалить окружение**
+## URL-адреса
 
->- Если добавил новую миграцию/таблицу
->1) Сначала проверяешь у себя: `docker compose exec laravel.test php artisan migrate`
->2) Только если всё ок - пушишь изменения в git.
+| Сервис      | URL                        |
+|-------------|----------------------------|
+| Сайт (Vue)  | `http://localhost/`        |
+| Laravel API | `http://localhost/api/`    |
+| Swagger UI  | `http://localhost/swagger/` |
+| phpMyAdmin  | `http://localhost/pma/`    |
 
->- Если всё сломалось - сбросить базу и пересоздать:
-> `docker compose exec laravel.test php artisan migrate:fresh --seed`
+---
 
->- Не менять порты в docker-compose.yml без согласования, если кто-то сменить порт, у других всё слетит.
+## Фронтенд (Vue)
 
->- Не коммитить файл .env. У каждого свои ключи. Этот файл лично для каждого.
+Фронтенд написан на Vue 3 + Vite. Исходники лежат в `src/`, билд собирается в `public/dist/`.
 
->- Не изменять файлы в папке vendor.
+```bash
+# Установить зависимости (один раз)
+npm install
+
+# Собрать фронтенд (production)
+npm run build
+
+# Режим разработки — автосборка при изменениях
+npm run dev
+```
+
+В режиме `npm run dev` Vite следит за изменениями в `src/` и автоматически пересобирает `public/dist/`. Чтобы увидеть изменения в браузере — перезагрузите страницу (F5).
+
+---
+
+## Swagger
+
+Swagger UI доступен по адресу `http://localhost/swagger/`.
+
+Спецификация загружается из файла `docs/openapi.yaml`. Чтобы обновить документацию:
+
+1. Отредактируйте `docs/openapi.yaml`
+2. Перезагрузите страницу Swagger — изменения подтянутся автоматически (файл монтируется в контейнер)
+
+Также можно сгенерировать Swagger из аннотаций в коде:
+```bash
+docker compose exec php php artisan l5-swagger:generate
+```
+
+### Авторизация в Swagger
+
+1. Получите токен — выполните в терминале:
+```bash
+curl -s -X POST http://localhost/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@admin.com","password":"password"}' \
+  | grep -o '"token":"[^"]*"'
+```
+2. Скопируйте значение токена из ответа
+3. В Swagger нажмите кнопку **Authorize** (замок вверху страницы)
+4. Введите: `Bearer <ваш_токен>`
+5. Теперь защищённые эндпоинты доступны
+
+---
+
+## Конфигурация Nginx и PHP
+
+Конфигурационные файлы лежат в `docker/`:
+
+```
+docker/
+  web/
+    Dockerfile        # Образ веб-сервера (на базе nginx)
+    nginx.conf        # Конфигурация Nginx
+  php/
+    Dockerfile        # Образ PHP 8.2-FPM
+    php.ini           # Настройки PHP (лимиты загрузки, OPcache, JIT)
+    php-fpm.conf      # Настройки PHP-FPM (пул воркеров)
+```
+
+### Как вносить изменения
+
+После редактирования любого файла в `docker/` нужно пересобрать контейнеры:
+
+```bash
+# Пересобрать и перезапустить все контейнеры
+docker compose up -d --build
+
+# Пересобрать только конкретный контейнер
+docker compose up -d --build web   # если менял nginx.conf или docker/web/Dockerfile
+docker compose up -d --build php   # если менял php.ini, php-fpm.conf или docker/php/Dockerfile
+```
+
+### Что где настраивается
+
+| Файл | Что можно менять |
+|------|------------------|
+| `docker/web/nginx.conf` | Маршрутизация URL, gzip, лимит загрузки (`client_max_body_size`), таймауты FastCGI |
+| `docker/php/php.ini` | Лимиты загрузки (`upload_max_filesize`, `post_max_size`), OPcache, JIT |
+| `docker/php/php-fpm.conf` | Количество воркеров (`pm.max_children`), стратегия запуска (`pm = dynamic/static`) |
+
+---
+
+## Как не развалить окружение
+
+- **Добавил миграцию?** Сначала проверь у себя: `docker compose exec php php artisan migrate`. Если ок — пушь.
+- **Всё сломалось?** Сбрось базу: `docker compose exec php php artisan migrate:fresh --seed`
+- **Не меняй порты** в `docker-compose.yml` без согласования — у других всё слетит.
+- **Не коммить `.env`** — у каждого свои ключи.
+- **Не трогай `vendor/`** — зависимости управляются через Composer.
