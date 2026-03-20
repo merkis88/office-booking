@@ -27,7 +27,7 @@ class PlaceResource extends JsonResource
             },
             'capacity' => $this->capacity,
             'number_place' => $this->number_place,
-            'photo_url' => $this->photo ? Storage::url($this->photo) : null,
+            'photo_url' => $this->photo ? asset('storage/' . $this->photo) : null,
             'photo_path' => $this->photo,
             'price' => $this->price,
             'description' => $this->description,
