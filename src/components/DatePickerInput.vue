@@ -52,8 +52,13 @@
   watch(
     () => props.modelValue,
     (newValue) => {
-      if (flatpickrInstance && newValue) {
+      if (!flatpickrInstance) return;
+
+      if (newValue) {
         flatpickrInstance.setDate(newValue, false);
+      } else {
+        flatpickrInstance.clear();
+        formattedDate.value = '';
       }
     },
   );
@@ -102,8 +107,6 @@
       width: 30rem;
       transition: all 0.2s;
       position: relative;
-
-
     }
 
     &__value {
@@ -311,8 +314,6 @@
         background: $color-text;
         color: $color-bg;
         font-weight: 700;
-
-
       }
 
       &.prevMonthDay,

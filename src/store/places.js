@@ -6,6 +6,7 @@ export const usePlacesStore = defineStore('places', {
     places: [],
     isLoading: false,
     error: null,
+    filters: null,
   }),
 
   actions: {
@@ -30,32 +31,25 @@ export const usePlacesStore = defineStore('places', {
 
         if (filters.date) {
           params.date = filters.date;
+
         }
 
-        console.log('Запрос с параметрами:', params);
-
         const { data } = await axios.get('/api/places', { params });
-
-        console.log('Места загружены:', data);
-
+        console.log(data);
         this.places = data.data || data;
+        this.filters = data.filters || null;
+
+        return { success: true, data: this.places };
       } catch (error) {
         console.error('Ошибка загрузки мест:', error);
         this.error = 'Не удалось загрузить места';
         this.places = [];
+        return { success: false, error: this.error };
       } finally {
         this.isLoading = false;
       }
     },
 
-    async fetchPlace(id) {
-      try {
-        const { data } = await axios.get(`/api/places/${id}`);
-        return data.data || data;
-      } catch (error) {
-        console.error('Ошибка загрузки места:', error);
-        throw error;
-      }
-    },
+
   },
 });

@@ -6,10 +6,12 @@ export const useAuthStore = defineStore('auth', {
     user: JSON.parse(localStorage.getItem('user')) || null,
     token: localStorage.getItem('token') || null,
     pendingVerificationEmail: null,
+    roleID: JSON.parse(localStorage.getItem('role_id')) || null,
   }),
 
   getters: {
     isAuthenticated: (state) => !!state.token && !!state.user,
+    isAdmin: (state) => state.user?.role_id === 1,
     getCurrentUser: (state) => state.user,
     needsEmailVerification: (state) => !!state.pendingVerificationEmail,
   },
@@ -58,8 +60,6 @@ export const useAuthStore = defineStore('auth', {
       try {
         const { data } = await axios.post('/api/register', registrationData);
 
-        console.log('Ответ от сервера:', data);
-
         this.pendingVerificationEmail = registrationData.email;
         this.user = data.user;
         localStorage.setItem('user', JSON.stringify(data.user));
@@ -73,6 +73,7 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Ошибка в authStore.register:', error);
         throw error;
+        console.log(error)
       }
     },
 

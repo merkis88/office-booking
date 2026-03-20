@@ -1,10 +1,11 @@
 <script setup>
-  import { ref, computed, onMounted, watch } from 'vue';
+  import { computed, nextTick, onMounted, ref, watch } from 'vue';
   import { usePlacesStore } from '@/store/places';
   import { storeToRefs } from 'pinia';
   import PlaceCard from '@/components/PlaceCard.vue';
   import DatePicker from '@/components/DatePicker.vue';
   import RangeSlider from '@/components/RangeSlider.vue';
+  import BookingModal from '@/components/modals/BookingModal.vue';
 
   const props = defineProps({
     type: {
@@ -15,10 +16,12 @@
   });
 
   const placesStore = usePlacesStore();
-  const { places, isLoading } = storeToRefs(placesStore);
+  const { places, isLoading, filters } = storeToRefs(placesStore);
 
-  const priceRange = ref([400, 5000]);
+  const priceRange = ref([0, 5000]);
   const selectedDate = ref('');
+  const isInitialLoad = ref(true);
+  const isPriceRangeUpdating = ref(false);
 
   const pageTitle = computed(() => {
     const titles = {
@@ -54,21 +57,63 @@
   }
 
   async function loadPlaces() {
-    await placesStore.fetchPlaces({
+    const filterParams = {
       type: props.type,
       minPrice: priceRange.value[0],
       maxPrice: priceRange.value[1],
-      date: selectedDate.value || undefined,
-    });
+    };
+
+    if (selectedDate.value && selectedDate.value.trim() !== '') {
+      filterParams.date = selectedDate.value;
+    }
+
+
+    await placesStore.fetchPlaces(filterParams);
+
+    if (isInitialLoad.value && filters.value?.price_range) {
+      isPriceRangeUpdating.value = true;
+
+      await nextTick();
+
+      priceRange.value = [filters.value.price_range.min_price, filters.value.price_range.max_price];
+
+      isInitialLoad.value = false;
+
+      await nextTick();
+      setTimeout(() => {
+        isPriceRangeUpdating.value = false;
+      }, 100);
+    }
 
     currentPage.value = 1;
   }
 
+  const showBookingModal = ref(false);
+  const selectedSlots = ref([]);
+  const selectedPlace = ref(null);
+
+  function openBookingModal(data) {
+    const { place, range, availableSlots } = data;
+
+    selectedSlots.value = availableSlots.filter(
+      (slot) => slot.start >= range.start && slot.end <= range.end,
+    );
+    selectedPlace.value = place;
+
+    showBookingModal.value = true;
+  }
+
+  function createBooking(booking) {
+    console.log('Бронь создана:', booking);
+    loadPlaces();
+  }
 
   watch(
     () => props.type,
     () => {
-      priceRange.value = [400, 5000];
+      isInitialLoad.value = true;
+      isPriceRangeUpdating.value = false;
+      priceRange.value = [0, 5000];
       selectedDate.value = '';
       loadPlaces();
     },
@@ -77,7 +122,19 @@
   let priceDebounceTimer = null;
   watch(
     priceRange,
-    () => {
+    (newVal, oldVal) => {
+      if (isInitialLoad.value) {
+        return;
+      }
+
+      if (isPriceRangeUpdating.value) {
+        return;
+      }
+
+      if (newVal[0] === oldVal[0] && newVal[1] === oldVal[1]) {
+        return;
+      }
+
       clearTimeout(priceDebounceTimer);
       priceDebounceTimer = setTimeout(() => {
         loadPlaces();
@@ -86,7 +143,11 @@
     { deep: true },
   );
 
-  watch(selectedDate, () => {
+  watch(selectedDate, (newDate, oldDate) => {
+    if (newDate === oldDate) {
+      return;
+    }
+
     loadPlaces();
   });
 
@@ -96,6 +157,14 @@
 </script>
 
 <template>
+  <BookingModal
+    v-model="showBookingModal"
+    :slots="selectedSlots"
+    :place="selectedPlace"
+    :date="selectedDate"
+    @close="showBookingModal = false"
+    @confirm="createBooking"
+  />
   <div class="places-page">
     <div class="places-page__container">
       <div class="places-page__header">
@@ -112,20 +181,20 @@
                 v-model.number="priceRange[0]"
                 type="number"
                 class="places-page__price-input"
-                min="0"
-                max="5000"
+                :min="0"
+                :max="10000"
                 placeholder="От"
               />
+              <RangeSlider v-model="priceRange" :min="0" :max="5000" :step="50" />
               <input
                 v-model.number="priceRange[1]"
                 type="number"
                 class="places-page__price-input"
-                min="0"
-                max="5000"
+                :min="0"
+                :max="5000"
                 placeholder="До"
               />
             </div>
-            <RangeSlider v-model="priceRange" :min="0" :max="5000" :step="50" />
           </div>
         </div>
       </div>
@@ -135,14 +204,22 @@
       </div>
 
       <div v-else-if="paginatedPlaces.length > 0" class="places-page__grid">
-        <PlaceCard v-for="place in paginatedPlaces" :key="place.id" :place="place" />
+        <PlaceCard
+          v-for="place in paginatedPlaces"
+          :key="place.id"
+          :place="place"
+          @select-slot="openBookingModal"
+        />
       </div>
 
       <div v-else class="places-page__empty">
         <p>Мест не найдено</p>
+        <p v-if="selectedDate" class="places-page__empty-hint">
+          Попробуйте выбрать другую дату или изменить диапазон цен
+        </p>
       </div>
 
-      <div v-if="totalPages > 1" class="places-page__pagination">
+      <div v-if="totalPages > 1 && !isLoading" class="places-page__pagination">
         <button
           class="places-page__pagination-btn"
           :disabled="currentPage === 1"
@@ -267,11 +344,18 @@
     &__loading,
     &__empty {
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 400px;
       font-size: $text-lg;
       color: $color-text;
+      gap: 1rem;
+    }
+
+    &__empty-hint {
+      font-size: $text-base;
+      color: rgba($color-text, 0.6);
     }
 
     &__pagination {
@@ -282,20 +366,9 @@
     }
 
     &__pagination-btn {
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid $color-border;
-      border-radius: $radius-xs;
-      background: $color-input-bg;
-      cursor: pointer;
-      transition: all 0.2s;
-
       img {
-        width: 1rem;
-        height: 1rem;
+        width: 2.5rem;
+        height: 2.5rem;
       }
 
       &:hover:not(:disabled) {

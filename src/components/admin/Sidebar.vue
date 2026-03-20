@@ -8,10 +8,10 @@
 
 <template>
   <aside class="sidebar">
-    <div class="sidebar__logo">
+    <router-link to="/admin" class="sidebar__logo">
       <div class="sidebar__logo-box"></div>
       <span>LOGOTYPE</span>
-    </div>
+    </router-link>
 
     <div class="sidebar__profile">
       <div class="sidebar__avatar"></div>
@@ -19,17 +19,35 @@
     </div>
 
     <nav class="sidebar__nav">
-      <router-link to="/admin/users" class="sidebar__btn">Пользователи</router-link>
+      <router-link to="/admin/users" class="sidebar__btn">
+        <img src="/admin-user.svg " alt="" />
+        Пользователи
+      </router-link>
 
-      <router-link to="/admin/rooms" class="sidebar__btn">Помещения</router-link>
+      <router-link to="/admin/rooms" class="sidebar__btn">
+        <img src="/handbag.svg" alt="" />
+        Помещения
+      </router-link>
 
-      <router-link to="/admin/requests" class="sidebar__btn">Заявки</router-link>
+      <router-link to="/admin/requests" class="sidebar__btn">
+        <img src="/menu-board.svg" alt="" />
+        Заявки
+      </router-link>
 
-      <router-link to="/admin/parking" class="sidebar__btn">Парковка</router-link>
+      <router-link to="/admin/parking" class="sidebar__btn">
+        <img src="/car.svg" alt="" />
+        Парковка
+      </router-link>
 
-      <router-link to="/admin/notifications" class="sidebar__btn">Уведомления</router-link>
+      <router-link to="/admin/notifications" class="sidebar__btn">
+        <img src="/notification-admin.svg" alt="" />
+        Уведомления
+      </router-link>
 
-      <router-link to="/" class="sidebar__btn sidebar__logout">Выход</router-link>
+      <router-link to="/" class="sidebar__btn sidebar__logout">
+        <img src="" alt="" />
+        Выход
+      </router-link>
     </nav>
   </aside>
 </template>
@@ -79,11 +97,15 @@
   }
 
   .sidebar__btn {
-    padding: 12px;
+    padding: 12px 20px;
     border: 1px solid black;
     border-radius: 8px;
     text-align: center;
     transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    justify-content: center;
   }
 
   .sidebar__btn:hover {
@@ -92,6 +114,7 @@
 
   .sidebar__logout {
     margin-top: 20px;
+    text-align: center;
   }
 
   .sidebar__avatar img {
