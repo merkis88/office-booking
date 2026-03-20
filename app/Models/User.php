@@ -147,7 +147,7 @@ class User extends Authenticatable
 
     public function favoritePlaces(): BelongsToMany
     {
-        return $this->belongsToMany(Place::class, 'favorite_places');
+        return $this->belongsToMany(Place::class, 'favorite_places', 'user_id', 'place_id');
     }
 
 }
