@@ -11,7 +11,7 @@ use App\Handlers\Bookings\RescheduleBookingHandler;
 use App\Handlers\Bookings\ShowBookingHandler;
 use App\Handlers\Qr\CreateGuestQrHandler;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Bookings\CreateGuestBookingRequest;
+use App\Http\Requests\Bookings\CreateBookingRequest;
 use App\Http\Requests\Bookings\ExtendBookingRequest;
 use App\Http\Requests\Bookings\MyBookingsRequest;
 use App\Http\Requests\Bookings\RescheduleBookingRequest;
@@ -61,20 +61,11 @@ class BookingController extends Controller
         return response()->json(['data' => $reschedule_booking], 200);
     }
 
-    public function guestBooking(CreateGuestBookingRequest $request, CreateGuestBookingHandler $handler): JsonResponse
-    {
-        $guest_booking = $handler->handle($request->toDTO(), $request->user());
-
-        return response()->json(['data' => $guest_booking], 201);
-    }
-
     public function extendBooking(ExtendBookingRequest $request, Booking $booking, ExtendBookingHandler $handler): JsonResponse
     {
         $updated = $handler->handle($booking, $request->user(), $request->minutes());
 
         return response()->json(['data' => $updated], 200);
     }
-
-
 
 }

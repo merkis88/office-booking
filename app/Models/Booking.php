@@ -16,9 +16,9 @@ class Booking extends Model
         'created_by',
         'user_id',
         'guest_name',
-        'parking_place_id',
         'start_time',
         'end_time',
+        'status',
         'pass_type',
         'price',
     ];
@@ -43,14 +43,14 @@ class Booking extends Model
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-
-    public function parkingPlace()
-    {
-        return $this->belongsTo(Parking_place::class, 'parking_place_id', 'id');
-    }
     public function services()
     {
         return $this->hasMany(Service::class);
+    }
+
+    public function qrs()
+    {
+        return $this->hasMany(Qr::class);
     }
 
     public function hasActiveServices()

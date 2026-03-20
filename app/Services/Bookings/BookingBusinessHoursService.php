@@ -9,14 +9,14 @@ final class BookingBusinessHoursService
 {
     public function assertWithinBusinessHours(CarbonImmutable $start, CarbonImmutable $end): void
     {
-        $tz = (string) config('bookings.timezone', 'UTC');
-        $openHour = (int) config('bookings.open_hour');
-        $closeHour = (int) config('bookings.close_hour');
+        $tz = (string) config('booking.timezone', 'UTC');
+        $openHour = (int) config('booking.open_hour', 9);
+        $closeHour = (int) config('booking.close_hour', 22);
 
         $startLocal = $start->setTimezone($tz);
         $endLocal = $end->setTimezone($tz);
 
-        if ($end->lessThanOrEqualTo($startLocal)) {
+        if ($endLocal->lessThanOrEqualTo($startLocal)) {
             throw ValidationException::withMessages([
                 'time' => ['Некорректный интервал бронирования'],
             ]);
@@ -28,15 +28,15 @@ final class BookingBusinessHoursService
         $endOpenFrom = $endLocal->startOfDay()->setTime($openHour, 0);
         $endCloseAt  = $endLocal->startOfDay()->setTime($closeHour, 0);
 
-        if ($start->lt($startOpenFrom) || $start->gt($startCloseAt)) {
+        if ($startLocal->lt($startOpenFrom) || $startLocal->gte($startCloseAt)) {
             throw ValidationException::withMessages([
-                'time' => ['БЦ работает с 09:00 до 22:00'],
+                'time' => ["БЦ работает с {$openHour}:00 до {$closeHour}:00"],
             ]);
         }
 
-        if ($end->lt($endOpenFrom) || $end->gt($endCloseAt)) {
+        if ($endLocal->lte($endOpenFrom) || $endLocal->gt($endCloseAt)) {
             throw ValidationException::withMessages([
-                'time' => ['БЦ работает с 09:00 до 22:00'],
+                'time' => ["БЦ работает с {$openHour}:00 до {$closeHour}:00"],
             ]);
         }
     }

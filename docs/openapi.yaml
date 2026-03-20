@@ -780,18 +780,20 @@ paths:
       description: |
         Owner: merk
 
-        FormRequest: StoreBookingRequest
-        - place_id required, exists:places,id
-        - start_time required, date
-        - end_time required, date, after:start_time
-        - user_id nullable, exists:users,id, required_without:guest_name
-        - guest_name nullable string max:255, required_without:user_id
+        FormRequest: CreateBookingRequest
+        - place_id required, integer, exists:places,id
+        - start_time required, date_format:c
+        - end_time required, date_format:c, after:start_time
         - pass_type sometimes in [qr,pin] (default qr)
 
         Handler: CreateBookingHandler
-        - если guest_name задан -> user_id = null
-        - иначе user_id = auth_user.id (user_id из body игнорируется)
+        - booking всегда создаётся от имени авторизованного пользователя
+        - user_id = auth_user.id
+        - created_by = auth_user.id
+        - user_id не принимается из body
         - overlap check через BookingOverlapService (422 ValidationException)
+        - business hours check через BookingBusinessHoursService (422 ValidationException)
+
         Ответ: 201 {data: Booking} (load place,user,creator)
       requestBody:
         required: true
@@ -801,30 +803,32 @@ paths:
               type: object
               additionalProperties: false
               properties:
-                place_id: { type: integer }
-                start_time: { type: string, format: date-time }
-                end_time: { type: string, format: date-time }
-                user_id:
+                place_id:
                   type: integer
-                  nullable: true
-                  description: "При non-guest броне будет проигнорирован и заменён на auth_user.id"
-                guest_name: { type: string, nullable: true }
+                start_time:
+                  type: string
+                  format: date-time
+                  description: "ISO 8601 datetime, example: 2026-02-10T12:00:00Z"
+                end_time:
+                  type: string
+                  format: date-time
+                  description: "ISO 8601 datetime, must be after start_time"
                 pass_type:
                   type: string
                   enum: [qr, pin]
                   nullable: true
+                  description: "Optional, default is qr"
               required: [place_id, start_time, end_time]
             examples:
-              user_booking:
+              booking_qr:
                 value:
                   place_id: 10
                   start_time: "2026-02-10T12:00:00Z"
                   end_time: "2026-02-10T13:00:00Z"
                   pass_type: "qr"
-              guest_booking_via_same_endpoint:
+              booking_pin:
                 value:
                   place_id: 10
-                  guest_name: "Guest Ivan"
                   start_time: "2026-02-10T12:00:00Z"
                   end_time: "2026-02-10T13:00:00Z"
                   pass_type: "pin"
@@ -846,77 +850,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/MessageError"
 
-  /bookings/guest:
-    post:
-      tags: ["Merk · Booking"]
-      summary: Create guest booking (place manager only)
-      description: |
-        Owner: merk
-
-        FormRequest: CreateGuestBookingRequest
-        - place_id required
-        - start_time required
-        - end_time required after start_time
-        - user_id prohibited
-        - guest_name required string max:255
-        - pass_type sometimes in [qr,pin] (default qr)
-
-        Handler: CreateGuestBookingHandler
-        - Проверка: place_managers exists(place_id, user_id=auth_user.id), иначе 403 (abort)
-        - overlap check (422 ValidationException)
-        - создаёт booking: user_id=null, created_by=actor.id, status=pending, load place,creator
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: false
-              properties:
-                place_id: { type: integer }
-                guest_name: { type: string }
-                start_time: { type: string, format: date-time }
-                end_time: { type: string, format: date-time }
-                pass_type:
-                  type: string
-                  enum: [qr, pin]
-                  nullable: true
-              required: [place_id, guest_name, start_time, end_time]
-            examples:
-              guest:
-                value:
-                  place_id: 10
-                  guest_name: "John Guest"
-                  start_time: "2026-02-10T12:00:00Z"
-                  end_time: "2026-02-10T13:00:00Z"
-                  pass_type: "qr"
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BookingDataResponse"
-        "422":
-          $ref: "#/components/responses/ValidationFailed"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "401":
-          description: Unauthenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageError"
 
   /bookings/my:
     get:
-      tags: ["Merk · Booking"]
+      tags: [ "Merk · Booking" ]
       summary: List my bookings
       description: |
         Owner: merk
 
+        Нужен для получения списка бронирований текущего авторизованного пользователя.
+        Используется на экране "Мои бронирования" для вывода всех броней пользователя
+        с возможностью фильтрации по статусу, помещению и диапазону дат.
+
         FormRequest: MyBookingsRequest
-        - status nullable in [pending, approved, rejected]
+        - status nullable in ['active', 'cancelled']
         - place_id nullable exists:places,id
         - from nullable date
         - to nullable date
@@ -932,7 +879,7 @@ paths:
           name: status
           schema:
             type: string
-            enum: [pending, approved, rejected]
+            enum: [ active, cancelled ]
         - in: query
           name: place_id
           schema: { type: integer }
@@ -946,7 +893,7 @@ paths:
           name: sort
           schema:
             type: string
-            enum: [start_time, -start_time]
+            enum: [ start_time, -start_time ]
             example: "-start_time"
         - in: query
           name: per_page
@@ -979,14 +926,18 @@ paths:
 
   /bookings/{booking}:
     get:
-      tags: ["Merk · Booking"]
+      tags: [ "Merk · Booking" ]
       summary: Show booking
       description: |
         Owner: merk
 
+        Нужен для просмотра одной конкретной брони по её id.
+        Используется, когда пользователь нажимает на бронь в списке "Мои бронирования"
+        и открывает карточку или детальную страницу выбранного бронирования.
+
         Controller: showBooking -> ShowBookingHandler
         - load('place')
-        - доступ: owner или creator гостевой (иначе abort 403)
+        - доступ только владельцу бронирования (иначе abort 403)
       parameters:
         - in: path
           name: booking
@@ -1020,7 +971,7 @@ paths:
         Handler: CancelBookingHandler
         - доступ: owner или creator гостевой, иначе 403
         - если status == rejected -> 422 (status: "Бронирование уже отменено")
-        - если status не pending/approved -> 422
+        - если status не active / cancelled -> 422
         - если start_time isPast() -> 422 (start_time: "Нельзя отменить бронирование которе уже началось")
         - иначе status = rejected, load('place')
       parameters:
@@ -1107,6 +1058,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/MessageError"
 
+
   /bookings/{booking}/extend:
     post:
       tags: ["Merk · Booking"]
@@ -1180,32 +1132,108 @@ paths:
                 $ref: "#/components/schemas/MessageError"
 
 
-  /profile/qrs:
+  /profile:
     get:
       tags: [ "Merk · Profile" ]
-      summary: List my QRs
+      summary: Show current user profile
       description: |
         Owner: merk
 
-        Auth: Sanctum Bearer token.
+        Нужен для получения данных текущего авторизованного пользователя.
+        Используется на экране "Профиль" для отображения основной информации о пользователе:
+        имя, фамилия, отчество, номер телефона, email и роль.
 
-        Route: GET /api/profile/qrs
-        Controller: ProfileQrController@index(Request, GetProfileQrsHandler)
-        Handler: GetProfileQrsHandler::handle(auth_user)
-
-        Возвращает QR-коды текущего авторизованного пользователя (профиль).
+        Controller: ProfileController@profile
+        Handler: GetProfileHandler
+        - получает текущего auth_user
+        - возвращает данные текущего пользователя
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Qr"
+                $ref: "#/components/schemas/ProfileResponse"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+    patch:
+      tags: [ "Merk · Profile" ]
+      summary: Update current user profile
+      description: |
+        Owner: merk
+
+        Нужен для изменения данных текущего авторизованного пользователя.
+        Используется на экране "Редактирование профиля" для обновления имени, фамилии,
+        отчества, номера телефона и email.
+
+        FormRequest: UpdateProfileRequest
+        - first_name sometimes|string|max:255
+        - last_name sometimes|string|max:255
+        - patronymic nullable|string|max:255
+        - phone sometimes|string|max:30|unique:users,phone,except current user
+        - email sometimes|string|email|max:255|unique:users,email,except current user
+
+        Controller: ProfileController@update
+        Handler: UpdateProfileHandler
+        - обновляет только переданные поля
+        - сохраняет изменения пользователя
+        - возвращает обновлённые данные профиля
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+    delete:
+      tags: [ "Merk · Profile" ]
+      summary: Delete current user profile
+      description: |
+        Owner: merk
+
+        Нужен для удаления аккаунта текущего авторизованного пользователя.
+        Используется на экране "Профиль" после подтверждения удаления аккаунта.
+
+        FormRequest: DeleteProfileRequest
+        - password required|string
+
+        Controller: ProfileController@delete
+        Handler: DeleteProfileHandler
+        - проверяет корректность текущего пароля через Hash::check
+        - если пароль неверный -> 422 (errors.password)
+        - удаляет токены пользователя
+        - удаляет пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteProfileRequest"
+      responses:
+        "204":
+          description: No Content
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
         "401":
           description: Unauthenticated
           content:
@@ -1282,45 +1310,6 @@ paths:
           $ref: "#/components/responses/ValidationFailed"
         "403":
           $ref: "#/components/responses/Forbidden"
-        "401":
-          description: Unauthenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageError"
-
-  /admin/bookings/{booking}/approve:
-    post:
-      tags: ["Merk · Admin"]
-      summary: Admin approve booking (pending -> approved)
-      description: |
-        Owner: merk
-
-        Middleware: is_admin (role_id == 1)
-
-        Handler: AdminApproveBookingHandler
-        - если status != pending -> 422 (errors.status)
-        - иначе status=approved
-        - если booking.user_id != null -> PlaceManager::firstOrCreate(place_id, user_id) + created_from_booking_id
-        - load(place,user,creator)
-      parameters:
-        - in: path
-          name: booking
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BookingDataResponse"
-        "422":
-          $ref: "#/components/responses/ValidationFailed"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
         "401":
           description: Unauthenticated
           content:

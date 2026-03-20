@@ -8,7 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-final class CreateGuestBookingRequest extends FormRequest
+final class CreateBookingRequest extends FormRequest
 {
     public function rules(): array
     {
@@ -16,8 +16,6 @@ final class CreateGuestBookingRequest extends FormRequest
             'place_id' => ['required', 'integer', 'exists:places,id'],
             'start_time' => ['required', 'date_format:c'],
             'end_time' => ['required', 'date_format:c', 'after:start_time'],
-            'user_id' => ['prohibited'],
-            'guest_name' => ['required', 'string', 'max:255', 'required_without:user_id'],
             'pass_type' => ['sometimes', Rule::in(['qr', 'pin'])],
         ];
     }
@@ -28,8 +26,6 @@ final class CreateGuestBookingRequest extends FormRequest
             placeId: (int) $this->input('place_id'),
             startTime: CarbonImmutable::parse($this->input('start_time'))->utc(),
             endTime: CarbonImmutable::parse($this->input('end_time'))->utc(),
-            userId: null,
-            guestName: (string) $this->input('guest_name'),
             passType: (string) ($this->input('pass_type') ?? 'qr'),
         );
     }
