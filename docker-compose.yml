@@ -1,29 +1,83 @@
+#volumes:
+#    phpmyadmin:
+#
+#services:
+#  web:
+#    restart: always
+#    build:
+#      dockerfile: Dockerfile
+#      context: docker/web
+#    ports:
+#      - '${APP_PORT:-80}:80'
+#    volumes:
+#      - ./public:/app/public:ro
+#      - phpmyadmin:/usr/share/phpMyAdmin:ro
+#    depends_on:
+#      - php
+#
+#  php:
+#    restart: always
+#    build:
+#      dockerfile: Dockerfile
+#      context: docker/php
+
+
 services:
-  laravel.test:
+#  laravel.test:
+#    build:
+#      context: ./docker/8.2
+#      dockerfile: Dockerfile
+#      args:
+#        WWWGROUP: '${WWWGROUP}'
+#    image: sail-8.2/app
+#    extra_hosts:
+#      - 'host.docker.internal:host-gateway'
+#    ports:
+#      - '${APP_PORT:-80}:80'
+#      - '${VITE_PORT:-5173}:5173'
+#    environment:
+#      WWWUSER: '${WWWUSER}'
+#      LARAVEL_SAIL: 1
+#      XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
+#      XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
+#      IGNITION_LOCAL_SITES_PATH: '${PWD}'
+#    volumes:
+#      - '.:/var/www/html'
+#    networks:
+#      - sail
+#    depends_on:
+#      - mysql
+#      - redis
+  php:
+    restart: always
     build:
-      context: ./docker/8.2
       dockerfile: Dockerfile
-      args:
-        WWWGROUP: '${WWWGROUP}'
-    image: sail-8.2/app
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
-    ports:
-      - '${APP_PORT:-80}:80'
-      - '${VITE_PORT:-5173}:5173'
-    environment:
-      WWWUSER: '${WWWUSER}'
-      LARAVEL_SAIL: 1
-      XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
-      XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
-      IGNITION_LOCAL_SITES_PATH: '${PWD}'
+      context: docker/php
     volumes:
-      - '.:/var/www/html'
+      - .:/app
     networks:
       - sail
     depends_on:
       - mysql
-      - redis
+
+  web:
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: docker/web
+    ports:
+      - '${APP_PORT:-80}:80'
+    environment:
+      SWAGGER_JSON: /spec/openapi.yaml
+    volumes:
+      - ./docs/openapi.yaml:/spec/openapi.yaml:ro
+      - ./public:/app/public:ro
+    depends_on:
+      - php
+      - phpmyadmin
+    networks:
+      - sail
+
 
   mysql:
     image: 'mysql/mysql-server:8.0'
@@ -46,29 +100,28 @@ services:
       retries: 3
       timeout: 5s
 
-  redis:
-    image: 'redis:alpine'
-    ports:
-      - '${FORWARD_REDIS_PORT:-6379}:6379'
-    volumes:
-      - 'sail-redis:/data'
-    networks:
-      - sail
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      retries: 3
-      timeout: 5s
+#  redis:
+#    image: 'redis:alpine'
+#    ports:
+#      - '${FORWARD_REDIS_PORT:-6379}:6379'
+#    volumes:
+#      - 'sail-redis:/data'
+#    networks:
+#      - sail
+#    healthcheck:
+#      test: ["CMD", "redis-cli", "ping"]
+#      retries: 3
+#      timeout: 5s
 
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin
+    image: 'phpmyadmin/phpmyadmin'
     links:
       - mysql:mysql
-    ports:
-      - 8080:80
     environment:
       PMA_HOST: mysql
       PMA_USER: '${DB_USERNAME}'
       PMA_PASSWORD: '${DB_PASSWORD}'
+      PMA_ABSOLUTE_URI: http://localhost/pma/
     networks:
       - sail
 
