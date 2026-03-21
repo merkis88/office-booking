@@ -11,7 +11,7 @@
   const emit = defineEmits(['select-slot']);
 
   const slotsPerPage = 2;
-  const slotPage = ref(0);
+  const startIndex = ref(0);
 
   const mergedSlots = computed(() => {
     const slots = props.place.available_slots || [];
@@ -42,22 +42,19 @@
     }));
   });
 
-  const totalPages = computed(() => Math.ceil(mergedSlots.value.length / slotsPerPage));
-
   const paginatedSlots = computed(() => {
-    const start = slotPage.value * slotsPerPage;
-    return mergedSlots.value.slice(start, start + slotsPerPage);
+    return mergedSlots.value.slice(startIndex.value, startIndex.value + slotsPerPage);
   });
 
   function nextSlots() {
-    if (slotPage.value < totalPages.value - 1) {
-      slotPage.value++;
+    if (startIndex.value < mergedSlots.value.length - slotsPerPage) {
+      startIndex.value++;
     }
   }
 
   function prevSlots() {
-    if (slotPage.value > 0) {
-      slotPage.value--;
+    if (startIndex.value > 0) {
+      startIndex.value--;
     }
   }
 
@@ -83,18 +80,13 @@
   <div class="place-card">
     <div class="place-card__main">
       <div class="place-card__image-wrapper">
-        <img
-          :src="place.photo"
-          :alt="place.name"
-          class="place-card__image"
-          @error="$event.target.src = '/placeholder.jpg'"
-        />
+        <img :src="place.photo_url" :alt="place.name" class="place-card__image" />
       </div>
 
       <div class="place-card__content">
         <h3 class="place-card__title">{{ placeTypeLabel }}</h3>
         <p class="place-card__number">Кабинет №{{ place.number_place }}</p>
-        <p class="place-card__price">Стоимость: {{ place.price }}₽</p>
+        <p class="place-card__price">Стоимость: {{ Math.round(place.price) }} р/час</p>
         <p class="place-card__capacity">Вместимость: {{ place.capacity }} человек</p>
       </div>
 
@@ -108,7 +100,7 @@
         v-if="mergedSlots.length > 2"
         class="place-card__slot-arrow"
         @click="prevSlots"
-        :disabled="slotPage === 0"
+        :disabled="startIndex === 0"
       >
         <img src="/arrow-left.svg" alt="&lt;" />
       </button>
@@ -132,7 +124,7 @@
         v-if="mergedSlots.length > 2"
         class="place-card__slot-arrow"
         @click="nextSlots"
-        :disabled="slotPage >= totalPages - 1"
+        :disabled="startIndex >= mergedSlots.length - slotsPerPage"
       >
         <img src="/arrow-right.svg" alt="&gt;" />
       </button>
@@ -261,7 +253,7 @@
       border-radius: $radius-xs;
       background: $color-input-bg;
       cursor: pointer;
-      font-size: $text-base;
+      font-size: $text-xl;
       transition: 0.2s;
 
       &:hover {
@@ -276,13 +268,13 @@
       cursor: pointer;
 
       img {
-        width: 28px;
-        height: 28px;
+        width: 40px;
+        height: 40px;
       }
 
       &:disabled {
         opacity: 0.4;
-        cursor: not-allowed;
+        cursor: default;
       }
     }
 

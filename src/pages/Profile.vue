@@ -7,23 +7,13 @@
   import { useRouter } from 'vue-router';
   import QRCode from 'qrcode';
   import ServiceRequestCard from '@/components/ServiceRequestCard.vue';
+  import BookingCard from '@/components/BookingCard.vue';
 
-  onMounted(() => {
-    bookingsStore.fetchMyBookings();
-  });
-
-  onMounted(async () => {
-    const res = await fetch('/api/qr-data');
-    const data = await res.json();
-
-    qr.value = await QRCode.toDataURL(data.qrString);
-  });
-
-  const qrImages = ref([]);
   const authStore = useAuthStore();
   const bookingsStore = useBookingsStore();
   const servicesStore = useServicesStore();
   const router = useRouter();
+
   const { user } = storeToRefs(authStore);
   const {
     services,
@@ -31,19 +21,68 @@
     currentPage,
     lastPage,
   } = storeToRefs(servicesStore);
-  const activeTab = ref(0);
 
+  const activeTab = ref(0);
   const isLoading = ref(false);
-  const isEditing = ref(false);
+
+  const qrImage = ref(null);
 
   const editableUser = ref({
     first_name: '',
     last_name: '',
     patronymic: '',
-    email: '',
-    post: '',
-    company: '',
   });
+
+  onMounted(async () => {
+    if (!authStore.isAuthenticated) {
+      await router.push('/authorization');
+      return;
+    }
+
+    if (!user.value) {
+      isLoading.value = true;
+      try {
+        await authStore.fetchCurrentUser();
+      } catch {
+        await router.push('/authorization');
+      } finally {
+        isLoading.value = false;
+      }
+    }
+
+    await bookingsStore.fetchMyBookings();
+    generateQr();
+  });
+
+  watch(
+    user,
+    (newUser) => {
+      if (newUser) {
+        editableUser.value = {
+          first_name: newUser.first_name,
+          last_name: newUser.last_name,
+          patronymic: newUser.patronymic,
+        };
+
+        generateQr();
+      }
+    },
+    { immediate: true },
+  );
+
+  async function generateQr() {
+    if (!user.value?.qr_hash) {
+      qrImage.value = null;
+      return;
+    }
+
+    try {
+      qrImage.value = await QRCode.toDataURL(user.value.qr_hash);
+    } catch (e) {
+      console.error('Ошибка генерации QR', e);
+      qrImage.value = null;
+    }
+  }
 
   const totalPages = computed(() => lastPage.value);
 
@@ -57,92 +96,67 @@
     }
   }
 
-  onMounted(async () => {
-    if (!authStore.isAuthenticated) {
-      await router.push('/authorization');
-      return;
-    }
-
-    if (!user.value) {
-      isLoading.value = true;
-      try {
-        await authStore.fetchCurrentUser();
-      } catch (error) {
-        await router.push('/authorization');
-      } finally {
-        isLoading.value = false;
-      }
-    }
-
-    await fetchQrs();
-  });
-
-  watch(activeTab, (newTab) => {
-    if (newTab === 3) {
+  watch(activeTab, (tab) => {
+    if (tab === 3) {
       loadServices();
     }
   });
 
-  watch(
-    user,
-    (newUser) => {
-      if (newUser) {
-        editableUser.value = { ...newUser };
-      }
-    },
-    { immediate: true },
-  );
-
-  const fetchQrs = async () => {
+  const handleSave = async () => {
     try {
-      const res = await fetch('/api/profile/qrs', {
+      const payload = {};
+
+      if (editableUser.value.first_name !== user.value.first_name) {
+        payload.first_name = editableUser.value.first_name;
+      }
+
+      if (editableUser.value.last_name !== user.value.last_name) {
+        payload.last_name = editableUser.value.last_name;
+      }
+
+      if (editableUser.value.patronymic !== user.value.patronymic) {
+        payload.middle_name = editableUser.value.patronymic;
+      }
+
+      if (Object.keys(payload).length === 0) {
+        return;
+      }
+
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
         headers: {
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${authStore.token}`,
           Accept: 'application/json',
         },
+        body: JSON.stringify(payload),
       });
-
-      if (!res.ok) {
-        throw new Error('Ошибка загрузки QR');
-      }
 
       const data = await res.json();
 
-      const images = await Promise.all(data.data.map((qrString) => QRCode.toDataURL(qrString)));
+      if (!res.ok) {
+        console.error(data);
+        alert(data.message || 'Ошибка обновления');
+        return;
+      }
 
-      qrImages.value = images;
+      user.value = data.data;
     } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      console.log('Отправка данных:', editableUser.value);
-
-      user.value = { ...editableUser.value };
-
-      isEditing.value = false;
-    } catch (e) {
-      console.error('Ошибка сохранения', e);
+      console.error('Ошибка PATCH /profile', e);
     }
   };
 
   const handleCancel = () => {
     editableUser.value = { ...user.value };
-    isEditing.value = false;
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('ru-RU');
-  };
+  const formatDate = (date) => new Date(date).toLocaleDateString('ru-RU');
 
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString('ru-RU', {
+  const formatTime = (date) =>
+    new Date(date).toLocaleTimeString('ru-RU', {
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
 </script>
 
 <template>
@@ -181,26 +195,12 @@
               </div>
             </div>
 
-            <div class="profile__row">
-              <div class="profile__field">
-                <input
-                  v-model="editableUser.email"
-                  class="profile__input"
-                  placeholder="Электронная почта"
-                />
-              </div>
-
-              <div class="profile__field">
-                <input v-model="editableUser.post" class="profile__input" placeholder="Должность" />
-              </div>
-
-              <div class="profile__field">
-                <input
-                  v-model="editableUser.company"
-                  class="profile__input"
-                  placeholder="Компания"
-                />
-              </div>
+            <div class="profile__field">
+              <input
+                v-model="editableUser.email"
+                class="profile__input"
+                placeholder="Электронная почта"
+              />
             </div>
           </div>
         </div>
@@ -209,6 +209,10 @@
           <button class="profile__btn" @click="handleSave">Сохранить</button>
 
           <button class="profile__btn" @click="handleCancel">Не сохранять</button>
+
+          <router-link to="/update-password" class="profile__btn">Сменить пароль</router-link>
+
+          <button class="profile__btn" @click="">Удалить аккаунт</button>
         </div>
 
         <div class="profile__pass-section">
@@ -217,29 +221,17 @@
           <div class="profile__pass-wrapper">
             <div class="profile__pass-card">
               <div class="profile__qr">
-                <img
-                  v-for="(qr, index) in qrImages"
-                  :key="index"
-                  :src="qr"
-                  class="profile__qr-image"
-                  alt="QR-код"
-                />
+                <img v-if="qrImage" :src="qrImage" class="profile__qr-image" alt="QR-код" />
+
+                <p v-else class="profile__no-qr">Нет действующего пропуска</p>
               </div>
 
               <div class="profile__pass-info">
                 <h3 class="profile__pass-title">Пропуск для сотрудника</h3>
-                <p class="profile__pass-detail">Парковочное место №18</p>
                 <p class="profile__pass-detail profile__pass-detail--expiry">
                   Ваш qr-код действует до 27.02.2026
                 </p>
               </div>
-            </div>
-
-            <div class="profile__pass-actions">
-              <button class="profile__btn profile__btn--action">Добавить парковку</button>
-              <router-link to="/update-password" class="profile__btn profile__btn--action">
-                Сменить пароль
-              </router-link>
             </div>
           </div>
         </div>
@@ -279,36 +271,45 @@
           <div v-if="activeTab === 0" class="profile__bottom-content">
             <div v-if="bookingsStore.isLoading">Загрузка...</div>
 
-            <div
-              v-else
-              v-for="booking in bookingsStore.bookings"
-              :key="booking.id"
-              class="profile__booking-card"
-            >
-              <div class="profile__booking-info">
-                <h3>
-                  {{ booking.place.name }}
-                </h3>
+            <div v-else-if="!bookingsStore.bookings?.length">Нет активных аренд</div>
 
-                <p>
-                  {{ formatDate(booking.start_time) }} — {{ formatTime(booking.start_time) }} -
-                  {{ formatTime(booking.end_time) }}
+            <div v-else class="profile__bookings">
+              <div v-for="booking in bookingsStore.bookings" :key="booking.id">
+                <p class="profile__booking-date">
+                  {{ formatDate(booking.start_time) }}
                 </p>
 
-                <p>Вместимость: {{ booking.place.capacity }} человек</p>
-
-                <p>Статус: {{ booking.status }}</p>
+                <BookingCard :booking="booking" />
               </div>
             </div>
 
-            <div class="profile__pagination" v-if="bookingsStore.lastPage > 1">
+            <div v-if="bookingsStore.lastPage > 1" class="profile__services-pagination">
+              <button
+                class="profile__pagination-btn"
+                :disabled="bookingsStore.currentPage === 1"
+                @click="bookingsStore.setPage(bookingsStore.currentPage - 1)"
+              >
+                <img src="/arrow-left.svg" />
+              </button>
+
               <button
                 v-for="page in bookingsStore.lastPage"
                 :key="page"
+                class="profile__pagination-number"
+                :class="{
+                  'profile__pagination-number--active': bookingsStore.currentPage === page,
+                }"
                 @click="bookingsStore.setPage(page)"
-                :class="['profile__page-btn', { active: page === bookingsStore.currentPage }]"
               >
                 {{ page }}
+              </button>
+
+              <button
+                class="profile__pagination-btn"
+                :disabled="bookingsStore.currentPage === bookingsStore.lastPage"
+                @click="bookingsStore.setPage(bookingsStore.currentPage + 1)"
+              >
+                <img src="/arrow-right.svg" />
               </button>
             </div>
           </div>
@@ -389,6 +390,19 @@
       display: flex;
       gap: 3rem;
       align-items: flex-start;
+    }
+
+    &__bookings {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    &__booking-date {
+      width: 60%;
+      margin-bottom: 0.7rem;
+      font-weight: 500;
     }
 
     &__photo-section {
@@ -500,7 +514,7 @@
     }
 
     &__btn {
-      padding: 0.5rem 4rem;
+      padding: 0.5rem 3rem;
       border-radius: $radius-sm;
       font-size: $text-base;
       font-weight: 500;
@@ -529,6 +543,7 @@
 
     &__pass-section {
       margin-top: 2rem;
+      padding-left: 3rem;
     }
 
     &__pass-wrapper {
