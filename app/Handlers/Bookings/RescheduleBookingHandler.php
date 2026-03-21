@@ -23,12 +23,6 @@ final class RescheduleBookingHandler
             ]);
         }
 
-        if (!in_array($booking->status, ['pending', 'approved'], true)) {
-            throw ValidationException::withMessages([
-                'status' => ['Нельзя переносить бронирование в текущем статусе']
-            ]);
-        }
-
         return DB::transaction(function () use ($dto, $booking) {
 
             $this->overlap->assertNoOverlap(
@@ -37,10 +31,6 @@ final class RescheduleBookingHandler
                 endTime: $dto->endTime,
                 ignoreBookingId: (int) $booking->id
             );
-
-            if ($booking->status === 'approved') {
-                $booking->status = 'pending';
-            }
 
             $booking->start_time = $dto->startTime;
             $booking->end_time = $dto->endTime;

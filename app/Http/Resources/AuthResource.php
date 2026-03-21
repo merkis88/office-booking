@@ -24,7 +24,7 @@ class AuthResource extends JsonResource
             'role_id'=>$this->role_id,
             'post' => $this->post,
             'company' => $this->company,
-            'photo' => $this->photo,
+            'photo_url' => $this->photo ? asset('storage/' . $this->photo) : null,
             'role' => new UserRoleResource($this->role)
         ];
     }
