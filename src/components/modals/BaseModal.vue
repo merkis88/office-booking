@@ -107,6 +107,7 @@
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
   }
 
   .modal-header {
@@ -115,6 +116,7 @@
     padding: 1.5rem 1rem;
     position: relative;
     justify-content: center;
+    min-height: 70px;
   }
 
   .modal-back {

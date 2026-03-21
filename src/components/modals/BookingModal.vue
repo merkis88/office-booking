@@ -1,7 +1,10 @@
 <script setup>
   import { ref, computed, watch } from 'vue';
   import axios from 'axios';
-  import StatusBadge from '@/components/StatusBadge.vue';
+  import { useAuthStore } from '@/store/auth';
+  import BaseModal from '@/components/modals/BaseModal.vue';
+
+  const authStore = useAuthStore();
 
   const props = defineProps({
     slots: Array,
@@ -11,6 +14,8 @@
   });
 
   const emit = defineEmits(['close', 'confirm', 'update:modelValue']);
+
+  const isConfirmScreen = computed(() => screen.value === 'confirm');
 
   const screen = ref('slots');
   const isLoading = ref(false);
@@ -22,6 +27,16 @@
   const sortedSlots = computed(() => {
     if (!props.slots) return [];
     return [...props.slots].sort((a, b) => a.start.localeCompare(b.start));
+  });
+
+  const timePoints = computed(() => {
+    if (!sortedSlots.value.length) return [];
+
+    const points = sortedSlots.value.map((s) => s.start);
+    const last = sortedSlots.value[sortedSlots.value.length - 1];
+    points.push(last.end);
+
+    return points;
   });
 
   function toggleSlot(index) {
@@ -57,6 +72,14 @@
     return index >= min && index <= max;
   }
 
+  const isValidRange = computed(() => {
+    return (
+      startIndex.value !== null &&
+      endIndex.value !== null &&
+      Math.abs(endIndex.value - startIndex.value) >= 1
+    );
+  });
+
   const selectedSlots = computed(() => {
     if (startIndex.value === null) return [];
 
@@ -70,46 +93,41 @@
     return sortedSlots.value.slice(min, max + 1);
   });
 
-  const selectedStart = computed(() => selectedSlots.value[0]);
-
-  const selectedEnd = computed(() => {
-    return selectedSlots.value[selectedSlots.value.length - 1];
-  });
-
-  function addOneHour(time) {
-    const [h, m] = time.split(':');
-    const hour = String(Number(h) + 1).padStart(2, '0');
-    return `${hour}:${m}`;
-  }
-
   const bookingTime = computed(() => {
-    if (!selectedStart.value) return '';
+    if (!isValidRange.value) return '';
 
-    const start = selectedStart.value.start;
-    const end = addOneHour(selectedEnd.value.start);
+    const min = Math.min(startIndex.value, endIndex.value);
+    const max = Math.max(startIndex.value, endIndex.value);
 
-    return `${start} - ${end}`;
+    return `${timePoints.value[min]} - ${timePoints.value[max]}`;
   });
 
   const formattedDate = computed(() => {
     if (!props.date) return '';
 
-    const d = new Date(props.date);
-
-    return d.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+    return new Date(props.date).toLocaleDateString('ru-RU');
   });
 
   function formatDateTime(date, time) {
     // date = 'YYYY-MM-DD' (от flatpickr), time = 'HH:MM'
     const [h, m] = time.split(':');
-    const hour = String(h).padStart(2, '0');
-    const min = String(m).padStart(2, '0');
+    //const hour = String(h).padStart(2, '0');
+    //const min = String(m).padStart(2, '0');
 
-    return `${date}T${hour}:${min}:00+00:00`;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hour = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+
+    const offset = -d.getTimezoneOffset();
+    const sign = offset >= 0 ? '+' : '-';
+    const absOffset = Math.abs(offset);
+    const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, '0');
+    const offsetMinutes = String(absOffset % 60).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hour}:${min}:00${sign}${offsetHours}:${offsetMinutes}`;
+    //return `${date}T${hour}:${min}:00+00:00`;
   }
 
   async function confirmBooking() {
@@ -117,8 +135,11 @@
 
     isLoading.value = true;
 
-    const startTime = formatDateTime(props.date, selectedStart.value.start);
-    const endTime = formatDateTime(props.date, addOneHour(selectedEnd.value.start));
+    const min = Math.min(startIndex.value, endIndex.value);
+    const max = Math.max(startIndex.value, endIndex.value);
+
+    const startTime = formatDateTime(props.date, timePoints.value[min]);
+    const endTime = formatDateTime(props.date, timePoints.value[max]);
 
     const body = {
       place_id: props.place.id,
@@ -136,11 +157,15 @@
       console.error(error);
 
       if (error.response?.status === 422) {
-        errorMessage.value = error.response.data.message || 'Выбранный слот уже занят. Пожалуйста, выберите другое время.';
+        errorMessage.value =
+          error.response.data.message ||
+          'Выбранный слот уже занят. Пожалуйста, выберите другое время.';
         screen.value = 'slots';
       } else {
-        errorMessage.value = error.response?.data?.message || 'Не удалось создать бронирование. Повторите попытку.';
+        errorMessage.value =
+          error.response?.data?.message || 'Не удалось создать бронирование. Повторите попытку.';
       }
+      alert(error.response?.data?.message || 'Ошибка бронирования');
     } finally {
       isLoading.value = false;
     }
@@ -156,10 +181,22 @@
     screen.value = 'slots';
   }
 
-  function closeModal() {
-    emit('confirm');
-    emit('update:modelValue', false);
+  function handleBack() {
+    if (isConfirmScreen.value) {
+      backToSlots();
+    } else {
+      closeModal();
+    }
   }
+
+  function closeModal() {
+    emit('update:modelValue', false);
+    emit('close');
+  }
+
+  const columnsCount = computed(() => {
+    return Math.min(timePoints.value.length, 5);
+  });
 
   watch(
     () => props.modelValue,
@@ -175,39 +212,38 @@
 </script>
 
 <template>
-  <div v-if="modelValue" class="booking-modal">
-    <div class="booking-modal__box">
-      <template v-if="screen === 'slots'">
-        <button class="booking-modal__back" @click="emit('update:modelValue', false)">
-          <img src="@/assets/images/icons/arrow-left.svg" alt="" />
-        </button>
+  <BaseModal
+    :model-value="modelValue"
+    @update:model-value="$emit('update:modelValue', $event)"
+    :title="screen === 'confirm' ? 'Подтверждение' : 'Выберите время'"
+    max-width="520px"
+    :show-close-button="false"
+    :close-on-backdrop="true"
+    @close="closeModal"
+  >
+    <button class="booking-modal__back" @click="handleBack">
+      <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
+    </button>
 
-        <div class="booking-modal__slots">
+    <div class="booking-modal__content">
+      <div v-if="screen === 'slots'">
+        <div
+          class="booking-modal__slots"
+          :style="{ gridTemplateColumns: `repeat(${columnsCount}, auto)` }"
+        >
           <button
-            v-for="(slot, index) in sortedSlots"
-            :key="slot.start"
+            v-for="(time, index) in timePoints"
+            :key="time"
             class="booking-modal__slot"
             :class="{ active: isSelected(index) }"
             @click="toggleSlot(index)"
           >
-            {{ slot.start }}
+            {{ time }}
           </button>
         </div>
+      </div>
 
-        <p v-if="errorMessage" class="booking-modal__error">{{ errorMessage }}</p>
-
-        <button
-          class="booking-modal__confirm"
-          :disabled="!selectedSlots.length"
-          @click="goToConfirm"
-        >
-          Забронировать
-        </button>
-      </template>
-
-      <template v-else-if="screen === 'confirm'">
-        <h2 class="booking-modal__title">Подтверждение</h2>
-
+      <div v-else class="booking-modal__confirm-screen">
         <p class="booking-modal__subtitle">Проверьте правильность данных</p>
 
         <p class="booking-modal__info">{{ formattedDate }}, {{ bookingTime }}</p>
@@ -217,194 +253,127 @@
         </p>
 
         <p class="booking-modal__info">Вместимость: {{ place?.capacity }}</p>
-
-        <p v-if="errorMessage" class="booking-modal__error">{{ errorMessage }}</p>
-
-        <div class="booking-modal__actions">
-          <button class="booking-modal__btn" :disabled="isLoading" @click="confirmBooking">
-            {{ isLoading ? 'Бронирование...' : 'Подтвердить' }}
-          </button>
-
-          <button class="booking-modal__btn" :disabled="isLoading" @click="backToSlots">
-            Отмена
-          </button>
-        </div>
-      </template>
-
-      <template v-else-if="screen === 'success'">
-        <h2 class="booking-modal__title">Бронирование создано</h2>
-
-        <p class="booking-modal__info">{{ place?.name }}</p>
-
-        <p class="booking-modal__info">{{ formattedDate }}, {{ bookingTime }}</p>
-
-        <div class="booking-modal__status">
-          <StatusBadge status="pending" />
-        </div>
-
-        <div class="booking-modal__actions">
-          <button class="booking-modal__btn" @click="closeModal">
-            Закрыть
-          </button>
-        </div>
-      </template>
+      </div>
     </div>
-  </div>
+
+    <template #footer>
+      <div v-if="screen === 'slots'">
+        <button class="booking-modal__confirm" :disabled="!isValidRange" @click="goToConfirm">
+          Забронировать
+        </button>
+      </div>
+
+      <div v-else class="booking-modal__actions">
+        <button class="booking-modal__btn" :disabled="isLoading" @click="confirmBooking">
+          {{ isLoading ? 'Бронирование...' : 'Подтвердить' }}
+        </button>
+      </div>
+    </template>
+  </BaseModal>
 </template>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
+  @use '@/assets/styles/variables' as *;
+
   .booking-modal {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.25);
-    z-index: 1000;
-
-    &__box {
-      background: #c3ced7;
-      border-radius: 24px;
-      border: 2px solid #6b7d8c;
-      padding: 28px 32px;
-      width: 520px;
-      max-width: 90vw;
-    }
-
-    &__back {
-      background: none;
-      border: none;
-      padding: 0;
-      cursor: pointer;
-
-      img {
-        width: 36px;
-        height: 36px;
-        display: block;
-      }
-    }
-
     &__slots {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 16px 24px;
-      margin-bottom: 28px;
+      gap: 12px;
+      justify-content: center;
     }
 
     &__slot {
-      font-size: 22px;
-      border: none;
-      background: transparent;
+      font-size: $text-xl;
+      background: $color-input-bg;
       cursor: pointer;
-      padding: 6px 0;
-      border-radius: 6px;
-      transition: 0.15s;
+      padding: 8px;
+      border-radius: $radius-sm;
+      transition: 0.2s;
 
       &:hover {
-        background: rgba(0, 0, 0, 0.08);
+        background: $color-input-bg-dark;
       }
 
       &.active {
-        background: #8ea3b5;
+        background: $color-header-bg;
+        font-weight: 500;
       }
     }
 
     &__confirm {
-      display: block;
-      margin: auto;
-      padding: 10px 28px;
-      font-size: 20px;
-      border-radius: 8px;
-      border: 2px solid #333;
+      font-size: $text-base;
+      padding: 10px 24px;
+      border-radius: $radius-sm;
+      border: 1px solid $color-border;
+      background: $color-input-bg;
       cursor: pointer;
-      background: transparent;
-      transition: 0.15s;
-
-      &:hover {
-        background: #8ea3b5;
-        color: white;
-      }
-    }
-  }
-
-  .booking-modal {
-    animation: fadeIn 0.2s ease;
-
-    &__box {
-      animation: scaleIn 0.2s ease;
     }
 
-    &__title {
-      font-size: 32px;
+    &__confirm-screen {
       text-align: center;
-      margin-bottom: 16px;
     }
 
     &__subtitle {
-      text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 1rem;
     }
 
     &__info {
-      text-align: center;
-      font-size: 20px;
-      margin-bottom: 12px;
+      margin-bottom: 0.5rem;
     }
 
     &__actions {
       display: flex;
+      gap: 1rem;
+    }
+
+    &__content {
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
       justify-content: center;
-      gap: 40px;
-      margin-top: 30px;
+    }
+
+    &__back {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+
+      width: 2.5rem;
+      height: 2.5rem;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: $radius-sm;
+      border: 1px solid $color-border;
+      background: $color-input-bg;
+
+      cursor: pointer;
+      transition: 0.2s;
+
+      &:hover {
+        background: $color-input-bg-dark;
+        transform: translateY(-2px);
+      }
+
+      img {
+        width: 1.2rem;
+        height: 1.2rem;
+      }
     }
 
     &__btn {
-      padding: 12px 30px;
-      border: 1px solid black;
-      border-radius: 10px;
-      background: none;
+      font-size: $text-base;
+      padding: 10px 20px;
+      border-radius: $radius-sm;
+      border: 1px solid $color-border;
+      background: $color-input-bg;
       cursor: pointer;
-    }
 
-    &__btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    &__error {
-      text-align: center;
-      color: #991b1b;
-      background: #fee2e2;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      margin-top: 12px;
-    }
-
-    &__status {
-      display: flex;
-      justify-content: center;
-      margin-top: 16px;
-    }
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes scaleIn {
-    from {
-      transform: scale(0.9);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
+      &:disabled {
+        opacity: 0.6;
+      }
     }
   }
 </style>
