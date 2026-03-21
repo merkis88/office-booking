@@ -9,7 +9,20 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  publicDir: false,
+  server: {
+    watch: {
+      usePolling: true,
+    },
+  },
   build: {
-    outDir: 'public/dist',
+    watch: {
+      chokidar: {
+        usePolling: true,
+      },
+    },
+    outDir: 'public',
+    assetsDir: 'dist',
+    emptyOutDir: false,
   },
 });

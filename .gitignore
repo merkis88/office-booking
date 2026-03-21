@@ -15,7 +15,8 @@ auth.json
 
 # Node / Vue
 node_modules
-dist
+/public/dist
+/public/index.html
 dist-ssr
 *.local
 logs

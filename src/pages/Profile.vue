@@ -5,25 +5,27 @@
   import { useServicesStore } from '@/store/services';
   import { storeToRefs } from 'pinia';
   import { useRouter } from 'vue-router';
-  import QRCode from 'qrcode';
   import ServiceRequestCard from '@/components/ServiceRequestCard.vue';
+  import PassCard from '@/components/PassCard.vue';
+  import StatusBadge from '@/components/StatusBadge.vue';
+  import BookingDetailsModal from '@/components/modals/BookingDetailsModal.vue';
+  import BookingFilters from '@/components/BookingFilters.vue';
+  import CancelBookingModal from '@/components/modals/CancelBookingModal.vue';
+  import RescheduleBookingModal from '@/components/modals/RescheduleBookingModal.vue';
+  import ExtendBookingModal from '@/components/modals/ExtendBookingModal.vue';
+  import DeleteAccountModal from '@/components/modals/DeleteAccountModal.vue';
+  import PlaceCard from '@/components/PlaceCard.vue';
+  import { useFavoritesStore } from '@/store/favorites';
+
+  const authStore = useAuthStore();
+  const bookingsStore = useBookingsStore();
+  const servicesStore = useServicesStore();
+  const favoritesStore = useFavoritesStore();
+  const router = useRouter();
 
   onMounted(() => {
     bookingsStore.fetchMyBookings();
   });
-
-  onMounted(async () => {
-    const res = await fetch('/api/qr-data');
-    const data = await res.json();
-
-    qr.value = await QRCode.toDataURL(data.qrString);
-  });
-
-  const qrImages = ref([]);
-  const authStore = useAuthStore();
-  const bookingsStore = useBookingsStore();
-  const servicesStore = useServicesStore();
-  const router = useRouter();
   const { user } = storeToRefs(authStore);
   const {
     services,
@@ -41,9 +43,13 @@
     last_name: '',
     patronymic: '',
     email: '',
+    phone: '',
     post: '',
     company: '',
   });
+
+  const saveError = ref('');
+  const isSaving = ref(false);
 
   const totalPages = computed(() => lastPage.value);
 
@@ -74,10 +80,12 @@
       }
     }
 
-    await fetchQrs();
   });
 
   watch(activeTab, (newTab) => {
+    if (newTab === 1) {
+      favoritesStore.fetchFavorites();
+    }
     if (newTab === 3) {
       loadServices();
     }
@@ -93,44 +101,113 @@
     { immediate: true },
   );
 
-  const fetchQrs = async () => {
-    try {
-      const res = await fetch('/api/profile/qrs', {
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-          Accept: 'application/json',
-        },
-      });
+  const showDeleteModal = ref(false);
 
-      if (!res.ok) {
-        throw new Error('Ошибка загрузки QR');
-      }
+  const selectedBooking = ref(null);
+  const showGuestQrModal = ref(false);
+  const showIssueQrModal = ref(false);
 
-      const data = await res.json();
+  const selectedBookingId = ref(null);
+  const showBookingDetails = ref(false);
 
-      const images = await Promise.all(data.data.map((qrString) => QRCode.toDataURL(qrString)));
+  function openBookingDetails(bookingId) {
+    selectedBookingId.value = bookingId;
+    showBookingDetails.value = true;
+  }
 
-      qrImages.value = images;
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  const cancelBookingData = ref(null);
+  const showCancelModal = ref(false);
+
+  function handleBookingCancel(booking) {
+    cancelBookingData.value = booking;
+    showCancelModal.value = true;
+  }
+
+  function onBookingCancelled() {
+    showCancelModal.value = false;
+    showBookingDetails.value = false;
+    bookingsStore.fetchMyBookings();
+  }
+
+  const rescheduleBookingData = ref(null);
+  const showRescheduleModal = ref(false);
+
+  function handleBookingReschedule(booking) {
+    rescheduleBookingData.value = booking;
+    showRescheduleModal.value = true;
+  }
+
+  function onBookingRescheduled() {
+    showRescheduleModal.value = false;
+    showBookingDetails.value = false;
+    bookingsStore.fetchMyBookings();
+  }
+
+  const extendBookingData = ref(null);
+  const showExtendModal = ref(false);
+
+  function handleBookingExtend(booking) {
+    extendBookingData.value = booking;
+    showExtendModal.value = true;
+  }
+
+  function onBookingExtended() {
+    showExtendModal.value = false;
+    showBookingDetails.value = false;
+    bookingsStore.fetchMyBookings();
+  }
+
+  const activeBookings = computed(() =>
+    bookingsStore.bookings.filter(b => b.status !== 'rejected')
+  );
+
+  function applyFilters(newFilters) {
+    Object.entries(newFilters).forEach(([key, value]) => {
+      bookingsStore.filters[key] = value;
+    });
+    bookingsStore.currentPage = 1;
+    bookingsStore.fetchMyBookings();
+  }
+
+  function openGuestQrModal(booking) {
+    selectedBooking.value = booking;
+    showGuestQrModal.value = true;
+  }
+
+  function openIssueQrModal(booking) {
+    selectedBooking.value = booking;
+    showIssueQrModal.value = true;
+  }
 
   const handleSave = async () => {
+    saveError.value = '';
+    isSaving.value = true;
+
     try {
-      console.log('Отправка данных:', editableUser.value);
-
-      user.value = { ...editableUser.value };
-
+      await authStore.updateProfile({
+        first_name: editableUser.value.first_name,
+        last_name: editableUser.value.last_name,
+        patronymic: editableUser.value.patronymic || null,
+        email: editableUser.value.email,
+      });
       isEditing.value = false;
-    } catch (e) {
-      console.error('Ошибка сохранения', e);
+    } catch (error) {
+      if (error.response?.status === 422) {
+        const errors = error.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        saveError.value = Array.isArray(firstError) ? firstError[0] : firstError;
+      } else {
+        saveError.value = 'Не удалось сохранить изменения. Повторите попытку.';
+      }
+    } finally {
+      isSaving.value = false;
     }
   };
 
   const handleCancel = () => {
     editableUser.value = { ...user.value };
     isEditing.value = false;
+    saveError.value = '';
   };
 
   const formatDate = (date) => {
@@ -150,7 +227,7 @@
     <div v-if="user" class="profile__container">
       <div class="profile__photo-section">
         <div class="profile__photo-wrapper">
-          <img src="/avatar.png" alt="Фото профиля" class="profile__photo" />
+          <img src="@/assets/images/photos/avatar.png" alt="Фото профиля" class="profile__photo" />
         </div>
       </div>
 
@@ -191,7 +268,15 @@
               </div>
 
               <div class="profile__field">
-                <input v-model="editableUser.post" class="profile__input" placeholder="Должность" />
+                <input
+                  v-model="editableUser.phone"
+                  class="profile__input"
+                  placeholder="Телефон"
+                />
+              </div>
+
+              <div class="profile__field">
+                <input v-model="editableUser.post" class="profile__input" placeholder="Должность" readonly />
               </div>
 
               <div class="profile__field">
@@ -199,48 +284,53 @@
                   v-model="editableUser.company"
                   class="profile__input"
                   placeholder="Компания"
+                  readonly
                 />
               </div>
             </div>
           </div>
         </div>
 
+        <p v-if="saveError" class="profile__error">{{ saveError }}</p>
+
         <div class="profile__actions">
-          <button class="profile__btn" @click="handleSave">Сохранить</button>
+          <button
+            class="profile__btn"
+            :disabled="isSaving"
+            @click="handleSave"
+          >
+            {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
+          </button>
 
           <button class="profile__btn" @click="handleCancel">Не сохранять</button>
         </div>
 
         <div class="profile__pass-section">
-          <h2 class="profile__section-title">Пропуск</h2>
+          <h2 class="profile__section-title">Пропуска</h2>
 
-          <div class="profile__pass-wrapper">
-            <div class="profile__pass-card">
-              <div class="profile__qr">
-                <img
-                  v-for="(qr, index) in qrImages"
-                  :key="index"
-                  :src="qr"
-                  class="profile__qr-image"
-                  alt="QR-код"
-                />
-              </div>
+          <div v-if="!activeBookings.length" class="profile__pass-empty">
+            У вас нет активных аренд — QR-пропуск не требуется
+          </div>
 
-              <div class="profile__pass-info">
-                <h3 class="profile__pass-title">Пропуск для сотрудника</h3>
-                <p class="profile__pass-detail">Парковочное место №18</p>
-                <p class="profile__pass-detail profile__pass-detail--expiry">
-                  Ваш qr-код действует до 27.02.2026
-                </p>
-              </div>
-            </div>
+          <PassCard
+            v-for="booking in activeBookings"
+            :key="booking.id"
+            :booking="booking"
+            @invite-guest="openGuestQrModal(booking)"
+            @invite-employee="openIssueQrModal(booking)"
+          />
 
-            <div class="profile__pass-actions">
-              <button class="profile__btn profile__btn--action">Добавить парковку</button>
-              <router-link to="/update-password" class="profile__btn profile__btn--action">
-                Сменить пароль
-              </router-link>
-            </div>
+          <div class="profile__pass-actions">
+            <router-link to="/update-password" class="profile__btn profile__btn--action">
+              Сменить пароль
+            </router-link>
+
+            <button
+              class="profile__btn profile__btn--danger"
+              @click="showDeleteModal = true"
+            >
+              Удалить аккаунт
+            </button>
           </div>
         </div>
 
@@ -277,13 +367,19 @@
           </div>
 
           <div v-if="activeTab === 0" class="profile__bottom-content">
+            <BookingFilters
+              :filters="bookingsStore.filters"
+              @update:filters="applyFilters"
+            />
+
             <div v-if="bookingsStore.isLoading">Загрузка...</div>
 
             <div
               v-else
               v-for="booking in bookingsStore.bookings"
               :key="booking.id"
-              class="profile__booking-card"
+              class="profile__booking-card profile__booking-card--clickable"
+              @click="openBookingDetails(booking.id)"
             >
               <div class="profile__booking-info">
                 <h3>
@@ -297,7 +393,7 @@
 
                 <p>Вместимость: {{ booking.place.capacity }} человек</p>
 
-                <p>Статус: {{ booking.status }}</p>
+                <StatusBadge :status="booking.status" />
               </div>
             </div>
 
@@ -314,8 +410,23 @@
           </div>
 
           <div v-if="activeTab === 1" class="profile__bottom-content">
-            <div class="profile__placeholder-card">
-              <p>Избранное</p>
+            <div v-if="favoritesStore.isLoading" class="profile__loading">
+              Загрузка...
+            </div>
+
+            <div v-else-if="!favoritesStore.favorites.length" class="profile__placeholder-card">
+              <p>У вас нет избранных помещений</p>
+              <p class="profile__empty-hint">
+                Добавляйте помещения в избранное, нажимая на сердечко на карточке
+              </p>
+            </div>
+
+            <div v-else class="profile__favorites-grid">
+              <PlaceCard
+                v-for="place in favoritesStore.favorites"
+                :key="place.id"
+                :place="place"
+              />
             </div>
           </div>
 
@@ -348,7 +459,7 @@
                 :disabled="currentPage === 1"
                 @click="goToPage(currentPage - 1)"
               >
-                <img src="/arrow-left.svg" alt="Назад" />
+                <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
               </button>
 
               <button
@@ -366,13 +477,41 @@
                 :disabled="currentPage === totalPages"
                 @click="goToPage(currentPage + 1)"
               >
-                <img src="/arrow-right.svg" alt="Вперед" />
+                <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
               </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <BookingDetailsModal
+      v-model="showBookingDetails"
+      :booking-id="selectedBookingId"
+      @cancel="handleBookingCancel"
+      @reschedule="handleBookingReschedule"
+      @extend="handleBookingExtend"
+    />
+
+    <CancelBookingModal
+      v-model="showCancelModal"
+      :booking="cancelBookingData"
+      @cancelled="onBookingCancelled"
+    />
+
+    <RescheduleBookingModal
+      v-model="showRescheduleModal"
+      :booking="rescheduleBookingData"
+      @rescheduled="onBookingRescheduled"
+    />
+
+    <ExtendBookingModal
+      v-model="showExtendModal"
+      :booking="extendBookingData"
+      @extended="onBookingExtended"
+    />
+
+    <DeleteAccountModal v-model="showDeleteModal" />
   </div>
 </template>
 
@@ -468,6 +607,18 @@
       &:focus {
         background: $color-input-bg-dark;
       }
+
+      &[readonly] {
+        opacity: 0.6;
+        cursor: default;
+      }
+    }
+
+    &__error {
+      color: #c0392b;
+      font-size: $text-base;
+      text-align: center;
+      margin-top: 0.5rem;
     }
 
     &__actions {
@@ -520,10 +671,26 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
       }
 
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
       &--action {
         padding: 0.75rem 0.5rem;
         text-align: center;
         width: 70%;
+      }
+
+      &--danger {
+        color: #991b1b;
+        border-color: #991b1b;
+
+        &:hover {
+          background: #fee2e2;
+        }
       }
     }
 
@@ -531,72 +698,21 @@
       margin-top: 2rem;
     }
 
-    &__pass-wrapper {
-      display: flex;
-      gap: 2rem;
-      align-items: center;
-    }
-
-    &__pass-card {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 2rem;
+    &__pass-empty {
       padding: 2rem;
+      text-align: center;
+      color: rgba($color-text, 0.6);
+      font-size: $text-lg;
       background: $color-card-bg;
       border: 1px solid $color-border;
       border-radius: $radius-lg;
-    }
-
-    &__qr {
-      flex-shrink: 0;
-      width: 8rem;
-      height: 8rem;
-      background: white;
-      border: 2px solid $color-border;
-      border-radius: $radius-sm;
-      padding: 0.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    &__qr-image {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    &__pass-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    &__pass-title {
-      font-size: $text-lg;
-      font-weight: 600;
-      color: $color-text;
-      margin-bottom: 0.25rem;
-    }
-
-    &__pass-detail {
-      font-size: $text-base;
-      color: $color-text;
-      line-height: 1.5;
-
-      &--expiry {
-        font-size: $text-sm;
-        opacity: 0.8;
-      }
+      margin-bottom: 1.5rem;
     }
 
     &__pass-actions {
       display: flex;
-      flex-direction: column;
       gap: 1rem;
-      min-width: 20rem;
+      margin-top: 1rem;
     }
 
     &__bottom {
@@ -645,6 +761,27 @@
       text-align: center;
     }
 
+    &__empty-hint {
+      margin-top: 0.5rem;
+      color: rgba($color-text, 0.5);
+      font-size: $text-sm;
+    }
+
+    &__loading {
+      padding: 3rem;
+      text-align: center;
+      color: rgba($color-text, 0.6);
+      font-size: $text-lg;
+    }
+
+    &__favorites-grid {
+      width: 100%;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 2rem;
+    }
+
     &__booking-card {
       width: 60%;
       padding: 1.5rem;
@@ -652,6 +789,21 @@
       background: $color-card-bg;
       border-radius: $radius-lg;
       border: 1px solid $color-border;
+
+      &--clickable {
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          transform: translateY(-2px);
+        }
+
+        &:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+      }
     }
 
     &__booking-info {
@@ -771,14 +923,6 @@
         width: 100%;
       }
 
-      &__pass-wrapper {
-        flex-direction: column;
-      }
-
-      &__pass-actions {
-        min-width: 100%;
-      }
-
       &__services-grid {
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       }
@@ -795,19 +939,6 @@
         &--action {
           width: 100%;
         }
-      }
-
-      &__pass-card {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      &__pass-wrapper {
-        flex-direction: column;
-      }
-
-      &__pass-actions {
-        width: 100%;
       }
 
       &__services-grid {

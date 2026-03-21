@@ -1,9 +1,7 @@
 <script setup>
   import { ref, computed, watch } from 'vue';
   import axios from 'axios';
-  import { useAuthStore } from '@/store/auth';
-
-  const authStore = useAuthStore();
+  import StatusBadge from '@/components/StatusBadge.vue';
 
   const props = defineProps({
     slots: Array,
@@ -16,6 +14,7 @@
 
   const screen = ref('slots');
   const isLoading = ref(false);
+  const errorMessage = ref('');
 
   const startIndex = ref(null);
   const endIndex = ref(null);
@@ -105,20 +104,12 @@
   });
 
   function formatDateTime(date, time) {
+    // date = 'YYYY-MM-DD' (от flatpickr), time = 'HH:MM'
     const [h, m] = time.split(':');
+    const hour = String(h).padStart(2, '0');
+    const min = String(m).padStart(2, '0');
 
-    const d = new Date(date);
-    d.setHours(Number(h));
-    d.setMinutes(Number(m));
-    d.setSeconds(0);
-
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hour = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-
-    return `${year}-${month}-${day}T${hour}:${min}:00+00:00`;
+    return `${date}T${hour}:${min}:00+00:00`;
   }
 
   async function confirmBooking() {
@@ -134,21 +125,21 @@
       start_time: startTime,
       end_time: endTime,
       pass_type: 'qr',
-      user_id: authStore.user?.id,
     };
 
     try {
       const { data } = await axios.post('/api/bookings', body);
 
-      emit('confirm', data.data);
-      emit('update:modelValue', false);
+      screen.value = 'success';
+      errorMessage.value = '';
     } catch (error) {
       console.error(error);
 
-      if (error.response?.data?.message) {
-        alert(error.response.data.message);
+      if (error.response?.status === 422) {
+        errorMessage.value = error.response.data.message || 'Выбранный слот уже занят. Пожалуйста, выберите другое время.';
+        screen.value = 'slots';
       } else {
-        alert('Ошибка бронирования');
+        errorMessage.value = error.response?.data?.message || 'Не удалось создать бронирование. Повторите попытку.';
       }
     } finally {
       isLoading.value = false;
@@ -161,7 +152,13 @@
   }
 
   function backToSlots() {
+    errorMessage.value = '';
     screen.value = 'slots';
+  }
+
+  function closeModal() {
+    emit('confirm');
+    emit('update:modelValue', false);
   }
 
   watch(
@@ -171,6 +168,7 @@
         startIndex.value = null;
         endIndex.value = null;
         screen.value = 'slots';
+        errorMessage.value = '';
       }
     },
   );
@@ -181,7 +179,7 @@
     <div class="booking-modal__box">
       <template v-if="screen === 'slots'">
         <button class="booking-modal__back" @click="emit('update:modelValue', false)">
-          <img src="/arrow-left.svg" alt="" />
+          <img src="@/assets/images/icons/arrow-left.svg" alt="" />
         </button>
 
         <div class="booking-modal__slots">
@@ -196,6 +194,8 @@
           </button>
         </div>
 
+        <p v-if="errorMessage" class="booking-modal__error">{{ errorMessage }}</p>
+
         <button
           class="booking-modal__confirm"
           :disabled="!selectedSlots.length"
@@ -205,7 +205,7 @@
         </button>
       </template>
 
-      <template v-else>
+      <template v-else-if="screen === 'confirm'">
         <h2 class="booking-modal__title">Подтверждение</h2>
 
         <p class="booking-modal__subtitle">Проверьте правильность данных</p>
@@ -218,6 +218,8 @@
 
         <p class="booking-modal__info">Вместимость: {{ place?.capacity }}</p>
 
+        <p v-if="errorMessage" class="booking-modal__error">{{ errorMessage }}</p>
+
         <div class="booking-modal__actions">
           <button class="booking-modal__btn" :disabled="isLoading" @click="confirmBooking">
             {{ isLoading ? 'Бронирование...' : 'Подтвердить' }}
@@ -225,6 +227,24 @@
 
           <button class="booking-modal__btn" :disabled="isLoading" @click="backToSlots">
             Отмена
+          </button>
+        </div>
+      </template>
+
+      <template v-else-if="screen === 'success'">
+        <h2 class="booking-modal__title">Бронирование создано</h2>
+
+        <p class="booking-modal__info">{{ place?.name }}</p>
+
+        <p class="booking-modal__info">{{ formattedDate }}, {{ bookingTime }}</p>
+
+        <div class="booking-modal__status">
+          <StatusBadge status="pending" />
+        </div>
+
+        <div class="booking-modal__actions">
+          <button class="booking-modal__btn" @click="closeModal">
+            Закрыть
           </button>
         </div>
       </template>
@@ -349,6 +369,22 @@
     &__btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+    }
+
+    &__error {
+      text-align: center;
+      color: #991b1b;
+      background: #fee2e2;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+
+    &__status {
+      display: flex;
+      justify-content: center;
+      margin-top: 16px;
     }
   }
 

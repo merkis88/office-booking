@@ -1,5 +1,12 @@
 <script setup>
   import { computed, ref } from 'vue';
+  import { useAuthStore } from '@/store/auth';
+  import { useFavoritesStore } from '@/store/favorites';
+  import heartFilledUrl from '@/assets/images/icons/heart-filled.svg';
+  import heartEmptyUrl from '@/assets/images/icons/heart-empty.svg';
+
+  const authStore = useAuthStore();
+  const favoritesStore = useFavoritesStore();
 
   const props = defineProps({
     place: {
@@ -77,6 +84,21 @@
     };
     return types[props.place.type] || props.place.type;
   });
+
+  const isFav = computed(() => favoritesStore.isFavorite(props.place.id));
+  const isTogglingFav = ref(false);
+
+  async function toggleFavorite() {
+    if (isTogglingFav.value) return;
+    isTogglingFav.value = true;
+    try {
+      await favoritesStore.toggleFavorite(props.place.id);
+    } catch (error) {
+      // ошибка уже логируется в store
+    } finally {
+      isTogglingFav.value = false;
+    }
+  }
 </script>
 
 <template>
@@ -98,8 +120,16 @@
         <p class="place-card__capacity">Вместимость: {{ place.capacity }} человек</p>
       </div>
 
-      <button class="place-card__favorite" aria-label="Добавить в избранное">
-        <img src="/heart-empty.svg" alt="" />
+      <button
+        v-if="authStore.isAuthenticated"
+        class="place-card__favorite"
+        :class="{ 'place-card__favorite--active': isFav }"
+        :title="isFav ? 'Убрать из избранного' : 'Добавить в избранное'"
+        :disabled="isTogglingFav"
+        aria-label="Добавить в избранное"
+        @click.stop="toggleFavorite"
+      >
+        <img :src="isFav ? heartFilledUrl : heartEmptyUrl" alt="" />
       </button>
     </div>
 
@@ -110,7 +140,7 @@
         @click="prevSlots"
         :disabled="slotPage === 0"
       >
-        <img src="/arrow-left.svg" alt="&lt;" />
+        <img src="@/assets/images/icons/arrow-left.svg" alt="&lt;" />
       </button>
 
       <div class="place-card__slot-list">
@@ -134,7 +164,7 @@
         @click="nextSlots"
         :disabled="slotPage >= totalPages - 1"
       >
-        <img src="/arrow-right.svg" alt="&gt;" />
+        <img src="@/assets/images/icons/arrow-right.svg" alt="&gt;" />
       </button>
     </div>
   </div>
@@ -226,6 +256,15 @@
       img {
         width: 2.5rem;
         height: 2.5rem;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      &--active img {
+        filter: none;
       }
     }
 

@@ -32,7 +32,7 @@
     <div class="header__container">
       <router-link to="/">
         <div class="header__logo">
-          <img src="/logo.svg" alt="logo" />
+          <img src="@/assets/images/logo.svg" alt="logo" />
           <span>LOGOTYPE</span>
         </div>
       </router-link>

@@ -1,6 +1,1 @@
-#services:
-#  laravel.test:
-#    environment:
-#      COMPOSER_PROCESS_TIMEOUT: 600
-#    volumes:
-#      - "./vendor:/var/www/html/vendor:delegated"
+# dev overrides

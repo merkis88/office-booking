@@ -66,7 +66,7 @@
     <input ref="dateInput" type="text" class="date-picker__input" />
     <div class="date-picker__display" @click="openCalendar">
       <span class="date-picker__value">{{ formattedDate }}</span>
-      <img src="/arrow-square-down.svg" alt="" class="date-picker__icon" />
+      <img src="@/assets/images/icons/arrow-square-down.svg" alt="" class="date-picker__icon" />
     </div>
   </div>
 </template>

@@ -19,7 +19,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     gd \
     intl \
     bcmath \
-    pcntl
+    pcntl \
+    opcache
 
 # Composer
 COPY --from=composer:2.9.5 /usr/bin/composer /usr/bin/composer
@@ -28,8 +29,6 @@ COPY --from=composer:2.9.5 /usr/bin/composer /usr/bin/composer
 COPY php.ini /usr/local/etc/php/php.ini
 COPY php-fpm.conf /usr/local/etc/php-fpm.d/zz-custom.conf
 
-# Рабочая директория (должна совпадать с root в nginx)
 WORKDIR /app
 
-# Создать директории для php-fpm
-RUN mkdir -p /app/run /app/tmp
+EXPOSE 9000

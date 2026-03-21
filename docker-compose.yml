@@ -31,6 +31,7 @@ services:
       context: docker/php
     volumes:
       - .:/app
+      - sail-vendor:/app/vendor
     networks:
       - sail
     depends_on:
@@ -109,4 +110,6 @@ volumes:
   sail-mysql:
     driver: local
   sail-redis:
+    driver: local
+  sail-vendor:
     driver: local

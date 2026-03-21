@@ -30,7 +30,7 @@
   <main class="page-main">
     <section class="hero">
       <div class="hero__inner">
-        <img src="/skyscraper-main.png" alt="skyscraper" class="hero__image" />
+        <img src="@/assets/images/photos/skyscraper-main.png" alt="skyscraper" class="hero__image" />
         <div class="hero__content">
           <div class="hero__text-block">
             <h1 class="hero__title">Добро пожаловать в бизнес центр "Рабочая точка."</h1>
@@ -55,30 +55,30 @@
       <div class="about__container">
         <h2 class="about__title">Почему мы?</h2>
         <div class="about__body">
-          <img src="/working-main.png" alt="working" class="about__image" />
+          <img src="@/assets/images/photos/working-main.png" alt="working" class="about__image" />
           <ul class="about__list">
             <li class="about__item">
-              <img src="/flash.svg" alt="" />
+              <img src="@/assets/images/icons/flash.svg" alt="" />
               <p>
                 Всё под рукой — от быстрого Wi-Fi и современного оборудования до кофе и парковки.
               </p>
             </li>
             <li class="about__item">
-              <img src="/flash.svg" alt="" />
+              <img src="@/assets/images/icons/flash.svg" alt="" />
               <p>
                 Ни минуты впустую — бронируйте онлайн, приходите и сразу начинайте встречу. Всё уже
                 готово.
               </p>
             </li>
             <li class="about__item">
-              <img src="/flash.svg" alt="" />
+              <img src="@/assets/images/icons/flash.svg" alt="" />
               <p>
                 Тишина и порядок — никакого шума, хаоса или отвлекающих факторов. Только
                 продуктивность.
               </p>
             </li>
             <li class="about__item">
-              <img src="/flash.svg" alt="" />
+              <img src="@/assets/images/icons/flash.svg" alt="" />
               <p>
                 Люди, а не клиенты — мы ценим каждого, кто к нам приходит, и всегда рады помочь
                 лично.
@@ -125,7 +125,7 @@
               </div>
             </div>
           </div>
-          <img src="/man-main.png" alt="man" class="services__man" />
+          <img src="@/assets/images/photos/man-main.png" alt="man" class="services__man" />
         </div>
       </div>
     </section>
@@ -134,7 +134,7 @@
       <div class="location__container">
         <div class="location__info">
           <div class="location__text">
-            <img src="/routing-main.svg" alt="routing" />
+            <img src="@/assets/images/icons/routing-main.svg" alt="routing" />
             <p>
               Нас легко найти — и ещё легче приехать. Рядом — парковка, остановки общественного
               транспорта и всё, что нужно для комфортного визита. Посмотрите, как к нам добраться —

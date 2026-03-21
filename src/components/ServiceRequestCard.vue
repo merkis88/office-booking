@@ -136,7 +136,7 @@
         :disabled="isDownloading"
       >
         <div v-if="isDownloading" class="service-card__spinner"></div>
-        <img v-else src="/download.svg" alt="Скачать" />
+        <img v-else src="@/assets/images/icons/download.svg" alt="Скачать" />
       </button>
     </div>
   </div>

@@ -2,12 +2,24 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 
 export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    user: JSON.parse(localStorage.getItem('user')) || null,
-    token: localStorage.getItem('token') || null,
-    pendingVerificationEmail: null,
-    roleID: JSON.parse(localStorage.getItem('role_id')) || null,
-  }),
+  state: () => {
+    let user = null;
+    let roleID = null;
+    try {
+      const rawUser = localStorage.getItem('user');
+      if (rawUser && rawUser !== 'undefined') user = JSON.parse(rawUser);
+    } catch (e) { /* ignore */ }
+    try {
+      const rawRole = localStorage.getItem('role_id');
+      if (rawRole && rawRole !== 'undefined') roleID = JSON.parse(rawRole);
+    } catch (e) { /* ignore */ }
+    return {
+      user,
+      token: localStorage.getItem('token') || null,
+      pendingVerificationEmail: null,
+      roleID,
+    };
+  },
 
   getters: {
     isAuthenticated: (state) => !!state.token && !!state.user,
@@ -115,6 +127,13 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async updateProfile(profileData) {
+      const { data } = await axios.patch('/api/profile', profileData);
+      this.user = data.data || data;
+      localStorage.setItem('user', JSON.stringify(this.user));
+      return this.user;
+    },
+
     async changePassword(currentPassword, newPassword, passwordConfirmation) {
       try {
         const { data } = await axios.put('/api/user/password', {
@@ -129,21 +148,32 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    clearAuth() {
+      this.token = null;
+      this.user = null;
+      this.pendingVerificationEmail = null;
+
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
+      delete axios.defaults.headers.common['Authorization'];
+    },
+
     async logout() {
       try {
         await axios.post('/api/logout');
       } catch (e) {
         console.error('Ошибка при выходе:', e);
       } finally {
-        this.token = null;
-        this.user = null;
-        this.pendingVerificationEmail = null;
-
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-
-        delete axios.defaults.headers.common['Authorization'];
+        this.clearAuth();
       }
+    },
+
+    async deleteAccount(password) {
+      await axios.delete('/api/profile', {
+        data: { password },
+      });
+      this.clearAuth();
     },
   },
 });

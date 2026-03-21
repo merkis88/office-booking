@@ -16,6 +16,9 @@ export const useBookingsStore = defineStore('bookings', {
       to: null,
       sort: '-start_time',
     },
+    currentBooking: null,
+    bookingLoading: false,
+    bookingError: null,
   }),
 
   actions: {
@@ -55,6 +58,52 @@ export const useBookingsStore = defineStore('bookings', {
       this.filters[filterKey] = value;
       this.currentPage = 1;
       this.fetchMyBookings();
+    },
+
+    async cancelBooking(bookingId) {
+      const { data } = await axios.post(`/api/bookings/${bookingId}/cancel`);
+      const index = this.bookings.findIndex(b => b.id === bookingId);
+      if (index !== -1) {
+        this.bookings[index] = data.data;
+      }
+      return data.data;
+    },
+
+    async rescheduleBooking(bookingId, { start_time, end_time }) {
+      const { data } = await axios.post(`/api/bookings/${bookingId}/reschedule`, {
+        start_time,
+        end_time,
+      });
+      const index = this.bookings.findIndex(b => b.id === bookingId);
+      if (index !== -1) {
+        this.bookings[index] = data.data;
+      }
+      return data.data;
+    },
+
+    async extendBooking(bookingId, payload) {
+      const { data } = await axios.post(`/api/bookings/${bookingId}/extend`, payload);
+      const index = this.bookings.findIndex(b => b.id === bookingId);
+      if (index !== -1) {
+        this.bookings[index] = data.data;
+      }
+      return data.data;
+    },
+
+    async fetchBooking(id) {
+      this.bookingLoading = true;
+      this.bookingError = null;
+      this.currentBooking = null;
+
+      try {
+        const { data } = await axios.get(`/api/bookings/${id}`);
+        this.currentBooking = data.data;
+      } catch (error) {
+        this.bookingError =
+          error.response?.data?.message || 'Не удалось загрузить данные бронирования';
+      } finally {
+        this.bookingLoading = false;
+      }
     },
   },
 });
