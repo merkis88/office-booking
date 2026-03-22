@@ -1,10 +1,8 @@
 <script setup>
   import { ref, computed, watch } from 'vue';
   import axios from 'axios';
-  import { useAuthStore } from '@/store/auth';
   import BaseModal from '@/components/modals/BaseModal.vue';
-
-  const authStore = useAuthStore();
+  import { useRouter } from 'vue-router';
 
   const props = defineProps({
     slots: Array,
@@ -12,6 +10,8 @@
     date: String,
     modelValue: Boolean,
   });
+
+  const router = useRouter();
 
   const emit = defineEmits(['close', 'confirm', 'update:modelValue']);
 
@@ -111,23 +111,10 @@
   function formatDateTime(date, time) {
     // date = 'YYYY-MM-DD' (от flatpickr), time = 'HH:MM'
     const [h, m] = time.split(':');
-    //const hour = String(h).padStart(2, '0');
-    //const min = String(m).padStart(2, '0');
+    const hour = String(h).padStart(2, '0');
+    const min = String(m).padStart(2, '0');
 
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hour = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-
-    const offset = -d.getTimezoneOffset();
-    const sign = offset >= 0 ? '+' : '-';
-    const absOffset = Math.abs(offset);
-    const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, '0');
-    const offsetMinutes = String(absOffset % 60).padStart(2, '0');
-
-    return `${year}-${month}-${day}T${hour}:${min}:00${sign}${offsetHours}:${offsetMinutes}`;
-    //return `${date}T${hour}:${min}:00+00:00`;
+    return `${date}T${hour}:${min}:00+00:00`;
   }
 
   async function confirmBooking() {
@@ -151,7 +138,7 @@
     try {
       const { data } = await axios.post('/api/bookings', body);
 
-      screen.value = 'success';
+      await router.push('/profile');
       errorMessage.value = '';
     } catch (error) {
       console.error(error);
@@ -345,10 +332,6 @@
       align-items: center;
       justify-content: center;
 
-      border-radius: $radius-sm;
-      border: 1px solid $color-border;
-      background: $color-input-bg;
-
       cursor: pointer;
       transition: 0.2s;
 
@@ -358,8 +341,8 @@
       }
 
       img {
-        width: 1.2rem;
-        height: 1.2rem;
+        width: 100%;
+        height: 100%;
       }
     }
 
