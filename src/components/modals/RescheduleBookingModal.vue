@@ -194,8 +194,8 @@
     isSubmitting.value = true;
     errorMessage.value = '';
 
-    const start_time = `${bookingDate.value}T${newStartTime.value}:00+00:00`;
-    const end_time = `${bookingDate.value}T${newEndTime.value}:00+00:00`;
+    const start_time = `${bookingDate.value}T${newStartTime.value}:00`;
+    const end_time = `${bookingDate.value}T${newEndTime.value}:00`;
 
     try {
       await bookingsStore.rescheduleBooking(props.booking.id, {
