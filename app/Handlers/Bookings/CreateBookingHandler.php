@@ -48,7 +48,7 @@ final class CreateBookingHandler
             ]);
 
             if ($dto->passType === 'qr') {
-                $this->qrHandler->handle($booking, $user);
+                $this->qrHandler->createForSelf($booking, $user);
             }
 
             return $booking->load('place', 'user', 'creator', 'qrs');

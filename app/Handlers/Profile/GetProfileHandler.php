@@ -8,6 +8,7 @@ use App\Models\Qr;
 use App\Models\User;
 use App\Services\Qr\QrAvailabilityService;
 use App\Services\Qr\QrWindowService;
+use App\DTO\Qr\CreateUserQrDTO;
 
 final class GetProfileHandler
 {
@@ -55,7 +56,7 @@ final class GetProfileHandler
                     ->first();
 
                 if (!$qr) {
-                    $qr = $this->createUserQrHandler->handle(booking: $booking, user: $user, timeWindow: $currentWindow);
+                    $qr = $this->createUserQrHandler->handle($booking,  $user, $currentWindow);
                 }
 
                 $qrHash = $qr->hash;
