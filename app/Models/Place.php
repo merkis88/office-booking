@@ -33,6 +33,6 @@ class Place extends Model
 
     public function favoredByUsers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'favorite_places');
+        return $this->belongsToMany(User::class, 'favorite_places', 'place_id', 'user_id');
     }
 }

@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\Profile\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Place\FavoritePlaceListController;
 
 
 //восстановление пароля
@@ -72,10 +73,13 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
     Route::post('/qr/{booking}/issue-qr', [QrController::class, 'issueUserQr']); // merk
 
     //Places
+    Route::get('/places/favorites', [FavoritePlaceListController::class, 'getPlace']); // merk
     Route::get('/places', [PlaceController::class, 'index']);// Osip
     Route::get('/places/{place}', [PlaceController::class, 'show']);// Osip
     Route::post('/places/{place}/store-favorite', [PlaceFavoriteController::class, 'store']); // merk
     Route::delete('/places/{place}/remove-favorite', [PlaceFavoriteController::class, 'remove']); // merk
+
+
 
     //Notifications
     Route::prefix('notifications')->group(function () {

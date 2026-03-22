@@ -15,6 +15,8 @@ final class AddFavoritePlaceHandler
             'place_id' => $place->id
         ]);
 
+        $place->setAttribute('is_favorite', true);
+
         return $place;
 
     }
