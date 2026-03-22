@@ -99,7 +99,7 @@ class ProfileBookingItemModel {
       title: _mapTypeToTitle(placeType),
       room: room,
       capacity: 'Вместимость: $capacity человек',
-      priceLabel: price > 0 ? 'Стоимость: ${price}р' : '',
+      priceLabel: price > 0 ? 'Стоимость: $priceр' : '',
       timeSlots: <String>[_formatTimeRange(startTime, endTime)],
     );
   }

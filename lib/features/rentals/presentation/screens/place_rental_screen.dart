@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/app/navigation/app_tab_navigator.dart';
 import 'package:wordpice/core/network/api_client.dart';
+import 'package:wordpice/core/theme/app_colors.dart';
 import 'package:wordpice/core/widgets/layout/app_shell.dart';
 import 'package:wordpice/features/rentals/domain/entities/create_booking_params.dart';
+import 'package:wordpice/features/rentals/domain/entities/rental_place_details.dart';
 import 'package:wordpice/features/rentals/presentation/models/office_rental_item.dart';
 import 'package:wordpice/features/rentals/presentation/utils/rental_date_text_helper.dart';
 import 'package:wordpice/features/rentals/presentation/utils/rental_time_slots_helper.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/cards/office_rental_card.dart';
-import 'package:wordpice/features/rentals/presentation/widgets/modals/place_details_modal.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/sections/rental_filter_controls_section.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/states/rental_empty_rooms_state.dart';
+import 'package:wordpice/features/rentals/presentation/widgets/styles/rental_widget_styles.dart';
 
 class PlaceRentalScreen extends StatefulWidget {
   const PlaceRentalScreen({
@@ -39,6 +41,9 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
   String? _errorMessage;
   double _minPrice = 0;
   double _maxPrice = 0;
+  int? _expandedPlaceId;
+  int? _detailsLoadingPlaceId;
+  RentalPlaceDetails? _expandedDetails;
 
   void _onBottomChanged(int index) {
     AppTabNavigator.goToTab(context, index);
@@ -56,7 +61,12 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
     );
     if (picked == null) return;
 
-    setState(() => _selectedDate = picked);
+    setState(() {
+      _selectedDate = picked;
+      _expandedPlaceId = null;
+      _expandedDetails = null;
+      _detailsLoadingPlaceId = null;
+    });
     await _loadPlaces();
   }
 
@@ -110,6 +120,19 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
         minPrice: requestMinPrice,
         maxPrice: requestMaxPrice,
       );
+      Set<int> favoritePlaceIds = const <int>{};
+      try {
+        final favorites = await AppScope.of(
+          context,
+        ).profileRepository.getFavoritePlaces();
+        favoritePlaceIds = favorites
+            .map((item) => item.placeId)
+            .whereType<int>()
+            .toSet();
+      } catch (_) {
+        // Favorite flags should not block places loading.
+      }
+
       if (!mounted) return;
 
       final minPrice = result.minPrice.toDouble();
@@ -124,7 +147,13 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
           : _priceRange.end.clamp(minPrice, normalizedMax);
 
       setState(() {
-        _items = result.items;
+        _items = result.items
+            .map(
+              (item) => item.copyWith(
+                isFavorite: item.isFavorite || favoritePlaceIds.contains(item.id),
+              ),
+            )
+            .toList();
         _minPrice = minPrice;
         _maxPrice = normalizedMax;
         _priceRange = RangeValues(
@@ -214,6 +243,17 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
           placeId: item.id,
         );
       }
+      if (mounted) {
+        setState(() {
+          _items = _items
+              .map(
+                (currentItem) => currentItem.id == item.id
+                    ? currentItem.copyWith(isFavorite: nextValue)
+                    : currentItem,
+              )
+              .toList();
+        });
+      }
       return null;
     } on ApiConnectionException catch (error) {
       return error.message;
@@ -229,21 +269,48 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
     await _loadPlaces();
   }
 
-  Future<void> _showPlaceDetails(OfficeRentalItem item) async {
+  Future<void> _togglePlaceDetails(OfficeRentalItem item) async {
+    if (_expandedPlaceId == item.id) {
+      setState(() {
+        _expandedPlaceId = null;
+        _expandedDetails = null;
+        _detailsLoadingPlaceId = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _expandedPlaceId = item.id;
+      _expandedDetails = null;
+      _detailsLoadingPlaceId = item.id;
+    });
+
     try {
       final details = await AppScope.of(context).rentalsRepository.getPlaceDetails(
         placeId: item.id,
-        date: _selectedDateKey,
       );
       if (!mounted) return;
-      await PlaceDetailsModal.show(context, details: details);
+      setState(() {
+        _expandedDetails = details;
+        _detailsLoadingPlaceId = null;
+      });
     } on ApiConnectionException catch (error) {
       if (!mounted) return;
+      setState(() {
+        _expandedPlaceId = null;
+        _expandedDetails = null;
+        _detailsLoadingPlaceId = null;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error.message)),
       );
     } catch (_) {
       if (!mounted) return;
+      setState(() {
+        _expandedPlaceId = null;
+        _expandedDetails = null;
+        _detailsLoadingPlaceId = null;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Не удалось загрузить информацию о помещении.'),
@@ -320,19 +387,29 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
                             ),
                           ),
                         ),
-                        OfficeRentalCard(
-                          key: ValueKey('${item.id}_$_selectedDateKey'),
-                          item: item,
-                          dateText: _cardDateText,
-                          availableTimeSlots: item.availableTimeSlots,
-                          onBook: (timeRange) => _createBooking(item, timeRange),
-                          onBooked: (_, _) {},
-                          onFavoriteToggle: (nextValue) => _toggleFavorite(
+                        if (_expandedPlaceId == item.id)
+                          _InlinePlaceDetailsCard(
+                            title: _expandedDetails?.name ?? item.title,
+                            description: _detailsLoadingPlaceId == item.id
+                                ? null
+                                : (_expandedDetails?.description ?? ''),
+                            isLoading: _detailsLoadingPlaceId == item.id,
+                            onBack: () => _togglePlaceDetails(item),
+                          )
+                        else
+                          OfficeRentalCard(
+                            key: ValueKey('${item.id}_$_selectedDateKey'),
                             item: item,
-                            nextValue: nextValue,
+                            dateText: _cardDateText,
+                            availableTimeSlots: item.availableTimeSlots,
+                            onBook: (timeRange) => _createBooking(item, timeRange),
+                            onBooked: (_, _) {},
+                            onFavoriteToggle: (nextValue) => _toggleFavorite(
+                              item: item,
+                              nextValue: nextValue,
+                            ),
+                            onDetailsTap: () => _togglePlaceDetails(item),
                           ),
-                          onDetailsTap: () => _showPlaceDetails(item),
-                        ),
                       ],
                     ),
                   ),
@@ -342,6 +419,83 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _InlinePlaceDetailsCard extends StatelessWidget {
+  const _InlinePlaceDetailsCard({
+    required this.title,
+    required this.description,
+    required this.isLoading,
+    required this.onBack,
+  });
+
+  final String title;
+  final String? description;
+  final bool isLoading;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
+      decoration: RentalWidgetStyles.outlinedBox(
+        18,
+        color: AppColors.formSurface,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InkWell(
+                onTap: onBack,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: RentalWidgetStyles.outlinedBox(12),
+                  child: const Icon(Icons.chevron_left, size: 22),
+                ),
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 22),
+          if (isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else
+            Text(
+              description ?? '',
+              style: const TextStyle(
+                fontSize: 16,
+                height: 1.45,
+                color: Colors.black87,
+              ),
+            ),
+        ],
       ),
     );
   }

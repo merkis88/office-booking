@@ -2,6 +2,7 @@ import 'package:wordpice/features/requests/data/datasources/requests_data_source
 import 'package:wordpice/features/requests/domain/entities/create_request_params.dart';
 import 'package:wordpice/features/requests/domain/entities/create_request_result.dart';
 import 'package:wordpice/features/requests/domain/entities/request_booking_option.dart';
+import 'package:wordpice/features/requests/domain/entities/request_service_type.dart';
 import 'package:wordpice/features/requests/domain/repositories/requests_repository.dart';
 
 class RequestsRepositoryImpl implements RequestsRepository {
@@ -12,6 +13,11 @@ class RequestsRepositoryImpl implements RequestsRepository {
   @override
   Future<List<RequestBookingOption>> getMyBookings() {
     return _dataSource.getMyBookings();
+  }
+
+  @override
+  Future<List<RequestServiceType>> getServiceTypes() {
+    return _dataSource.getServiceTypes();
   }
 
   @override

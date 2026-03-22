@@ -63,6 +63,7 @@ class RentalPlaceItemModel {
     required this.availableTimeSlots,
     required this.price,
     required this.photoUrl,
+    required this.isFavorite,
   });
 
   final int id;
@@ -73,6 +74,7 @@ class RentalPlaceItemModel {
   final List<String> availableTimeSlots;
   final int price;
   final String? photoUrl;
+  final bool isFavorite;
 
   factory RentalPlaceItemModel.fromJson(Map<String, dynamic> json) {
     final typeName = (json['type_name'] as String?)?.trim();
@@ -102,6 +104,7 @@ class RentalPlaceItemModel {
       availableTimeSlots: RentalTimeSlotsHelper.mergeContinuousRanges(slots),
       price: parsedPrice,
       photoUrl: _buildPhotoUrl(rawPhotoUrl),
+      isFavorite: json['is_favorite'] == true,
     );
   }
 
@@ -115,6 +118,7 @@ class RentalPlaceItemModel {
       availableTimeSlots: availableTimeSlots,
       price: price,
       photoUrl: photoUrl,
+      isFavorite: isFavorite,
     );
   }
 

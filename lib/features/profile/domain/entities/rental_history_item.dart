@@ -4,6 +4,8 @@ class RentalHistoryItem {
     this.placeId,
     this.placeType,
     this.dateIso,
+    this.photoUrl,
+    this.isFavorite = false,
     required this.dateLabel,
     required this.title,
     required this.room,
@@ -16,6 +18,8 @@ class RentalHistoryItem {
   final int? placeId;
   final String? placeType;
   final String? dateIso;
+  final String? photoUrl;
+  final bool isFavorite;
   final String dateLabel;
   final String title;
   final String room;
@@ -28,6 +32,8 @@ class RentalHistoryItem {
     int? placeId,
     String? placeType,
     String? dateIso,
+    String? photoUrl,
+    bool? isFavorite,
     String? dateLabel,
     String? title,
     String? room,
@@ -40,6 +46,8 @@ class RentalHistoryItem {
       placeId: placeId ?? this.placeId,
       placeType: placeType ?? this.placeType,
       dateIso: dateIso ?? this.dateIso,
+      photoUrl: photoUrl ?? this.photoUrl,
+      isFavorite: isFavorite ?? this.isFavorite,
       dateLabel: dateLabel ?? this.dateLabel,
       title: title ?? this.title,
       room: room ?? this.room,

@@ -53,6 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _hasLoadedOnce = false;
   RegisteredUser? _user;
   ProfileRentalsOverview _rentalsOverview = _emptyOverview;
+  List<RentalHistoryItem> _favoriteRentals = const <RentalHistoryItem>[];
   List<ProfileRequestItem> _requests = const <ProfileRequestItem>[];
   final Set<int> _cancelingBookingIds = <int>{};
   final Set<int> _downloadingRequestIds = <int>{};
@@ -84,6 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     RegisteredUser? freshUser;
     ProfileRentalsOverview? rentalsOverview;
+    List<RentalHistoryItem>? favoriteRentals;
     List<ProfileRequestItem>? requests;
 
     try {
@@ -100,6 +102,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     try {
+      favoriteRentals = await dependencies.profileRepository.getFavoritePlaces();
+    } catch (_) {
+      // Favorites should not block the rest of the profile.
+    }
+
+    try {
       requests = await dependencies.profileRepository.getRequests();
     } catch (_) {
       // Requests should not block rendering profile or rentals.
@@ -112,6 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _user = freshUser ?? _user;
       _rentalsOverview = rentalsOverview ?? _rentalsOverview;
+      _favoriteRentals = favoriteRentals ?? _favoriteRentals;
       _requests = requests ?? _requests;
       _isLoading = false;
     });
@@ -370,6 +379,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onCarouselChanged: (index) => setState(() => _carouselIndex = index),
       selectedActivityFilter: _selectedActivityFilter,
       rentalsOverview: _rentalsOverview,
+      favoriteRentals: _favoriteRentals,
       requests: _requests,
       onShowPassQr: _showPassQr,
       onCancelRental: _cancelRental,
@@ -403,6 +413,7 @@ class _ProfileContent extends StatelessWidget {
     required this.onCarouselChanged,
     required this.selectedActivityFilter,
     required this.rentalsOverview,
+    required this.favoriteRentals,
     required this.requests,
     required this.onShowPassQr,
     required this.onCancelRental,
@@ -419,6 +430,7 @@ class _ProfileContent extends StatelessWidget {
   final ValueChanged<int> onCarouselChanged;
   final ProfileActivityFilter selectedActivityFilter;
   final ProfileRentalsOverview rentalsOverview;
+  final List<RentalHistoryItem> favoriteRentals;
   final List<ProfileRequestItem> requests;
   final VoidCallback onShowPassQr;
   final Future<void> Function(RentalHistoryItem item) onCancelRental;
@@ -460,6 +472,7 @@ class _ProfileContent extends StatelessWidget {
           child: ProfileActivitySection(
             filter: selectedActivityFilter,
             activeRentals: rentalsOverview.activeRentals,
+            favoriteRentals: favoriteRentals,
             rentalHistory: rentalsOverview.rentalHistory,
             requests: requests,
             onCancelRental: onCancelRental,

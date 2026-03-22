@@ -9,6 +9,7 @@ abstract class ProfileRepository {
   Future<RegisteredUser> getCurrentProfile();
   Future<List<RentalHistoryItem>> getRentalHistory();
   Future<ProfileRentalsOverview> getRentalsOverview();
+  Future<List<RentalHistoryItem>> getFavoritePlaces();
   Future<List<ProfileRequestItem>> getRequests();
   Future<String> exportRequestPdf(int requestId);
   Future<void> rescheduleBooking({

@@ -8,6 +8,7 @@ class OfficeRentalItem {
     required this.availableTimeSlots,
     required this.price,
     required this.photoUrl,
+    this.isFavorite = false,
   });
 
   final int id;
@@ -18,4 +19,29 @@ class OfficeRentalItem {
   final List<String> availableTimeSlots;
   final int price;
   final String? photoUrl;
+  final bool isFavorite;
+
+  OfficeRentalItem copyWith({
+    int? id,
+    String? dateText,
+    String? title,
+    String? room,
+    int? capacity,
+    List<String>? availableTimeSlots,
+    int? price,
+    String? photoUrl,
+    bool? isFavorite,
+  }) {
+    return OfficeRentalItem(
+      id: id ?? this.id,
+      dateText: dateText ?? this.dateText,
+      title: title ?? this.title,
+      room: room ?? this.room,
+      capacity: capacity ?? this.capacity,
+      availableTimeSlots: availableTimeSlots ?? this.availableTimeSlots,
+      price: price ?? this.price,
+      photoUrl: photoUrl ?? this.photoUrl,
+      isFavorite: isFavorite ?? this.isFavorite,
+    );
+  }
 }

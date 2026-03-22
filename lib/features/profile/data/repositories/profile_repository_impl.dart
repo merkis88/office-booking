@@ -38,6 +38,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
+  Future<List<RentalHistoryItem>> getFavoritePlaces() {
+    return _dataSource.getFavoritePlaces();
+  }
+
+  @override
   Future<ProfileRentalsOverview> getRentalsOverview() {
     return _dataSource.getRentalsOverview();
   }

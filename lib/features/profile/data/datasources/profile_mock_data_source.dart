@@ -45,6 +45,12 @@ class ProfileMockDataSource implements ProfileDataSource {
   }
 
   @override
+  Future<List<RentalHistoryItem>> getFavoritePlaces() async {
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    return const <RentalHistoryItem>[];
+  }
+
+  @override
   Future<List<ProfileRequestItem>> getRequests() async {
     await Future<void>.delayed(const Duration(milliseconds: 250));
     return const <ProfileRequestItem>[];

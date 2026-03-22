@@ -5,9 +5,11 @@ import 'package:wordpice/features/requests/data/datasources/requests_data_source
 import 'package:wordpice/features/requests/data/models/create_request_request_model.dart';
 import 'package:wordpice/features/requests/data/models/create_request_response_model.dart';
 import 'package:wordpice/features/requests/data/models/request_bookings_response_model.dart';
+import 'package:wordpice/features/requests/data/models/request_service_types_response_model.dart';
 import 'package:wordpice/features/requests/domain/entities/create_request_params.dart';
 import 'package:wordpice/features/requests/domain/entities/create_request_result.dart';
 import 'package:wordpice/features/requests/domain/entities/request_booking_option.dart';
+import 'package:wordpice/features/requests/domain/entities/request_service_type.dart';
 
 class RequestsRemoteDataSource implements RequestsDataSource {
   RequestsRemoteDataSource(this._apiClient, this._appSession);
@@ -33,6 +35,32 @@ class RequestsRemoteDataSource implements RequestsDataSource {
     final fieldErrors = _extractFieldErrors(response);
     throw AuthRequestException(
       _extractErrorMessage(response, fieldErrors),
+      fieldErrors: fieldErrors,
+    );
+  }
+
+  @override
+  Future<List<RequestServiceType>> getServiceTypes() async {
+    final token = _appSession.token;
+    final response = await _apiClient.getJson(
+      '/service-types',
+      headers: token == null || token.isEmpty
+          ? null
+          : <String, String>{'Authorization': 'Bearer $token'},
+    );
+    final statusCode = response['statusCode'] as int? ?? 500;
+
+    if (statusCode >= 200 && statusCode < 300 && response['success'] == true) {
+      return RequestServiceTypesResponseModel.fromJson(response).items;
+    }
+
+    final fieldErrors = _extractFieldErrors(response);
+    throw AuthRequestException(
+      _extractErrorMessage(
+        response,
+        fieldErrors,
+        fallbackMessage: 'Не удалось загрузить типы заявок.',
+      ),
       fieldErrors: fieldErrors,
     );
   }

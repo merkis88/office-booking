@@ -7,6 +7,7 @@ import 'package:wordpice/features/auth/domain/entities/registered_user.dart';
 import 'package:wordpice/features/profile/data/datasources/profile_data_source.dart';
 import 'package:wordpice/features/profile/data/models/change_password_request_model.dart';
 import 'package:wordpice/features/profile/data/models/profile_bookings_response_model.dart';
+import 'package:wordpice/features/profile/data/models/profile_favorite_places_response_model.dart';
 import 'package:wordpice/features/profile/data/models/profile_response_model.dart';
 import 'package:wordpice/features/profile/data/models/profile_services_response_model.dart';
 import 'package:wordpice/features/profile/data/models/update_profile_request_model.dart';
@@ -96,6 +97,21 @@ class ProfileRemoteDataSource implements ProfileDataSource {
   Future<List<RentalHistoryItem>> getRentalHistory() async {
     final overview = await getRentalsOverview();
     return overview.rentalHistory;
+  }
+
+  @override
+  Future<List<RentalHistoryItem>> getFavoritePlaces() async {
+    final response = await _apiClient.getJson(
+      '/places/favorites',
+      headers: _authorizationHeaders(),
+    );
+    final statusCode = response['statusCode'] as int? ?? 500;
+
+    if (statusCode >= 200 && statusCode < 300 && response['data'] is List) {
+      return ProfileFavoritePlacesResponseModel.fromJson(response).items;
+    }
+
+    throw const ApiConnectionException('Не удалось загрузить избранное.');
   }
 
   @override

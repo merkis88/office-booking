@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
 import 'package:wordpice/core/widgets/states/app_empty_state_text.dart';
-import 'package:wordpice/features/profile/data/mock/profile_favorite_rentals_mock_data.dart';
 import 'package:wordpice/features/profile/domain/entities/rental_history_item.dart';
 import 'package:wordpice/features/profile/presentation/models/profile_activity_filter.dart';
 import 'package:wordpice/features/profile/presentation/models/profile_request_item.dart';
@@ -15,6 +14,7 @@ class ProfileActivitySection extends StatelessWidget {
     super.key,
     required this.filter,
     required this.activeRentals,
+    required this.favoriteRentals,
     required this.rentalHistory,
     required this.requests,
     required this.onCancelRental,
@@ -25,6 +25,7 @@ class ProfileActivitySection extends StatelessWidget {
 
   final ProfileActivityFilter filter;
   final List<RentalHistoryItem> activeRentals;
+  final List<RentalHistoryItem> favoriteRentals;
   final List<RentalHistoryItem> rentalHistory;
   final List<ProfileRequestItem> requests;
   final Future<void> Function(RentalHistoryItem item) onCancelRental;
@@ -54,16 +55,15 @@ class ProfileActivitySection extends StatelessWidget {
         );
 
       case ProfileActivityFilter.favorites:
-        if (profileFavoriteRentalsMockData.isEmpty) {
+        if (favoriteRentals.isEmpty) {
           return const _ActivityEmptyState(text: 'У вас нет избранного');
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (var i = 0; i < profileFavoriteRentalsMockData.length; i++) ...[
-              ProfileFavoriteRentalCard(item: profileFavoriteRentalsMockData[i]),
-              if (i != profileFavoriteRentalsMockData.length - 1)
-                const SizedBox(height: 30),
+            for (var i = 0; i < favoriteRentals.length; i++) ...[
+              ProfileFavoriteRentalCard(item: favoriteRentals[i]),
+              if (i != favoriteRentals.length - 1) const SizedBox(height: 30),
             ],
           ],
         );

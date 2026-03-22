@@ -8,6 +8,7 @@ import 'package:wordpice/core/widgets/layout/app_shell.dart';
 import 'package:wordpice/features/auth/data/datasources/auth_data_source.dart';
 import 'package:wordpice/features/requests/domain/entities/create_request_params.dart';
 import 'package:wordpice/features/requests/domain/entities/request_booking_option.dart';
+import 'package:wordpice/features/requests/domain/entities/request_service_type.dart';
 import 'package:wordpice/features/requests/presentation/widgets/forms/request_form_comment_field.dart';
 import 'package:wordpice/features/requests/presentation/widgets/forms/request_form_dropdown_menu.dart';
 import 'package:wordpice/features/requests/presentation/widgets/forms/request_form_field_label.dart';
@@ -33,28 +34,30 @@ class RequestsScreen extends StatefulWidget {
 class _RequestsScreenState extends State<RequestsScreen> {
   static const int _tabIndex = 1;
   static const double _contentWidth = double.infinity;
-  static const List<String> _requestTypes = ['Клининг', 'ТО'];
 
   int _selectedBottomIndex = _tabIndex;
   DateTime? _selectedDate;
   RequestBookingOption? _selectedBooking;
-  String? _selectedRequestType;
+  RequestServiceType? _selectedRequestType;
   String? _selectedTime;
   _RequestMenu? _openMenu;
   bool _isLoadingBookings = true;
+  bool _isLoadingServiceTypes = true;
   bool _isSubmitting = false;
-  bool _hasLoadedBookings = false;
+  bool _hasLoadedData = false;
   String? _bookingsError;
+  String? _serviceTypesError;
   String? _submitError;
   List<RequestBookingOption> _bookingOptions = const <RequestBookingOption>[];
+  List<RequestServiceType> _serviceTypes = const <RequestServiceType>[];
   final TextEditingController _commentController = TextEditingController();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_hasLoadedBookings) return;
-    _hasLoadedBookings = true;
-    _loadBookings();
+    if (_hasLoadedData) return;
+    _hasLoadedData = true;
+    _loadInitialData();
   }
 
   @override
@@ -67,6 +70,13 @@ class _RequestsScreenState extends State<RequestsScreen> {
     if (index == _tabIndex) return;
     setState(() => _selectedBottomIndex = index);
     AppTabNavigator.goToTab(context, index);
+  }
+
+  Future<void> _loadInitialData() async {
+    await Future.wait<void>([
+      _loadBookings(),
+      _loadServiceTypes(),
+    ]);
   }
 
   Future<void> _loadBookings() async {
@@ -113,6 +123,45 @@ class _RequestsScreenState extends State<RequestsScreen> {
     }
   }
 
+  Future<void> _loadServiceTypes() async {
+    setState(() {
+      _isLoadingServiceTypes = true;
+      _serviceTypesError = null;
+    });
+
+    try {
+      final serviceTypes = await AppScope.of(context).requestsRepository
+          .getServiceTypes();
+      if (!mounted) return;
+
+      setState(() {
+        _serviceTypes = serviceTypes;
+        _isLoadingServiceTypes = false;
+
+        if (_selectedRequestType != null) {
+          final selectedId = _selectedRequestType!.id;
+          _selectedRequestType =
+              serviceTypes.cast<RequestServiceType?>().firstWhere(
+                    (item) => item?.id == selectedId,
+                    orElse: () => null,
+                  );
+        }
+      });
+    } on AuthRequestException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingServiceTypes = false;
+        _serviceTypesError = error.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingServiceTypes = false;
+        _serviceTypesError = 'Не удалось загрузить типы заявок.';
+      });
+    }
+  }
+
   List<String> get _timeSlots => _selectedBooking?.timeSlots ?? const <String>[];
 
   String get _dateText {
@@ -137,8 +186,13 @@ class _RequestsScreenState extends State<RequestsScreen> {
     return 'Выберите время из бронирования';
   }
 
-  String get _requestTypeText =>
-      _selectedRequestType ?? 'Выберите тип заявки';
+  String get _requestTypeText {
+    if (_selectedRequestType != null) return _selectedRequestType!.name;
+    if (_isLoadingServiceTypes) return 'Загрузка типов заявок...';
+    if (_serviceTypesError != null) return 'Не удалось загрузить типы заявок';
+    if (_serviceTypes.isEmpty) return 'Нет доступных типов заявок';
+    return 'Выберите тип заявки';
+  }
 
   bool get _isBookingMenuOpen => _openMenu == _RequestMenu.booking;
   bool get _isTimeMenuOpen => _openMenu == _RequestMenu.time;
@@ -158,6 +212,14 @@ class _RequestsScreenState extends State<RequestsScreen> {
       return;
     }
 
+    if (menu == _RequestMenu.requestType &&
+        (_isLoadingServiceTypes || _serviceTypes.isEmpty)) {
+      if (_serviceTypesError != null) {
+        _loadServiceTypes();
+      }
+      return;
+    }
+
     setState(() {
       _openMenu = _openMenu == menu ? null : menu;
     });
@@ -174,9 +236,12 @@ class _RequestsScreenState extends State<RequestsScreen> {
     });
   }
 
-  void _selectRequestType(String type) {
+  void _selectRequestType(String typeName) {
     setState(() {
-      _selectedRequestType = type;
+      _selectedRequestType = _serviceTypes.cast<RequestServiceType?>().firstWhere(
+            (item) => item?.name == typeName,
+            orElse: () => null,
+          );
       _openMenu = null;
     });
   }
@@ -186,17 +251,6 @@ class _RequestsScreenState extends State<RequestsScreen> {
       _selectedTime = slot;
       _openMenu = null;
     });
-  }
-
-  int get _serviceTypeId {
-    switch (_selectedRequestType) {
-      case 'Клининг':
-        return 1;
-      case 'ТО':
-        return 2;
-      default:
-        return 0;
-    }
   }
 
   bool get _canCreateRequest =>
@@ -245,7 +299,7 @@ class _RequestsScreenState extends State<RequestsScreen> {
       context,
       date: _dateText,
       time: selectedTime,
-      requestType: selectedRequestType,
+      requestType: selectedRequestType.name,
       booking: selectedBooking.displayText,
     );
 
@@ -260,7 +314,7 @@ class _RequestsScreenState extends State<RequestsScreen> {
       await AppScope.of(context).requestsRepository.createRequest(
         CreateRequestParams(
           bookingId: selectedBooking.id,
-          serviceTypeId: _serviceTypeId,
+          serviceTypeId: selectedRequestType.id,
           serviceDate: selectedBooking.serviceDate,
           serviceTime: _extractServiceTime(selectedTime),
           comment: _commentController.text.trim(),
@@ -331,7 +385,7 @@ class _RequestsScreenState extends State<RequestsScreen> {
                     value: _requestTypeText,
                     isOpen: _isRequestTypeMenuOpen,
                     onTap: () => _toggleMenu(_RequestMenu.requestType),
-                    items: _requestTypes,
+                    items: _serviceTypes.map((item) => item.name).toList(),
                     onSelect: _selectRequestType,
                     menuHeight: 74,
                   ),

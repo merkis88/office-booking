@@ -46,6 +46,7 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
   void initState() {
     super.initState();
     _freeTimeSlots = List<String>.from(widget.availableTimeSlots);
+    _isFavorite = widget.item.isFavorite;
   }
 
   @override
@@ -58,6 +59,9 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
       if (_slotWindowStart > _maxWindowStart) {
         _slotWindowStart = _maxWindowStart;
       }
+    }
+    if (oldWidget.item.isFavorite != widget.item.isFavorite) {
+      _isFavorite = widget.item.isFavorite;
     }
   }
 
