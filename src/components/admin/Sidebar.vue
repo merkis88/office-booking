@@ -34,20 +34,12 @@
         Заявки
       </router-link>
 
-      <router-link to="/admin/parking" class="sidebar__btn">
-        <img src="@/assets/images/icons/car.svg" alt="" />
-        Парковка
-      </router-link>
-
       <router-link to="/admin/notifications" class="sidebar__btn">
         <img src="@/assets/images/icons/notification-admin.svg" alt="" />
         Уведомления
       </router-link>
 
-      <router-link to="/" class="sidebar__btn sidebar__logout">
-        <img src="" alt="" />
-        Выход
-      </router-link>
+      <router-link to="/" class="sidebar__btn sidebar__logout">Выход</router-link>
     </nav>
   </aside>
 </template>

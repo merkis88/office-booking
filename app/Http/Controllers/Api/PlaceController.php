@@ -85,14 +85,6 @@ class PlaceController extends Controller
                 'date' => $date->format('Y-m-d'),
             ]
         ];
-        if ($request->has('date')) {
-            $date = CarbonImmutable::parse($request->input('date'));
-            $response['data']->additional([
-                'available_slots' => $this->availabilityService->getAvailableSlots($place, $date),
-                'date' => $date->format('Y-m-d')
-            ]);
-        }
-
         return response()->json($response);
     }
 }

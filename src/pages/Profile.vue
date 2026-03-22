@@ -3,16 +3,14 @@
   import { useAuthStore } from '@/store/auth';
   import { useBookingsStore } from '@/store/bookings';
   import { useServicesStore } from '@/store/services';
+  import { formatBookingDateLong } from '@/utils/dateFormat';
   import { storeToRefs } from 'pinia';
   import { useRouter } from 'vue-router';
+  import QRCode from 'qrcode';
   import ServiceRequestCard from '@/components/ServiceRequestCard.vue';
-  import PassCard from '@/components/PassCard.vue';
-  import StatusBadge from '@/components/StatusBadge.vue';
-  import BookingDetailsModal from '@/components/modals/BookingDetailsModal.vue';
-  import BookingFilters from '@/components/BookingFilters.vue';
+  import BookingCard from '@/components/BookingCard.vue';
   import CancelBookingModal from '@/components/modals/CancelBookingModal.vue';
   import RescheduleBookingModal from '@/components/modals/RescheduleBookingModal.vue';
-  import ExtendBookingModal from '@/components/modals/ExtendBookingModal.vue';
   import DeleteAccountModal from '@/components/modals/DeleteAccountModal.vue';
   import PlaceCard from '@/components/PlaceCard.vue';
   import { useFavoritesStore } from '@/store/favorites';
@@ -43,13 +41,31 @@
     last_name: '',
     patronymic: '',
     email: '',
-    phone: '',
-    post: '',
-    company: '',
   });
 
   const saveError = ref('');
   const isSaving = ref(false);
+
+  const qrDataUrl = ref(null);
+  const qrLoading = ref(false);
+
+  async function generateQrImage(hash) {
+    if (!hash) {
+      qrDataUrl.value = null;
+      return;
+    }
+    qrLoading.value = true;
+    try {
+      qrDataUrl.value = await QRCode.toDataURL(hash, {
+        width: 200,
+        margin: 1,
+      });
+    } catch {
+      qrDataUrl.value = null;
+    } finally {
+      qrLoading.value = false;
+    }
+  }
 
   const totalPages = computed(() => lastPage.value);
 
@@ -69,17 +85,15 @@
       return;
     }
 
-    if (!user.value) {
-      isLoading.value = true;
-      try {
-        await authStore.fetchCurrentUser();
-      } catch (error) {
-        await router.push('/authorization');
-      } finally {
-        isLoading.value = false;
-      }
+    isLoading.value = true;
+    try {
+      await authStore.fetchProfile();
+    } catch (error) {
+      await router.push('/authorization');
+      return;
+    } finally {
+      isLoading.value = false;
     }
-
   });
 
   watch(activeTab, (newTab) => {
@@ -90,6 +104,18 @@
       loadServices();
     }
   });
+
+  watch(
+    () => user.value?.qr_hash,
+    (newHash) => {
+      if (newHash) {
+        generateQrImage(newHash);
+      } else {
+        qrDataUrl.value = null;
+      }
+    },
+    { immediate: true },
+  );
 
   watch(
     user,
@@ -103,18 +129,6 @@
 
   const showDeleteModal = ref(false);
 
-  const selectedBooking = ref(null);
-  const showGuestQrModal = ref(false);
-  const showIssueQrModal = ref(false);
-
-  const selectedBookingId = ref(null);
-  const showBookingDetails = ref(false);
-
-  function openBookingDetails(bookingId) {
-    selectedBookingId.value = bookingId;
-    showBookingDetails.value = true;
-  }
-
   const cancelBookingData = ref(null);
   const showCancelModal = ref(false);
 
@@ -125,7 +139,6 @@
 
   function onBookingCancelled() {
     showCancelModal.value = false;
-    showBookingDetails.value = false;
     bookingsStore.fetchMyBookings();
   }
 
@@ -139,44 +152,40 @@
 
   function onBookingRescheduled() {
     showRescheduleModal.value = false;
-    showBookingDetails.value = false;
     bookingsStore.fetchMyBookings();
   }
 
-  const extendBookingData = ref(null);
-  const showExtendModal = ref(false);
+  const activePlaceType = ref(null);
 
-  function handleBookingExtend(booking) {
-    extendBookingData.value = booking;
-    showExtendModal.value = true;
-  }
+  const placeTypeFilters = [
+    { label: 'Все аренды', value: null },
+    { label: 'Переговорные', value: 'meeting' },
+    { label: 'Коворкинг', value: 'coworking' },
+    { label: 'Офис', value: 'office' },
+  ];
 
-  function onBookingExtended() {
-    showExtendModal.value = false;
-    showBookingDetails.value = false;
-    bookingsStore.fetchMyBookings();
-  }
+  const filteredBookings = computed(() => {
+    // Показываем только активные (cancelled отфильтровываем на фронте,
+    // т.к. бэкенд пока не поддерживает фильтр status=active)
+    let bookings = bookingsStore.bookings.filter(b => b.status !== 'cancelled');
+    if (activePlaceType.value) {
+      bookings = bookings.filter(b => b.place?.type === activePlaceType.value);
+    }
+    return bookings;
+  });
 
-  const activeBookings = computed(() =>
-    bookingsStore.bookings.filter(b => b.status !== 'rejected')
-  );
+  const groupedBookings = computed(() => {
+    const groups = {};
+    for (const booking of filteredBookings.value) {
+      const date = formatBookingDateLong(booking.start_time);
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(booking);
+    }
+    return groups;
+  });
 
-  function applyFilters(newFilters) {
-    Object.entries(newFilters).forEach(([key, value]) => {
-      bookingsStore.filters[key] = value;
-    });
-    bookingsStore.currentPage = 1;
-    bookingsStore.fetchMyBookings();
-  }
-
-  function openGuestQrModal(booking) {
-    selectedBooking.value = booking;
-    showGuestQrModal.value = true;
-  }
-
-  function openIssueQrModal(booking) {
-    selectedBooking.value = booking;
-    showIssueQrModal.value = true;
+  function handleBookingInvite(booking) {
+    router.push({ path: '/passes', query: { booking: booking.id } });
   }
 
   const handleSave = async () => {
@@ -188,7 +197,6 @@
         first_name: editableUser.value.first_name,
         last_name: editableUser.value.last_name,
         patronymic: editableUser.value.patronymic || null,
-        email: editableUser.value.email,
       });
       isEditing.value = false;
     } catch (error) {
@@ -210,288 +218,248 @@
     saveError.value = '';
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('ru-RU');
-  };
-
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 </script>
 
 <template>
   <div class="profile">
-    <div v-if="user" class="profile__container">
-      <div class="profile__photo-section">
-        <div class="profile__photo-wrapper">
-          <img src="@/assets/images/photos/avatar.png" alt="Фото профиля" class="profile__photo" />
+    <div v-if="user" class="profile__wrapper">
+      <div class="profile__header-card">
+        <!-- Левая колонка: аватар -->
+        <div class="profile__avatar-col">
+          <div class="profile__avatar-wrapper">
+            <img src="@/assets/images/photos/avatar.png" alt="Фото профиля" class="profile__avatar" />
+          </div>
+          <button class="profile__upload-btn" disabled>Загрузить фото</button>
+        </div>
+
+        <!-- Правая колонка: контактные данные -->
+        <div class="profile__form-col">
+          <h2 class="profile__section-title">Контактные данные</h2>
+
+          <div class="profile__fields">
+            <div class="profile__field">
+              <label class="profile__label">Фамилия</label>
+              <input v-model="editableUser.last_name" class="profile__input" />
+            </div>
+
+            <div class="profile__field">
+              <label class="profile__label">Имя</label>
+              <input v-model="editableUser.first_name" class="profile__input" />
+            </div>
+
+            <div class="profile__field">
+              <label class="profile__label">Отчество</label>
+              <input v-model="editableUser.patronymic" class="profile__input" />
+            </div>
+
+            <div class="profile__field">
+              <label class="profile__label">Почта</label>
+              <input v-model="editableUser.email" class="profile__input" readonly />
+            </div>
+          </div>
+        </div>
+
+        <!-- Кнопки — полная ширина -->
+        <div class="profile__actions">
+          <button class="profile__btn" :disabled="isSaving" @click="handleSave">
+            {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
+          </button>
+          <button class="profile__btn" @click="handleCancel">Не сохранять</button>
+          <router-link to="/update-password" class="profile__btn">Сменить пароль</router-link>
+          <button class="profile__btn profile__btn--danger" @click="showDeleteModal = true">
+            Удалить аккаунт
+          </button>
         </div>
       </div>
 
-      <div class="profile__info-section">
-        <h2 class="profile__section-title">Контактные данные</h2>
+      <!-- QR-блок — отдельная секция -->
+      <div class="profile__qr-section">
+        <!-- Нет активных бронирований -->
+        <div v-if="!user.qr_booking" class="profile__qr-section-inner">
+          <p class="profile__qr-section-text">Нет активных бронирований — QR-пропуск не требуется</p>
+        </div>
 
-        <div class="profile__form">
-          <div class="profile__contact">
-            <div class="profile__row">
-              <div class="profile__field">
-                <input
-                  v-model="editableUser.last_name"
-                  class="profile__input"
-                  placeholder="Фамилия"
-                />
-              </div>
+        <!-- QR не виден (вне временного окна) -->
+        <div v-else-if="!user.qr_visible" class="profile__qr-section-inner">
+          <p class="profile__qr-section-text">{{ user.qr_message }}</p>
+          <div class="profile__qr-frame profile__qr-frame--empty"></div>
+        </div>
 
-              <div class="profile__field">
-                <input v-model="editableUser.first_name" class="profile__input" placeholder="Имя" />
-              </div>
-
-              <div class="profile__field">
-                <input
-                  v-model="editableUser.patronymic"
-                  class="profile__input"
-                  placeholder="Отчество"
-                />
-              </div>
-            </div>
-
-            <div class="profile__row">
-              <div class="profile__field">
-                <input
-                  v-model="editableUser.email"
-                  class="profile__input"
-                  placeholder="Электронная почта"
-                />
-              </div>
-
-              <div class="profile__field">
-                <input
-                  v-model="editableUser.phone"
-                  class="profile__input"
-                  placeholder="Телефон"
-                />
-              </div>
-
-              <div class="profile__field">
-                <input v-model="editableUser.post" class="profile__input" placeholder="Должность" readonly />
-              </div>
-
-              <div class="profile__field">
-                <input
-                  v-model="editableUser.company"
-                  class="profile__input"
-                  placeholder="Компания"
-                  readonly
-                />
-              </div>
-            </div>
+        <!-- QR загружается -->
+        <div v-else-if="qrLoading" class="profile__qr-section-inner">
+          <p class="profile__qr-section-text">Загрузка QR-кода...</p>
+          <div class="profile__qr-frame">
+            <span>Загрузка...</span>
           </div>
         </div>
 
-        <p v-if="saveError" class="profile__error">{{ saveError }}</p>
+        <!-- QR-код виден -->
+        <div v-else class="profile__qr-section-inner">
+          <p class="profile__qr-section-text">{{ user.qr_message }}</p>
+          <div class="profile__qr-frame">
+            <img v-if="qrDataUrl" :src="qrDataUrl" alt="QR-код пропуска" class="profile__qr-image" />
+          </div>
+        </div>
+      </div>
 
-        <div class="profile__actions">
+      <p v-if="saveError" class="profile__error">{{ saveError }}</p>
+
+      <div class="profile__bottom">
+        <div class="profile__tabs">
           <button
-            class="profile__btn"
-            :disabled="isSaving"
-            @click="handleSave"
+            class="profile__tab"
+            :class="{ 'profile__tab--active': activeTab === 0 }"
+            @click="activeTab = 0"
           >
-            {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
+            Активные аренды
           </button>
-
-          <button class="profile__btn" @click="handleCancel">Не сохранять</button>
+          <button
+            class="profile__tab"
+            :class="{ 'profile__tab--active': activeTab === 1 }"
+            @click="activeTab = 1"
+          >
+            Избранное
+          </button>
+          <button
+            class="profile__tab"
+            :class="{ 'profile__tab--active': activeTab === 2 }"
+            @click="activeTab = 2"
+          >
+            История аренды
+          </button>
+          <button
+            class="profile__tab"
+            :class="{ 'profile__tab--active': activeTab === 3 }"
+            @click="activeTab = 3"
+          >
+            Заявки
+          </button>
         </div>
 
-        <div class="profile__pass-section">
-          <h2 class="profile__section-title">Пропуска</h2>
-
-          <div v-if="!activeBookings.length" class="profile__pass-empty">
-            У вас нет активных аренд — QR-пропуск не требуется
-          </div>
-
-          <PassCard
-            v-for="booking in activeBookings"
-            :key="booking.id"
-            :booking="booking"
-            @invite-guest="openGuestQrModal(booking)"
-            @invite-employee="openIssueQrModal(booking)"
-          />
-
-          <div class="profile__pass-actions">
-            <router-link to="/update-password" class="profile__btn profile__btn--action">
-              Сменить пароль
-            </router-link>
-
+        <div v-if="activeTab === 0" class="profile__bookings">
+          <div class="profile__place-filter">
             <button
-              class="profile__btn profile__btn--danger"
-              @click="showDeleteModal = true"
+              v-for="filter in placeTypeFilters"
+              :key="filter.value"
+              class="profile__place-filter-btn"
+              :class="{ 'profile__place-filter-btn--active': activePlaceType === filter.value }"
+              @click="activePlaceType = filter.value"
             >
-              Удалить аккаунт
-            </button>
-          </div>
-        </div>
-
-        <div class="profile__bottom">
-          <div class="profile__tabs">
-            <button
-              class="profile__tab"
-              :class="{ 'profile__tab--active': activeTab === 0 }"
-              @click="activeTab = 0"
-            >
-              Активные аренды
-            </button>
-            <button
-              class="profile__tab"
-              :class="{ 'profile__tab--active': activeTab === 1 }"
-              @click="activeTab = 1"
-            >
-              Избранное
-            </button>
-            <button
-              class="profile__tab"
-              :class="{ 'profile__tab--active': activeTab === 2 }"
-              @click="activeTab = 2"
-            >
-              История аренды
-            </button>
-            <button
-              class="profile__tab"
-              :class="{ 'profile__tab--active': activeTab === 3 }"
-              @click="activeTab = 3"
-            >
-              Заявки
+              {{ filter.label }}
             </button>
           </div>
 
-          <div v-if="activeTab === 0" class="profile__bottom-content">
-            <BookingFilters
-              :filters="bookingsStore.filters"
-              @update:filters="applyFilters"
-            />
+          <div v-if="bookingsStore.isLoading" class="profile__loading">Загрузка...</div>
 
-            <div v-if="bookingsStore.isLoading">Загрузка...</div>
+          <div v-else-if="!filteredBookings.length" class="profile__placeholder-card">
+            <p>У вас нет активных бронирований</p>
+          </div>
 
+          <template v-else>
             <div
-              v-else
-              v-for="booking in bookingsStore.bookings"
-              :key="booking.id"
-              class="profile__booking-card profile__booking-card--clickable"
-              @click="openBookingDetails(booking.id)"
+              v-for="(group, date) in groupedBookings"
+              :key="date"
+              class="profile__booking-group"
             >
-              <div class="profile__booking-info">
-                <h3>
-                  {{ booking.place.name }}
-                </h3>
+              <h3 class="profile__booking-date">{{ date }}</h3>
 
-                <p>
-                  {{ formatDate(booking.start_time) }} — {{ formatTime(booking.start_time) }} -
-                  {{ formatTime(booking.end_time) }}
-                </p>
-
-                <p>Вместимость: {{ booking.place.capacity }} человек</p>
-
-                <StatusBadge :status="booking.status" />
-              </div>
-            </div>
-
-            <div class="profile__pagination" v-if="bookingsStore.lastPage > 1">
-              <button
-                v-for="page in bookingsStore.lastPage"
-                :key="page"
-                @click="bookingsStore.setPage(page)"
-                :class="['profile__page-btn', { active: page === bookingsStore.currentPage }]"
-              >
-                {{ page }}
-              </button>
-            </div>
-          </div>
-
-          <div v-if="activeTab === 1" class="profile__bottom-content">
-            <div v-if="favoritesStore.isLoading" class="profile__loading">
-              Загрузка...
-            </div>
-
-            <div v-else-if="!favoritesStore.favorites.length" class="profile__placeholder-card">
-              <p>У вас нет избранных помещений</p>
-              <p class="profile__empty-hint">
-                Добавляйте помещения в избранное, нажимая на сердечко на карточке
-              </p>
-            </div>
-
-            <div v-else class="profile__favorites-grid">
-              <PlaceCard
-                v-for="place in favoritesStore.favorites"
-                :key="place.id"
-                :place="place"
+              <BookingCard
+                v-for="booking in group"
+                :key="booking.id"
+                :booking="booking"
+                @invite="handleBookingInvite"
+                @reschedule="handleBookingReschedule"
+                @cancel="handleBookingCancel"
               />
             </div>
+          </template>
+
+          <div class="profile__pagination" v-if="bookingsStore.lastPage > 1">
+            <button
+              v-for="page in bookingsStore.lastPage"
+              :key="page"
+              @click="bookingsStore.setPage(page)"
+              :class="['profile__page-btn', { active: page === bookingsStore.currentPage }]"
+            >
+              {{ page }}
+            </button>
+          </div>
+        </div>
+
+        <div v-if="activeTab === 1" class="profile__bottom-content">
+          <div v-if="favoritesStore.isLoading" class="profile__loading">
+            Загрузка...
           </div>
 
-          <div v-if="activeTab === 2" class="profile__bottom-content">
-            <div class="profile__placeholder-card">
-              <p>История аренды</p>
-            </div>
+          <div v-else-if="!favoritesStore.favorites.length" class="profile__placeholder-card">
+            <p>У вас нет избранных помещений</p>
+            <p class="profile__empty-hint">
+              Добавляйте помещения в избранное, нажимая на сердечко на карточке
+            </p>
           </div>
 
-          <div v-if="activeTab === 3" class="profile__services">
-            <div v-if="isLoadingServices" class="profile__services-loading">
-              <p>Загрузка заявок...</p>
-            </div>
+          <div v-else class="profile__favorites-grid">
+            <PlaceCard
+              v-for="place in favoritesStore.favorites"
+              :key="place.id"
+              :place="place"
+            />
+          </div>
+        </div>
 
-            <div v-else-if="services.length === 0" class="profile__services-empty">
-              <p>У вас пока нет заявок</p>
-            </div>
+        <div v-if="activeTab === 2" class="profile__bottom-content">
+          <div class="profile__placeholder-card">
+            <p>История аренды</p>
+          </div>
+        </div>
 
-            <div v-else class="profile__services-grid">
-              <ServiceRequestCard
-                v-for="service in services"
-                :key="service.id"
-                :service="service"
-              />
-            </div>
+        <div v-if="activeTab === 3" class="profile__services">
+          <div v-if="isLoadingServices" class="profile__services-loading">
+            <p>Загрузка заявок...</p>
+          </div>
 
-            <div v-if="totalPages > 1 && !isLoading" class="profile__services-pagination">
-              <button
-                class="profile__pagination-btn"
-                :disabled="currentPage === 1"
-                @click="goToPage(currentPage - 1)"
-              >
-                <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
-              </button>
+          <div v-else-if="services.length === 0" class="profile__services-empty">
+            <p>У вас пока нет заявок</p>
+          </div>
 
-              <button
-                v-for="page in totalPages"
-                :key="page"
-                class="profile__pagination-number"
-                :class="{ 'profile__pagination-number--active': currentPage === page }"
-                @click="goToPage(page)"
-              >
-                {{ page }}
-              </button>
+          <div v-else class="profile__services-grid">
+            <ServiceRequestCard
+              v-for="service in services"
+              :key="service.id"
+              :service="service"
+            />
+          </div>
 
-              <button
-                class="profile__pagination-btn"
-                :disabled="currentPage === totalPages"
-                @click="goToPage(currentPage + 1)"
-              >
-                <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
-              </button>
-            </div>
+          <div v-if="totalPages > 1 && !isLoading" class="profile__services-pagination">
+            <button
+              class="profile__pagination-btn"
+              :disabled="currentPage === 1"
+              @click="goToPage(currentPage - 1)"
+            >
+              <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
+            </button>
+
+            <button
+              v-for="page in totalPages"
+              :key="page"
+              class="profile__pagination-number"
+              :class="{ 'profile__pagination-number--active': currentPage === page }"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+
+            <button
+              class="profile__pagination-btn"
+              :disabled="currentPage === totalPages"
+              @click="goToPage(currentPage + 1)"
+            >
+              <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
+            </button>
           </div>
         </div>
       </div>
     </div>
-
-    <BookingDetailsModal
-      v-model="showBookingDetails"
-      :booking-id="selectedBookingId"
-      @cancel="handleBookingCancel"
-      @reschedule="handleBookingReschedule"
-      @extend="handleBookingExtend"
-    />
 
     <CancelBookingModal
       v-model="showCancelModal"
@@ -503,12 +471,6 @@
       v-model="showRescheduleModal"
       :booking="rescheduleBookingData"
       @rescheduled="onBookingRescheduled"
-    />
-
-    <ExtendBookingModal
-      v-model="showExtendModal"
-      :booking="extendBookingData"
-      @extended="onBookingExtended"
     />
 
     <DeleteAccountModal v-model="showDeleteModal" />
@@ -523,37 +485,58 @@
     min-height: 100vh;
     padding: 4rem 2rem;
 
-    &__container {
+    &__wrapper {
       @include container;
       display: flex;
-      gap: 3rem;
-      align-items: flex-start;
+      flex-direction: column;
+      gap: 2rem;
     }
 
-    &__photo-section {
-      flex-shrink: 0;
+    &__header-card {
+      display: grid;
+      grid-template-columns: 30% 1fr;
+      gap: 2rem;
+      padding: 2rem 3rem;
+      background: $color-footer-bg;
+      border-radius: $radius-sm;
+      border: 1px solid $color-text;
     }
 
-    &__photo-wrapper {
-      position: relative;
-      width: 15rem;
-      height: 22rem;
-      border-radius: $radius-lg;
+    &__avatar-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    &__avatar-wrapper {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
-    &__photo {
+    &__avatar {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
 
-    &__info-section {
-      flex: 1;
+    &__upload-btn {
+      padding: 0.5rem 1rem;
+      border-radius: $radius-sm;
+      border: 1px solid $color-border;
+      background: $color-input-bg;
+      font-size: $text-sm;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    &__form-col {
       display: flex;
       flex-direction: column;
-      gap: 2rem;
+      gap: 1rem;
     }
 
     &__section-title {
@@ -564,33 +547,22 @@
       color: $color-text;
     }
 
-    &__form {
+    &__fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    &__field {
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
-      align-items: center;
     }
 
-    &__display {
-      padding: 0.875rem 1.25rem;
-      border: 1px solid $color-border;
-      border-radius: $radius-sm;
-      background: $color-input-bg;
-      font-size: $text-base;
+    &__label {
+      font-size: $text-sm;
       color: $color-text;
-      min-height: 3.5rem;
-      width: 15rem;
-      display: flex;
-      align-items: center;
-    }
-
-    &__value {
-      font-size: $text-base;
-      color: $color-text;
-      font-weight: 400;
-      width: 100%;
-      overflow: hidden;
-      white-space: nowrap;
+      margin-bottom: 0.25rem;
+      display: block;
     }
 
     &__input {
@@ -600,7 +572,7 @@
       background: $color-input-bg;
       font-size: $text-base;
       min-height: 3.5rem;
-      width: 15rem;
+      width: 100%;
       outline: none;
       transition: 0.2s;
 
@@ -614,40 +586,65 @@
       }
     }
 
+    &__qr-section {
+      background: $color-footer-bg;
+      border-radius: $radius-sm;
+      border: 1px solid $color-text;
+      padding: 1.5rem 3rem;
+    }
+
+    &__qr-section-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+    }
+
+    &__qr-section-text {
+      flex: 1;
+      font-size: $text-base;
+      color: $color-text;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    &__qr-frame {
+      width: 150px;
+      height: 150px;
+      border: 2px solid $color-border;
+      border-radius: $radius-sm;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem;
+
+      &--empty {
+        opacity: 0.3;
+        border-style: dashed;
+        background: transparent;
+      }
+    }
+
+    &__qr-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    &__actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
     &__error {
       color: #c0392b;
       font-size: $text-base;
       text-align: center;
       margin-top: 0.5rem;
-    }
-
-    &__actions {
-      display: flex;
-      gap: 2rem;
-      justify-content: center;
-      margin-top: 1.5rem;
-    }
-
-    &__contact {
-      background: $color-footer-bg;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-      align-items: center;
-      padding: 2rem 3rem;
-      border-radius: $radius-sm;
-      border: 1px solid $color-text;
-    }
-
-    &__row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-    }
-
-    &__field {
-      display: flex;
-      flex-direction: column;
     }
 
     &__btn {
@@ -660,6 +657,8 @@
       background: $color-input-bg;
       color: $color-text;
       cursor: pointer;
+      text-decoration: none;
+      text-align: center;
 
       &:hover {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -678,12 +677,6 @@
         box-shadow: none;
       }
 
-      &--action {
-        padding: 0.75rem 0.5rem;
-        text-align: center;
-        width: 70%;
-      }
-
       &--danger {
         color: #991b1b;
         border-color: #991b1b;
@@ -694,54 +687,74 @@
       }
     }
 
-    &__pass-section {
-      margin-top: 2rem;
-    }
-
-    &__pass-empty {
-      padding: 2rem;
-      text-align: center;
-      color: rgba($color-text, 0.6);
-      font-size: $text-lg;
-      background: $color-card-bg;
-      border: 1px solid $color-border;
-      border-radius: $radius-lg;
-      margin-bottom: 1.5rem;
-    }
-
-    &__pass-actions {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
     &__bottom {
-      margin-top: 4rem;
+      margin-top: 2rem;
     }
 
     &__tabs {
       display: flex;
       justify-content: center;
-      gap: 1.5rem;
+      gap: 0;
       margin-bottom: 2rem;
     }
 
     &__tab {
-      padding: 0.5rem 4rem;
-      border-radius: $radius-sm;
+      padding: 0.75rem 2.5rem;
       border: 1px solid $color-border;
       background: $color-input-bg;
-      font-size: $text-lg;
-      transition: 0.2s;
+      font-size: $text-base;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
       white-space: nowrap;
-      flex-shrink: 0;
+
+      &:first-child {
+        border-radius: $radius-sm 0 0 $radius-sm;
+      }
+
+      &:last-child {
+        border-radius: 0 $radius-sm $radius-sm 0;
+      }
+
+      &:not(:first-child) {
+        border-left: none;
+      }
 
       &:hover {
         background: $color-input-bg-dark;
       }
 
       &--active {
-        filter: drop-shadow(0 4px 4px rgba($color-border, 0.5));
+        background: $color-header-bg;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      }
+    }
+
+    &__place-filter {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    &__place-filter-btn {
+      padding: 0.4rem 1.5rem;
+      border-radius: $radius-sm;
+      border: 1px solid $color-border;
+      background: $color-input-bg;
+      font-size: $text-sm;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: $color-input-bg-dark;
+      }
+
+      &--active {
+        background: $color-header-bg;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
       }
     }
 
@@ -782,34 +795,27 @@
       gap: 2rem;
     }
 
-    &__booking-card {
-      width: 60%;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      background: $color-card-bg;
-      border-radius: $radius-lg;
-      border: 1px solid $color-border;
-
-      &--clickable {
-        cursor: pointer;
-        transition: all 0.2s ease;
-
-        &:hover {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          transform: translateY(-2px);
-        }
-
-        &:active {
-          transform: translateY(0);
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-      }
-    }
-
-    &__booking-info {
+    &__bookings {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      align-items: center;
+      width: 100%;
+    }
+
+    &__booking-group {
+      width: 60%;
+      margin-bottom: 1.5rem;
+    }
+
+    &__booking-date {
+      font-size: $text-base;
+      font-weight: 500;
+      color: $color-text;
+      margin-bottom: 1rem;
+    }
+
+    &__booking-group :deep(.booking-card) {
+      margin-bottom: 1rem;
     }
 
     &__pagination {
@@ -874,6 +880,7 @@
       font-size: $text-base;
       cursor: pointer;
       transition: all 0.2s;
+      font-weight: 500;
 
       &:hover:not(:disabled) {
         background: $color-input-bg-dark;
@@ -883,6 +890,12 @@
       &:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+      }
+
+      &--active {
+        background: $color-header-bg;
+        font-weight: 600;
+        border-color: $color-text;
       }
     }
 
@@ -897,30 +910,10 @@
       }
     }
 
-    &__pagination-number {
-      font-weight: 500;
-
-      &--active {
-        background: $color-header-bg;
-        font-weight: 600;
-        border-color: $color-text;
-      }
-    }
-
     @media (max-width: 1024px) {
-      &__container {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      &__photo-section {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-      }
-
-      &__info-section {
-        width: 100%;
+      &__header-card {
+        grid-template-columns: 1fr;
+        justify-items: center;
       }
 
       &__services-grid {
@@ -931,14 +924,12 @@
     @media (max-width: 768px) {
       padding: 2rem 1rem;
 
-      &__row {
+      &__fields {
         grid-template-columns: 1fr;
       }
 
-      &__btn {
-        &--action {
-          width: 100%;
-        }
+      &__actions {
+        flex-wrap: wrap;
       }
 
       &__services-grid {
@@ -946,6 +937,11 @@
       }
 
       &__tabs {
+        overflow-x: auto;
+        justify-content: flex-start;
+      }
+
+      &__place-filter {
         overflow-x: auto;
         justify-content: flex-start;
       }
