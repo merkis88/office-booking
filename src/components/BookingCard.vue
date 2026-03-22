@@ -1,6 +1,7 @@
 <script setup>
   import { computed, ref } from 'vue';
   import { useFavoritesStore } from '@/store/favorites';
+  import { formatBookingTime } from '@/utils/dateFormat';
   import heartFilledUrl from '@/assets/images/icons/heart-filled.svg';
   import heartEmptyUrl from '@/assets/images/icons/heart-empty.svg';
 
@@ -38,12 +39,6 @@
     return types[props.booking.place?.type] || props.booking.place?.type;
   });
 
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 </script>
 
 <template>
@@ -61,7 +56,7 @@
         </p>
         <p class="booking-card__place">Кабинет No{{ booking.place?.number_place }}</p>
         <p class="booking-card__time">
-          {{ formatTime(booking.start_time) }} - {{ formatTime(booking.end_time) }}
+          {{ formatBookingTime(booking.start_time) }} - {{ formatBookingTime(booking.end_time) }}
         </p>
         <p class="booking-card__capacity">
           Вместимость: {{ booking.place?.capacity }} человек
