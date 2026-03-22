@@ -56,7 +56,7 @@
 
         <span>{{ booking.place?.capacity }} человек</span>
 
-        <span>{{ booking.price ?? 0 }}р</span>
+        <span>{{ Math.round(booking.place?.price) }} р/час</span>
       </div>
     </div>
 
@@ -109,6 +109,7 @@
       border: 1px solid $color-footer-bg;
       border-radius: 10px;
       margin-bottom: 10px;
+      text-align: center;
     }
 
     &__pagination {
