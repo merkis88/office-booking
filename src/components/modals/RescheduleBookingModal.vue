@@ -1,6 +1,7 @@
 <script setup>
   import { ref, computed, watch } from 'vue';
   import { useBookingsStore } from '@/store/bookings';
+  import { formatBookingDate } from '@/utils/dateFormat';
   import axios from 'axios';
   import BaseModal from '@/components/modals/BaseModal.vue';
 
@@ -30,15 +31,22 @@
   const mergedIntervals = ref([]);
   const selectedInterval = ref(null);
 
-  // Данные для экрана 2 (выбор часов)
+  // Данные для экрана 2 (выбор часа начала)
   const timePoints = ref([]);
-  const startIndex = ref(null);
-  const endIndex = ref(null);
+  const selectedStartIndex = ref(null);
 
   const screenTitle = computed(() => {
     if (screen.value === 'intervals') return 'Перенос брони';
     if (screen.value === 'slots') return 'Выберите время';
     return 'Подтверждение';
+  });
+
+  // Длительность текущей брони в часах (фиксирована, менять нельзя)
+  const bookingDurationHours = computed(() => {
+    if (!props.booking) return 1;
+    const start = new Date(props.booking.start_time);
+    const end = new Date(props.booking.end_time);
+    return Math.round((end - start) / (1000 * 60 * 60));
   });
 
   watch(
@@ -47,8 +55,7 @@
       if (isOpen && props.booking) {
         screen.value = 'intervals';
         selectedInterval.value = null;
-        startIndex.value = null;
-        endIndex.value = null;
+        selectedStartIndex.value = null;
         errorMessage.value = '';
         await loadSlots();
       }
@@ -68,13 +75,21 @@
       const placeData = data.data ?? data;
       const freeSlots = placeData.available_slots || [];
 
-      // Добавить время текущей брони к свободным слотам
-      const bookingStart = new Date(props.booking.start_time)
-        .toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
-      const bookingEnd = new Date(props.booking.end_time)
-        .toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
+      // Добавить время текущей брони к свободным слотам.
+      // Времена в БД и слотах — в одном формате (без конвертации TZ).
+      // Парсим часы напрямую из ISO-строки.
+      const bookingSlots = [];
+      const startH = parseInt(props.booking.start_time.slice(11, 13));
+      const endH = parseInt(props.booking.end_time.slice(11, 13));
 
-      const allSlots = [...freeSlots, { start: bookingStart, end: bookingEnd }];
+      for (let h = startH; h < endH; h++) {
+        bookingSlots.push({
+          start: `${String(h).padStart(2, '0')}:00`,
+          end: `${String(h + 1).padStart(2, '0')}:00`,
+        });
+      }
+
+      const allSlots = [...freeSlots, ...bookingSlots];
 
       // Сортировать и мержить в интервалы
       availableSlots.value = allSlots;
@@ -113,58 +128,60 @@
   function selectInterval(interval) {
     selectedInterval.value = interval;
 
-    // Генерируем часовые точки внутри интервала
+    // Генерируем часовые точки внутри интервала,
+    // но ТОЛЬКО те, куда помещается вся длительность брони
     const points = [];
     let [h, m] = interval.start.split(':').map(Number);
     const [endH, endM] = interval.end.split(':').map(Number);
     const endMinutes = endH * 60 + endM;
+    const duration = bookingDurationHours.value;
 
-    while (h * 60 + m <= endMinutes) {
+    while ((h + duration) * 60 + m <= endMinutes) {
       points.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-      h += 1;
+      h += 1; // шаг 1 час
     }
 
     timePoints.value = points;
-    startIndex.value = null;
-    endIndex.value = null;
+    selectedStartIndex.value = null;
     screen.value = 'slots';
   }
 
-  function toggleSlot(index) {
-    if (startIndex.value === null) {
-      startIndex.value = index;
-      return;
-    }
-    if (endIndex.value === null) {
-      if (index === startIndex.value) {
-        startIndex.value = null;
-        return;
-      }
-      endIndex.value = index;
-      return;
-    }
-    startIndex.value = index;
-    endIndex.value = null;
+  function selectHour(index) {
+    selectedStartIndex.value = index;
   }
 
   function isSelected(index) {
-    if (startIndex.value === null) return false;
-    if (endIndex.value === null) return index === startIndex.value;
-    const min = Math.min(startIndex.value, endIndex.value);
-    const max = Math.max(startIndex.value, endIndex.value);
-    return index >= min && index <= max;
+    if (selectedStartIndex.value === null) return false;
+    // Подсветить все часы от выбранного до выбранного + длительность
+    return index >= selectedStartIndex.value
+      && index < selectedStartIndex.value + bookingDurationHours.value;
   }
 
-  const isValidRange = computed(() => {
-    return startIndex.value !== null && endIndex.value !== null
-      && Math.abs(endIndex.value - startIndex.value) >= 1;
+  const isValidSelection = computed(() => {
+    return selectedStartIndex.value !== null;
   });
 
   const bookingTime = computed(() => {
-    if (!isValidRange.value) return '';
-    const min = Math.min(startIndex.value, endIndex.value);
-    const max = Math.max(startIndex.value, endIndex.value);
-    return `${timePoints.value[min]} - ${timePoints.value[max]}`;
+    if (!isValidSelection.value) return '';
+    const startTime = timePoints.value[selectedStartIndex.value];
+    // Вычислить end time: start + duration часов
+    const [h, m] = startTime.split(':').map(Number);
+    const endH = h + bookingDurationHours.value;
+    const endTime = `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    return `${startTime} - ${endTime}`;
+  });
+
+  // Computed для start_time и end_time при отправке на API
+  const newStartTime = computed(() => {
+    if (!isValidSelection.value) return '';
+    return timePoints.value[selectedStartIndex.value];
+  });
+
+  const newEndTime = computed(() => {
+    if (!isValidSelection.value) return '';
+    const [h, m] = newStartTime.value.split(':').map(Number);
+    const endH = h + bookingDurationHours.value;
+    return `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   });
 
   const bookingDate = computed(() => {
@@ -174,20 +191,17 @@
 
   const formattedDate = computed(() => {
     if (!bookingDate.value) return '';
-    return new Date(bookingDate.value).toLocaleDateString('ru-RU');
+    return formatBookingDate(props.booking.start_time);
   });
 
   async function confirmReschedule() {
-    if (isSubmitting.value || !isValidRange.value) return;
+    if (isSubmitting.value || !isValidSelection.value) return;
 
     isSubmitting.value = true;
     errorMessage.value = '';
 
-    const min = Math.min(startIndex.value, endIndex.value);
-    const max = Math.max(startIndex.value, endIndex.value);
-
-    const start_time = `${bookingDate.value}T${timePoints.value[min]}:00+00:00`;
-    const end_time = `${bookingDate.value}T${timePoints.value[max]}:00+00:00`;
+    const start_time = `${bookingDate.value}T${newStartTime.value}:00+00:00`;
+    const end_time = `${bookingDate.value}T${newEndTime.value}:00+00:00`;
 
     try {
       await bookingsStore.rescheduleBooking(props.booking.id, {
@@ -260,9 +274,11 @@
         </div>
       </div>
 
-      <!-- Экран 2: Выбор часов -->
+      <!-- Экран 2: Выбор часа начала (длительность фиксирована) -->
       <div v-else-if="screen === 'slots'">
-        <p class="reschedule__subtitle">Выберите время</p>
+        <p class="reschedule__subtitle">
+          Выберите время начала (длительность: {{ bookingDurationHours }} ч.)
+        </p>
 
         <div
           class="reschedule__slots"
@@ -273,7 +289,7 @@
             :key="time"
             class="reschedule__slot"
             :class="{ active: isSelected(index) }"
-            @click="toggleSlot(index)"
+            @click="selectHour(index)"
           >
             {{ time }}
           </button>
@@ -295,7 +311,7 @@
       <div v-if="screen === 'slots'">
         <button
           class="reschedule__btn"
-          :disabled="!isValidRange"
+          :disabled="!isValidSelection"
           @click="goToConfirm"
         >
           Далее

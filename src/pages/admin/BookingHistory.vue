@@ -8,17 +8,6 @@
     bookingsStore.fetchBookings();
   });
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('ru-RU');
-  };
-
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   const placeTypeMap = {
     meeting_room: 'Переговорная',
     office: 'Офис',

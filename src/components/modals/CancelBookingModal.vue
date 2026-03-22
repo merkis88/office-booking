@@ -1,6 +1,7 @@
 <script setup>
   import { ref, computed } from 'vue';
   import { useBookingsStore } from '@/store/bookings';
+  import { formatBookingDate, formatBookingTime } from '@/utils/dateFormat';
   import BaseModal from '@/components/modals/BaseModal.vue';
 
   const props = defineProps({
@@ -22,19 +23,13 @@
 
   const formattedDate = computed(() => {
     if (!props.booking) return '';
-    return new Date(props.booking.start_time).toLocaleDateString('ru-RU');
+    return formatBookingDate(props.booking.start_time);
   });
 
   const formattedTime = computed(() => {
     if (!props.booking) return '';
-    const start = new Date(props.booking.start_time).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    const end = new Date(props.booking.end_time).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const start = formatBookingTime(props.booking.start_time);
+    const end = formatBookingTime(props.booking.end_time);
     return `${start} - ${end}`;
   });
 

@@ -3,6 +3,7 @@
   import { useAuthStore } from '@/store/auth';
   import { useBookingsStore } from '@/store/bookings';
   import { useServicesStore } from '@/store/services';
+  import { formatBookingDateLong } from '@/utils/dateFormat';
   import { storeToRefs } from 'pinia';
   import { useRouter } from 'vue-router';
   import QRCode from 'qrcode';
@@ -176,11 +177,7 @@
   const groupedBookings = computed(() => {
     const groups = {};
     for (const booking of filteredBookings.value) {
-      const date = new Date(booking.start_time).toLocaleDateString('ru-RU', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      });
+      const date = formatBookingDateLong(booking.start_time);
       if (!groups[date]) groups[date] = [];
       groups[date].push(booking);
     }

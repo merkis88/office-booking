@@ -1,6 +1,7 @@
 <script setup>
   import { watch, computed } from 'vue';
   import { useBookingsStore } from '@/store/bookings';
+  import { formatBookingDate, formatBookingTime } from '@/utils/dateFormat';
   import BaseModal from '@/components/modals/BaseModal.vue';
   import StatusBadge from '@/components/StatusBadge.vue';
 
@@ -45,19 +46,13 @@
 
   const formattedDate = computed(() => {
     if (!booking.value) return '';
-    return new Date(booking.value.start_time).toLocaleDateString('ru-RU');
+    return formatBookingDate(booking.value.start_time);
   });
 
   const formattedTime = computed(() => {
     if (!booking.value) return '';
-    const start = new Date(booking.value.start_time).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    const end = new Date(booking.value.end_time).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const start = formatBookingTime(booking.value.start_time);
+    const end = formatBookingTime(booking.value.end_time);
     return `${start} - ${end}`;
   });
 
