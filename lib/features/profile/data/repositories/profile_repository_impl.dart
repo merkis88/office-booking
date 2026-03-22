@@ -5,7 +5,9 @@ import 'package:wordpice/features/profile/data/datasources/profile_data_source.d
 import 'package:wordpice/features/profile/domain/entities/change_password_params.dart';
 import 'package:wordpice/features/profile/domain/entities/profile_rentals_overview.dart';
 import 'package:wordpice/features/profile/domain/entities/rental_history_item.dart';
+import 'package:wordpice/features/profile/domain/entities/update_profile_params.dart';
 import 'package:wordpice/features/profile/domain/repositories/profile_repository.dart';
+import 'package:wordpice/features/profile/presentation/models/profile_request_item.dart';
 
 class ProfileRepositoryImpl implements ProfileRepository {
   ProfileRepositoryImpl(
@@ -41,6 +43,29 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
+  Future<List<ProfileRequestItem>> getRequests() {
+    return _dataSource.getRequests();
+  }
+
+  @override
+  Future<String> exportRequestPdf(int requestId) {
+    return _dataSource.exportRequestPdf(requestId);
+  }
+
+  @override
+  Future<void> rescheduleBooking({
+    required int bookingId,
+    required String startTime,
+    required String endTime,
+  }) {
+    return _dataSource.rescheduleBooking(
+      bookingId: bookingId,
+      startTime: startTime,
+      endTime: endTime,
+    );
+  }
+
+  @override
   Future<void> cancelBooking(int bookingId) {
     return _dataSource.cancelBooking(bookingId);
   }
@@ -48,5 +73,21 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   Future<String> changePassword(ChangePasswordParams params) {
     return _dataSource.changePassword(params);
+  }
+
+  @override
+  Future<RegisteredUser> updateProfile(UpdateProfileParams params) async {
+    final user = await _dataSource.updateProfile(params);
+    _appSession.updateUser(user);
+    final token = _appSession.token;
+    if (token != null && token.isNotEmpty) {
+      await _sessionStorage.saveSession(token: token, user: user);
+    }
+    return user;
+  }
+
+  @override
+  Future<void> deleteAccount(String password) {
+    return _dataSource.deleteAccount(password);
   }
 }

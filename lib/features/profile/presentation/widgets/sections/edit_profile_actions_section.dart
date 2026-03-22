@@ -7,10 +7,12 @@ class EditProfileActionsSection extends StatelessWidget {
     super.key,
     required this.onSaveTap,
     required this.onExitTap,
+    this.isSaving = false,
   });
 
-  final VoidCallback onSaveTap;
+  final VoidCallback? onSaveTap;
   final VoidCallback onExitTap;
+  final bool isSaving;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class EditProfileActionsSection extends StatelessWidget {
           width: EditProfileStyles.saveButtonWidth,
           height: EditProfileStyles.saveButtonHeight,
           child: OutlinedButton(
-            onPressed: onSaveTap,
+            onPressed: isSaving ? null : onSaveTap,
             style: OutlinedButton.styleFrom(
               backgroundColor: AppColors.formSurface,
               padding: EdgeInsets.zero,
@@ -28,15 +30,15 @@ class EditProfileActionsSection extends StatelessWidget {
                 borderRadius: EditProfileStyles.saveButtonRadius,
               ),
             ),
-            child: const Text(
-              'Сохранить',
+            child: Text(
+              isSaving ? 'Сохранение...' : 'Сохранить',
               style: EditProfileStyles.primaryButtonTextStyle,
             ),
           ),
         ),
         const SizedBox(height: 8),
         TextButton(
-          onPressed: onExitTap,
+          onPressed: isSaving ? null : onExitTap,
           child: const Text(
             'Выйти без сохранения',
             style: EditProfileStyles.exitTextStyle,

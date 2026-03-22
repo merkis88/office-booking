@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:wordpice/app/app_scope.dart';
+import 'package:wordpice/core/network/api_client.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
 import 'package:wordpice/core/widgets/buttons/app_outlined_icon_button.dart';
 import 'package:wordpice/core/widgets/dialogs/app_confirmation_dialog.dart';
 import 'package:wordpice/features/passes/presentation/screens/employee_pass_screen.dart';
 import 'package:wordpice/features/profile/domain/entities/rental_history_item.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_rental_card_layout.dart';
+import 'package:wordpice/features/profile/presentation/widgets/modals/profile_booking_reschedule_modal.dart';
 import 'package:wordpice/features/profile/presentation/widgets/styles/profile_card_styles.dart';
+import 'package:wordpice/features/rentals/presentation/widgets/modals/office_time_picker_modal.dart';
 
 class ProfileActiveRentalCard extends StatefulWidget {
   const ProfileActiveRentalCard({
@@ -28,11 +32,13 @@ class _ProfileActiveRentalCardState extends State<ProfileActiveRentalCard> {
   static const int _loopMultiplier = 1000;
   static const List<String> _actions = [
     'Пригласить сотрудника',
-    'Перенести бронь',
+    'Перенести бронирование',
     'Отменить бронь',
   ];
 
   late final PageController _actionController;
+  bool _isRescheduleLoading = false;
+  String? _rescheduledTime;
 
   @override
   void initState() {
@@ -65,14 +71,23 @@ class _ProfileActiveRentalCardState extends State<ProfileActiveRentalCard> {
 
   Future<void> _onActionPressed(int actionIndex) async {
     if (actionIndex == 0) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       await Navigator.of(
         context,
       ).push(MaterialPageRoute(builder: (_) => const EmployeePassScreen()));
       return;
     }
 
-    if (actionIndex != 2 || widget.isCancelling) return;
+    if (actionIndex == 1) {
+      await _openRescheduleFlow();
+      return;
+    }
+
+    if (actionIndex != 2 || widget.isCancelling) {
+      return;
+    }
 
     final shouldCancel = await AppConfirmationDialog.show<bool>(
       context,
@@ -84,13 +99,301 @@ class _ProfileActiveRentalCardState extends State<ProfileActiveRentalCard> {
       cancelResult: false,
     );
 
-    if (shouldCancel != true || !mounted) return;
+    if (shouldCancel != true || !mounted) {
+      return;
+    }
     await widget.onCancelPressed(widget.item);
+  }
+
+  Future<void> _openRescheduleFlow() async {
+    final placeId = widget.item.placeId;
+    final placeType = widget.item.placeType;
+    final dateIso = widget.item.dateIso;
+
+    if (placeId == null || placeType == null || dateIso == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Не удалось загрузить доступное время для переноса.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isRescheduleLoading = true;
+    });
+
+    List<String> availableSlots;
+    final currentBookingTime = widget.item.timeSlots.isEmpty
+        ? null
+        : widget.item.timeSlots.first;
+
+    try {
+      final type = _mapPlaceTypeToQuery(placeType);
+      if (type == null) {
+        throw const ApiConnectionException(
+          'Не удалось определить тип помещения.',
+        );
+      }
+
+      final places = await AppScope.of(context).rentalsRepository.getPlaces(
+        type: type,
+        date: dateIso,
+        minPrice: 0,
+        maxPrice: 1000000000,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      final currentPlace = places.items.where((item) => item.id == placeId);
+      if (currentPlace.isEmpty) {
+        throw const ApiConnectionException(
+          'Не удалось найти доступное время этого помещения.',
+        );
+      }
+
+      availableSlots = _mergeCurrentBookingWithAvailableSlots(
+        availableSlots: currentPlace.first.availableTimeSlots,
+        currentBookingTime: currentBookingTime,
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      final message = error is ApiConnectionException
+          ? error.message
+          : 'Не удалось загрузить доступное время для переноса.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+      return;
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRescheduleLoading = false;
+        });
+      }
+    }
+
+    if (availableSlots.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Нет доступных слотов для переноса.'),
+        ),
+      );
+      return;
+    }
+
+    final selectedSlot = await ProfileBookingRescheduleModal.show(
+      context,
+      title: widget.item.title,
+      dateLabel: widget.item.dateLabel,
+      availableSlots: availableSlots,
+    );
+
+    if (selectedSlot == null || !mounted) {
+      return;
+    }
+
+    final selectedTime = await OfficeTimePickerModal.show(
+      context,
+      availableTime: selectedSlot,
+      submitLabel: 'Перенести бронирование',
+    );
+
+    if (selectedTime == null || !mounted) {
+      return;
+    }
+
+    final bookingId = widget.item.bookingId;
+    final startTime = _buildRequestDateTime(
+      dateIso: dateIso,
+      timeRange: selectedTime,
+      takeEnd: false,
+    );
+    final endTime = _buildRequestDateTime(
+      dateIso: dateIso,
+      timeRange: selectedTime,
+      takeEnd: true,
+    );
+
+    if (bookingId == null || startTime == null || endTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Не удалось подготовить данные для переноса.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isRescheduleLoading = true;
+    });
+
+    try {
+      await AppScope.of(context).profileRepository.rescheduleBooking(
+        bookingId: bookingId,
+        startTime: startTime,
+        endTime: endTime,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _rescheduledTime = selectedTime;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      final message = error is ApiConnectionException
+          ? error.message
+          : 'Не удалось перенести бронирование.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRescheduleLoading = false;
+        });
+      }
+    }
+  }
+
+  String? _mapPlaceTypeToQuery(String value) {
+    switch (value) {
+      case 'meeting_room':
+      case 'meeting':
+        return 'meeting';
+      case 'office':
+        return 'office';
+      case 'coworking':
+        return 'coworking';
+      default:
+        return null;
+    }
+  }
+
+  List<String> _mergeCurrentBookingWithAvailableSlots({
+    required List<String> availableSlots,
+    required String? currentBookingTime,
+  }) {
+    final ranges = <_TimeRange>[
+      for (final slot in availableSlots)
+        if (_parseRange(slot) != null) _parseRange(slot)!,
+    ];
+
+    final currentRange = _parseRange(currentBookingTime);
+    if (currentRange != null) {
+      ranges.add(currentRange);
+    }
+
+    if (ranges.isEmpty) {
+      return const <String>[];
+    }
+
+    ranges.sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
+
+    final merged = <_TimeRange>[ranges.first];
+    for (var i = 1; i < ranges.length; i++) {
+      final last = merged.last;
+      final next = ranges[i];
+
+      if (next.startMinutes <= last.endMinutes) {
+        merged[merged.length - 1] = _TimeRange(
+          startMinutes: last.startMinutes,
+          endMinutes: next.endMinutes > last.endMinutes
+              ? next.endMinutes
+              : last.endMinutes,
+        );
+        continue;
+      }
+
+      if (next.startMinutes == last.endMinutes) {
+        merged[merged.length - 1] = _TimeRange(
+          startMinutes: last.startMinutes,
+          endMinutes: next.endMinutes,
+        );
+        continue;
+      }
+
+      merged.add(next);
+    }
+
+    return merged.map(_formatRange).toList();
+  }
+
+  _TimeRange? _parseRange(String? value) {
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+
+    final match = RegExp(
+      r'(\d{2}):(\d{2})\s*-\s*(\d{2}):(\d{2})',
+    ).firstMatch(value);
+    if (match == null) {
+      return null;
+    }
+
+    int? parsePart(int index) => int.tryParse(match.group(index) ?? '');
+    final startHour = parsePart(1);
+    final startMinute = parsePart(2);
+    final endHour = parsePart(3);
+    final endMinute = parsePart(4);
+    if (startHour == null ||
+        startMinute == null ||
+        endHour == null ||
+        endMinute == null) {
+      return null;
+    }
+
+    return _TimeRange(
+      startMinutes: startHour * 60 + startMinute,
+      endMinutes: endHour * 60 + endMinute,
+    );
+  }
+
+  String _formatRange(_TimeRange range) {
+    String formatMinutes(int totalMinutes) {
+      final hours = (totalMinutes ~/ 60).toString().padLeft(2, '0');
+      final minutes = (totalMinutes % 60).toString().padLeft(2, '0');
+      return '$hours:$minutes';
+    }
+
+    return '${formatMinutes(range.startMinutes)} - ${formatMinutes(range.endMinutes)}';
+  }
+
+  String? _buildRequestDateTime({
+    required String dateIso,
+    required String timeRange,
+    required bool takeEnd,
+  }) {
+    final match = RegExp(
+      r'(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})',
+    ).firstMatch(timeRange);
+    if (match == null) {
+      return null;
+    }
+
+    final time = takeEnd ? match.group(2) : match.group(1);
+    if (time == null) {
+      return null;
+    }
+
+    return '${dateIso}T$time:00Z';
   }
 
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
+    final displayedTime =
+        _rescheduledTime ?? (item.timeSlots.isEmpty ? null : item.timeSlots.first);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,8 +403,9 @@ class _ProfileActiveRentalCardState extends State<ProfileActiveRentalCard> {
           child: ProfileRentalCardContent(
             title: item.title,
             room: item.room,
+            priceLabel: item.priceLabel,
             capacity: item.capacity,
-            timeText: item.timeSlots.isEmpty ? null : item.timeSlots.first,
+            timeText: displayedTime,
           ),
         ),
         const SizedBox(height: 10),
@@ -111,10 +415,21 @@ class _ProfileActiveRentalCardState extends State<ProfileActiveRentalCard> {
           onNext: _showNextAction,
           onActionPressed: _onActionPressed,
           isCancelling: widget.isCancelling,
+          isRescheduleLoading: _isRescheduleLoading,
         ),
       ],
     );
   }
+}
+
+class _TimeRange {
+  const _TimeRange({
+    required this.startMinutes,
+    required this.endMinutes,
+  });
+
+  final int startMinutes;
+  final int endMinutes;
 }
 
 class _ActiveRentalActions extends StatelessWidget {
@@ -124,6 +439,7 @@ class _ActiveRentalActions extends StatelessWidget {
     required this.onNext,
     required this.onActionPressed,
     required this.isCancelling,
+    required this.isRescheduleLoading,
   });
 
   final PageController controller;
@@ -131,6 +447,7 @@ class _ActiveRentalActions extends StatelessWidget {
   final VoidCallback onNext;
   final Future<void> Function(int actionIndex) onActionPressed;
   final bool isCancelling;
+  final bool isRescheduleLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -156,10 +473,9 @@ class _ActiveRentalActions extends StatelessWidget {
                   index % _ProfileActiveRentalCardState._actions.length;
               return _ActionChip(
                 label: _ProfileActiveRentalCardState._actions[actionIndex],
-                onTap: () {
-                  onActionPressed(actionIndex);
-                },
-                isBusy: isCancelling && actionIndex == 2,
+                onTap: () => onActionPressed(actionIndex),
+                isBusy: (isCancelling && actionIndex == 2) ||
+                    (isRescheduleLoading && actionIndex == 1),
               );
             },
           ),

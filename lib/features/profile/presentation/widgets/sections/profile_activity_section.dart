@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
 import 'package:wordpice/core/widgets/states/app_empty_state_text.dart';
 import 'package:wordpice/features/profile/data/mock/profile_favorite_rentals_mock_data.dart';
-import 'package:wordpice/features/profile/data/mock/profile_requests_mock_data.dart';
 import 'package:wordpice/features/profile/domain/entities/rental_history_item.dart';
 import 'package:wordpice/features/profile/presentation/models/profile_activity_filter.dart';
+import 'package:wordpice/features/profile/presentation/models/profile_request_item.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_active_rental_card.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_favorite_rental_card.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_request_card.dart';
@@ -16,15 +16,21 @@ class ProfileActivitySection extends StatelessWidget {
     required this.filter,
     required this.activeRentals,
     required this.rentalHistory,
+    required this.requests,
     required this.onCancelRental,
     required this.isBookingCancelling,
+    required this.onDownloadRequest,
+    required this.isRequestDownloading,
   });
 
   final ProfileActivityFilter filter;
   final List<RentalHistoryItem> activeRentals;
   final List<RentalHistoryItem> rentalHistory;
+  final List<ProfileRequestItem> requests;
   final Future<void> Function(RentalHistoryItem item) onCancelRental;
   final bool Function(RentalHistoryItem item) isBookingCancelling;
+  final Future<void> Function(ProfileRequestItem item) onDownloadRequest;
+  final bool Function(ProfileRequestItem item) isRequestDownloading;
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +61,7 @@ class ProfileActivitySection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (var i = 0; i < profileFavoriteRentalsMockData.length; i++) ...[
-              ProfileFavoriteRentalCard(
-                item: profileFavoriteRentalsMockData[i],
-              ),
+              ProfileFavoriteRentalCard(item: profileFavoriteRentalsMockData[i]),
               if (i != profileFavoriteRentalsMockData.length - 1)
                 const SizedBox(height: 30),
             ],
@@ -79,16 +83,19 @@ class ProfileActivitySection extends StatelessWidget {
         );
 
       case ProfileActivityFilter.requests:
-        if (profileRequestsMockData.isEmpty) {
+        if (requests.isEmpty) {
           return const _ActivityEmptyState(text: 'У вас нет заявок');
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (var i = 0; i < profileRequestsMockData.length; i++) ...[
-              ProfileRequestCard(item: profileRequestsMockData[i]),
-              if (i != profileRequestsMockData.length - 1)
-                const SizedBox(height: 22),
+            for (var i = 0; i < requests.length; i++) ...[
+              ProfileRequestCard(
+                item: requests[i],
+                onDownloadPressed: onDownloadRequest,
+                isDownloading: isRequestDownloading(requests[i]),
+              ),
+              if (i != requests.length - 1) const SizedBox(height: 22),
             ],
           ],
         );

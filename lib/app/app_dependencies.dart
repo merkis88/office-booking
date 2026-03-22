@@ -10,6 +10,9 @@ import 'package:wordpice/features/notifications/domain/repositories/notification
 import 'package:wordpice/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:wordpice/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:wordpice/features/profile/domain/repositories/profile_repository.dart';
+import 'package:wordpice/features/requests/data/datasources/requests_remote_data_source.dart';
+import 'package:wordpice/features/requests/data/repositories/requests_repository_impl.dart';
+import 'package:wordpice/features/requests/domain/repositories/requests_repository.dart';
 import 'package:wordpice/features/rentals/data/datasources/rentals_remote_data_source.dart';
 import 'package:wordpice/features/rentals/data/repositories/rentals_repository_impl.dart';
 import 'package:wordpice/features/rentals/domain/repositories/rentals_repository.dart';
@@ -21,6 +24,7 @@ class AppDependencies {
   final AuthRepository authRepository;
   final NotificationsRepository notificationsRepository;
   final ProfileRepository profileRepository;
+  final RequestsRepository requestsRepository;
   final RentalsRepository rentalsRepository;
   final ReviewsRepository reviewsRepository;
   final AppSession appSession;
@@ -29,6 +33,7 @@ class AppDependencies {
     required this.authRepository,
     required this.notificationsRepository,
     required this.profileRepository,
+    required this.requestsRepository,
     required this.rentalsRepository,
     required this.reviewsRepository,
     required this.appSession,
@@ -66,6 +71,9 @@ class AppDependencies {
       sessionStorage: sessionStorage,
     );
 
+    final requestsDataSource = RequestsRemoteDataSource(apiClient, appSession);
+    final requestsRepository = RequestsRepositoryImpl(requestsDataSource);
+
     final rentalsDataSource = RentalsRemoteDataSource(apiClient, appSession);
     final rentalsRepository = RentalsRepositoryImpl(rentalsDataSource);
 
@@ -76,6 +84,7 @@ class AppDependencies {
       authRepository: authRepository,
       notificationsRepository: notificationsRepository,
       profileRepository: profileRepository,
+      requestsRepository: requestsRepository,
       rentalsRepository: rentalsRepository,
       reviewsRepository: reviewsRepository,
       appSession: appSession,

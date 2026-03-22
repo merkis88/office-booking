@@ -6,6 +6,7 @@ import 'package:wordpice/core/network/api_client.dart';
 import 'package:wordpice/features/rentals/data/datasources/rentals_data_source.dart';
 import 'package:wordpice/features/rentals/data/models/create_booking_request_model.dart';
 import 'package:wordpice/features/rentals/data/models/create_booking_response_model.dart';
+import 'package:wordpice/features/rentals/data/models/rental_place_details_response_model.dart';
 import 'package:wordpice/features/rentals/data/models/rental_places_response_model.dart';
 
 class RentalsRemoteDataSource implements RentalsDataSource {
@@ -49,6 +50,29 @@ class RentalsRemoteDataSource implements RentalsDataSource {
     }
 
     throw const ApiConnectionException('Не удалось загрузить помещения.');
+  }
+
+  @override
+  Future<RentalPlaceDetailsResponseModel> getPlaceDetails({
+    required int placeId,
+    String? date,
+  }) async {
+    final response = await _apiClient.getJson(
+      '/places/$placeId',
+      headers: _authorizationHeaders(),
+    );
+
+    final statusCode = response['statusCode'] as int? ?? 500;
+    if (statusCode >= 200 && statusCode < 300) {
+      return RentalPlaceDetailsResponseModel.fromJson(response);
+    }
+
+    throw ApiConnectionException(
+      _extractErrorMessage(
+        response,
+        fallbackMessage: 'Не удалось загрузить информацию о помещении.',
+      ),
+    );
   }
 
   @override

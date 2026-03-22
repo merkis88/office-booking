@@ -5,10 +5,11 @@ import 'package:wordpice/core/network/api_client.dart';
 import 'package:wordpice/core/widgets/layout/app_constrained_scroll_view.dart';
 import 'package:wordpice/core/widgets/layout/app_shell.dart';
 import 'package:wordpice/features/auth/domain/entities/registered_user.dart';
-import 'package:wordpice/features/profile/data/mock/profile_pass_mock_data.dart';
 import 'package:wordpice/features/profile/domain/entities/profile_rentals_overview.dart';
 import 'package:wordpice/features/profile/domain/entities/rental_history_item.dart';
 import 'package:wordpice/features/profile/presentation/models/profile_activity_filter.dart';
+import 'package:wordpice/features/profile/presentation/models/profile_pass_item.dart';
+import 'package:wordpice/features/profile/presentation/models/profile_request_item.dart';
 import 'package:wordpice/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_info_card.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_pass_card.dart';
@@ -52,12 +53,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _hasLoadedOnce = false;
   RegisteredUser? _user;
   ProfileRentalsOverview _rentalsOverview = _emptyOverview;
+  List<ProfileRequestItem> _requests = const <ProfileRequestItem>[];
   final Set<int> _cancelingBookingIds = <int>{};
+  final Set<int> _downloadingRequestIds = <int>{};
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_hasLoadedOnce) return;
+    if (_hasLoadedOnce) {
+      return;
+    }
     _hasLoadedOnce = true;
     _loadProfile();
   }
@@ -77,23 +82,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     }
 
-    try {
-      final freshUser = await dependencies.profileRepository.getCurrentProfile();
-      final rentalsOverview = await dependencies.profileRepository
-          .getRentalsOverview();
+    RegisteredUser? freshUser;
+    ProfileRentalsOverview? rentalsOverview;
+    List<ProfileRequestItem>? requests;
 
-      if (!mounted) return;
-      setState(() {
-        _user = freshUser;
-        _rentalsOverview = rentalsOverview;
-        _isLoading = false;
-      });
+    try {
+      freshUser = await dependencies.profileRepository.getCurrentProfile();
+      dependencies.appSession.updateUser(freshUser);
     } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
+      // Keep the cached session user if profile refresh fails.
     }
+
+    try {
+      rentalsOverview = await dependencies.profileRepository.getRentalsOverview();
+    } catch (_) {
+      // Keep the last loaded rentals if this request fails.
+    }
+
+    try {
+      requests = await dependencies.profileRepository.getRequests();
+    } catch (_) {
+      // Requests should not block rendering profile or rentals.
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _user = freshUser ?? _user;
+      _rentalsOverview = rentalsOverview ?? _rentalsOverview;
+      _requests = requests ?? _requests;
+      _isLoading = false;
+    });
   }
 
   Future<void> _cancelRental(RentalHistoryItem item) async {
@@ -113,7 +134,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final repository = AppScope.of(context).profileRepository;
       await repository.cancelBooking(bookingId);
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         _rentalsOverview = ProfileRentalsOverview(
           activeRentals: _rentalsOverview.activeRentals
@@ -123,7 +147,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       });
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
+
       final message = error is ApiConnectionException
           ? error.message
           : 'Не удалось отменить бронь.';
@@ -144,18 +171,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return bookingId != null && _cancelingBookingIds.contains(bookingId);
   }
 
-  void _openEditScreen() {
-    final user = _user;
-    if (user == null) return;
+  Future<void> _downloadRequestPdf(ProfileRequestItem item) async {
+    if (_downloadingRequestIds.contains(item.id)) {
+      return;
+    }
 
-    Navigator.of(
+    setState(() {
+      _downloadingRequestIds.add(item.id);
+    });
+
+    try {
+      final filePath = await AppScope.of(context).profileRepository
+          .exportRequestPdf(item.id);
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('PDF сохранен: $filePath')));
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      final message = error is ApiConnectionException
+          ? error.message
+          : 'Не удалось скачать PDF.';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _downloadingRequestIds.remove(item.id);
+        });
+      }
+    }
+  }
+
+  bool _isRequestDownloading(ProfileRequestItem item) {
+    return _downloadingRequestIds.contains(item.id);
+  }
+
+  Future<void> _openEditScreen() async {
+    final user = _user;
+    if (user == null) {
+      return;
+    }
+
+    final updatedUser = await Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => EditProfileScreen(user: user)));
+    ).push<RegisteredUser>(
+      MaterialPageRoute(builder: (_) => EditProfileScreen(user: user)),
+    );
+
+    if (!mounted || updatedUser == null) {
+      return;
+    }
+
+    setState(() {
+      _user = updatedUser;
+    });
   }
 
   void _onBottomChanged(int index) {
-    if (index == _tabIndex) return;
-    setState(() => _selectedBottomIndex = index);
+    if (index == _tabIndex) {
+      return;
+    }
+    setState(() {
+      _selectedBottomIndex = index;
+    });
     AppTabNavigator.goToTab(context, index);
   }
 
@@ -167,10 +254,100 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showPassQr() {
-    if (!profilePassMockData.hasActivePass) return;
-    QrModal.showQr(
-      context,
-      validUntilText: profilePassMockData.validUntilText!,
+    final user = _user;
+    if (user == null) {
+      return;
+    }
+
+    final validUntilText =
+        _buildQrValidUntilText(user) ?? _buildFallbackQrValidUntilText();
+    if (validUntilText == null) {
+      QrModal.showNoActiveRentals(context);
+      return;
+    }
+    QrModal.showQr(context, validUntilText: validUntilText);
+  }
+
+  String? _buildQrValidUntilText(RegisteredUser user) {
+    final availableUntil = user.qrAvailableUntil?.trim();
+    final timeWindow = user.qrTimeWindow?.trim();
+
+    if (availableUntil != null && availableUntil.isNotEmpty) {
+      return _formatQrDateTime(availableUntil);
+    }
+
+    if (timeWindow != null && timeWindow.isNotEmpty) {
+      return timeWindow;
+    }
+
+    return null;
+  }
+
+  String _formatQrDateTime(String value) {
+    final dateTime = DateTime.tryParse(value)?.toLocal();
+    if (dateTime == null) {
+      return value;
+    }
+
+    final day = dateTime.day.toString().padLeft(2, '0');
+    final month = dateTime.month.toString().padLeft(2, '0');
+    final year = dateTime.year.toString();
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return '$day.$month.$year $hour:$minute';
+  }
+
+  String? _buildFallbackQrValidUntilText() {
+    if (_rentalsOverview.activeRentals.isEmpty) {
+      return null;
+    }
+
+    DateTime? latestEnd;
+    for (final rental in _rentalsOverview.activeRentals) {
+      final candidate = _extractRentalEndDateTime(rental);
+      if (candidate == null) {
+        continue;
+      }
+      if (latestEnd == null || candidate.isAfter(latestEnd)) {
+        latestEnd = candidate;
+      }
+    }
+
+    if (latestEnd == null) {
+      return null;
+    }
+
+    return _formatQrDateTime(latestEnd.toIso8601String());
+  }
+
+  DateTime? _extractRentalEndDateTime(RentalHistoryItem rental) {
+    final dateIso = rental.dateIso;
+    if (dateIso == null || rental.timeSlots.isEmpty) {
+      return null;
+    }
+
+    final match = RegExp(
+      r'(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})',
+    ).firstMatch(rental.timeSlots.first);
+    if (match == null) {
+      return null;
+    }
+
+    final endTime = match.group(2);
+    if (endTime == null) {
+      return null;
+    }
+
+    return DateTime.tryParse('${dateIso}T$endTime:00');
+  }
+
+  ProfilePassItem _buildProfilePass(RegisteredUser user) {
+    final validUntilText =
+        _buildQrValidUntilText(user) ?? _buildFallbackQrValidUntilText();
+    return ProfilePassItem(
+      title: 'Qr-код пропуск',
+      showButtonLabel: 'Показать',
+      validUntilText: validUntilText,
     );
   }
 
@@ -186,15 +363,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return _ProfileContent(
       user: user,
-      onEditTap: _openEditScreen,
+      profilePass: _buildProfilePass(user),
+      onEditTap: () => _openEditScreen(),
       carouselItems: _carouselItems,
       carouselIndex: _carouselIndex,
       onCarouselChanged: (index) => setState(() => _carouselIndex = index),
       selectedActivityFilter: _selectedActivityFilter,
       rentalsOverview: _rentalsOverview,
+      requests: _requests,
       onShowPassQr: _showPassQr,
       onCancelRental: _cancelRental,
       isBookingCancelling: _isBookingCancelling,
+      onDownloadRequest: _downloadRequestPdf,
+      isRequestDownloading: _isRequestDownloading,
     );
   }
 
@@ -215,47 +396,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
 class _ProfileContent extends StatelessWidget {
   const _ProfileContent({
     required this.user,
+    required this.profilePass,
     required this.onEditTap,
     required this.carouselItems,
     required this.carouselIndex,
     required this.onCarouselChanged,
     required this.selectedActivityFilter,
     required this.rentalsOverview,
+    required this.requests,
     required this.onShowPassQr,
     required this.onCancelRental,
     required this.isBookingCancelling,
+    required this.onDownloadRequest,
+    required this.isRequestDownloading,
   });
 
   final RegisteredUser user;
+  final ProfilePassItem profilePass;
   final VoidCallback onEditTap;
   final List<String> carouselItems;
   final int carouselIndex;
   final ValueChanged<int> onCarouselChanged;
   final ProfileActivityFilter selectedActivityFilter;
   final ProfileRentalsOverview rentalsOverview;
+  final List<ProfileRequestItem> requests;
   final VoidCallback onShowPassQr;
   final Future<void> Function(RentalHistoryItem item) onCancelRental;
   final bool Function(RentalHistoryItem item) isBookingCancelling;
+  final Future<void> Function(ProfileRequestItem item) onDownloadRequest;
+  final bool Function(ProfileRequestItem item) isRequestDownloading;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ProfileUserCard(onEditTap: onEditTap, fullName: user.fullName),
+        ProfileUserCard(
+          onEditTap: onEditTap,
+          fullName: user.fullName,
+          photoUrl: user.photo,
+        ),
         const SizedBox(height: 30),
         _NarrowCard(
           child: ProfileInfoCard(
             onEditTap: onEditTap,
             email: user.email,
-            company: user.company?.trim().isNotEmpty == true
-                ? user.company!
-                : 'Не указана',
           ),
         ),
         const SizedBox(height: 30),
         _NarrowCard(
           child: ProfilePassCard(
-            pass: profilePassMockData,
+            pass: profilePass,
             onShowPressed: onShowPassQr,
           ),
         ),
@@ -271,8 +461,11 @@ class _ProfileContent extends StatelessWidget {
             filter: selectedActivityFilter,
             activeRentals: rentalsOverview.activeRentals,
             rentalHistory: rentalsOverview.rentalHistory,
+            requests: requests,
             onCancelRental: onCancelRental,
             isBookingCancelling: isBookingCancelling,
+            onDownloadRequest: onDownloadRequest,
+            isRequestDownloading: isRequestDownloading,
           ),
         ),
       ],

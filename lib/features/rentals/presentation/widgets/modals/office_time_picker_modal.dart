@@ -2,17 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
 
 class OfficeTimePickerModal extends StatefulWidget {
-  const OfficeTimePickerModal({super.key, required this.availableTime});
+  const OfficeTimePickerModal({
+    super.key,
+    required this.availableTime,
+    this.submitLabel = 'Забронировать',
+  });
 
   final String availableTime;
+  final String submitLabel;
 
   static Future<String?> show(
     BuildContext context, {
     required String availableTime,
+    String submitLabel = 'Забронировать',
   }) {
     return showDialog<String>(
       context: context,
-      builder: (_) => OfficeTimePickerModal(availableTime: availableTime),
+      builder: (_) => OfficeTimePickerModal(
+        availableTime: availableTime,
+        submitLabel: submitLabel,
+      ),
     );
   }
 
@@ -33,7 +42,9 @@ class _OfficeTimePickerModalState extends State<OfficeTimePickerModal> {
 
   List<int> _parseHours(String text) {
     final parts = text.split('-').map((e) => e.trim()).toList();
-    if (parts.length != 2) return List<int>.generate(14, (i) => 9 + i);
+    if (parts.length != 2) {
+      return List<int>.generate(14, (i) => 9 + i);
+    }
 
     int parseHour(String value) {
       final hh = value.split(':').first.trim();
@@ -42,7 +53,9 @@ class _OfficeTimePickerModalState extends State<OfficeTimePickerModal> {
 
     final start = parseHour(parts[0]);
     final end = parseHour(parts[1]);
-    if (end < start) return List<int>.generate(14, (i) => 9 + i);
+    if (end < start) {
+      return List<int>.generate(14, (i) => 9 + i);
+    }
     return List<int>.generate(end - start + 1, (i) => start + i);
   }
 
@@ -65,8 +78,12 @@ class _OfficeTimePickerModalState extends State<OfficeTimePickerModal> {
   }
 
   bool _isSelected(int hour) {
-    if (_fromHour == null) return false;
-    if (_toHour == null) return hour == _fromHour;
+    if (_fromHour == null) {
+      return false;
+    }
+    if (_toHour == null) {
+      return hour == _fromHour;
+    }
     return hour >= _fromHour! && hour <= _toHour!;
   }
 
@@ -128,12 +145,12 @@ class _OfficeTimePickerModalState extends State<OfficeTimePickerModal> {
                         '${_formatHour(_fromHour!)} - ${_formatHour(_toHour!)}',
                       )
                     : null,
-                child: const FittedBox(
+                child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    'Забронировать',
+                    widget.submitLabel,
                     maxLines: 1,
-                    style: TextStyle(fontSize: 14),
+                    style: const TextStyle(fontSize: 14),
                   ),
                 ),
               ),

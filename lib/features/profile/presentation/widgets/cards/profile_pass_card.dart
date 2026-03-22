@@ -110,13 +110,6 @@ class _ActivePassContent extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          'Парковочное место: ${pass.parkingPlaceOrFallback}',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: ProfileCardStyles.passMeta,
-        ),
       ],
     );
   }

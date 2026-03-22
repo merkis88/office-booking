@@ -5,16 +5,19 @@ import 'package:wordpice/features/profile/presentation/widgets/profile_identity_
 import 'package:wordpice/features/profile/presentation/widgets/styles/edit_profile_styles.dart';
 
 class EditProfileField {
-  const EditProfileField({required this.label, required this.controller});
+  const EditProfileField({
+    required this.label,
+    required this.controller,
+    this.enabled = true,
+  });
 
   final String label;
   final TextEditingController controller;
+  final bool enabled;
 }
 
 class EditProfilePreviewCard extends StatelessWidget {
   const EditProfilePreviewCard({super.key, required this.user});
-
-  static const String _role = 'Должность';
 
   final RegisteredUser user;
 
@@ -32,17 +35,10 @@ class EditProfilePreviewCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const ProfileIdentityAvatar(size: 58),
+          ProfileIdentityAvatar(size: 58, photoUrl: user.photo),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(user.fullName, style: EditProfileStyles.previewNameStyle),
-                const SizedBox(height: 4),
-                const Text(_role, style: EditProfileStyles.previewRoleStyle),
-              ],
-            ),
+            child: Text(user.fullName, style: EditProfileStyles.previewNameStyle),
           ),
         ],
       ),
@@ -90,7 +86,11 @@ class EditProfileEditorCard extends StatelessWidget {
             ),
             for (final field in fields) ...[
               const SizedBox(height: 8),
-              _LabeledInput(label: field.label, controller: field.controller),
+              _LabeledInput(
+                label: field.label,
+                controller: field.controller,
+                enabled: field.enabled,
+              ),
             ],
             const SizedBox(height: 24),
             Center(
@@ -139,7 +139,11 @@ class _ActionButton extends StatelessWidget {
 }
 
 class _LabeledInput extends StatelessWidget {
-  const _LabeledInput({required this.label, required this.controller});
+  const _LabeledInput({
+    required this.label,
+    required this.controller,
+    required this.enabled,
+  });
 
   static const Border _inputBorder = Border(
     bottom: BorderSide(color: Colors.black26, width: 1),
@@ -147,6 +151,7 @@ class _LabeledInput extends StatelessWidget {
 
   final String label;
   final TextEditingController controller;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -161,6 +166,8 @@ class _LabeledInput extends StatelessWidget {
           decoration: const BoxDecoration(border: _inputBorder),
           child: TextField(
             controller: controller,
+            enabled: enabled,
+            readOnly: !enabled,
             style: EditProfileStyles.inputTextStyle,
             decoration: EditProfileStyles.inputDecoration,
           ),

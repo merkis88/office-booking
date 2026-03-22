@@ -65,19 +65,58 @@ class ApiClient {
     return _decodeResponse(response);
   }
 
+  Future<Map<String, dynamic>> patchJson(
+    String path, {
+    required Map<String, dynamic> body,
+    Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
+  }) async {
+    final response = await _sendPatchRequest(
+      path,
+      body: body,
+      headers: headers,
+      baseUrlOverride: baseUrlOverride,
+      timeoutOverride: timeoutOverride,
+    );
+    return _decodeResponse(response);
+  }
+
   Future<Map<String, dynamic>> deleteJson(
     String path, {
+    Map<String, dynamic>? body,
     Map<String, String>? headers,
     String? baseUrlOverride,
     Duration? timeoutOverride,
   }) async {
     final response = await _sendDeleteRequest(
       path,
+      body: body,
       headers: headers,
       baseUrlOverride: baseUrlOverride,
       timeoutOverride: timeoutOverride,
     );
     return _decodeResponse(response);
+  }
+
+  Future<List<int>> getBytes(
+    String path, {
+    Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
+  }) async {
+    final response = await _sendGetRequest(
+      path,
+      headers: headers,
+      baseUrlOverride: baseUrlOverride,
+      timeoutOverride: timeoutOverride,
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response.bodyBytes;
+    }
+
+    throw ApiConnectionException(_extractErrorMessage(response));
   }
 
   Map<String, dynamic> _decodeResponse(http.Response response) {
@@ -200,8 +239,41 @@ class ApiClient {
     }
   }
 
+  Future<http.Response> _sendPatchRequest(
+    String path, {
+    required Map<String, dynamic> body,
+    Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
+  }) async {
+    try {
+      return await _client
+          .patch(
+            Uri.parse(_resolveUrl(path, baseUrlOverride: baseUrlOverride)),
+            headers: _buildJsonHeaders(headers),
+            body: jsonEncode(body),
+          )
+          .timeout(timeoutOverride ?? AppApiConfig.requestTimeout);
+    } on SocketException {
+      throw const ApiConnectionException(
+        'РЎРµСЂРІРµСЂ РЅРµРґРѕСЃС‚СѓРїРµРЅ. РџСЂРѕРІРµСЂСЊС‚Рµ, С‡С‚Рѕ backend Р·Р°РїСѓС‰РµРЅ Рё Р°РґСЂРµСЃ API СѓРєР°Р·Р°РЅ РІРµСЂРЅРѕ.',
+      );
+    } on HttpException {
+      throw const ApiConnectionException(
+        'РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ Р·Р°РїСЂРѕСЃ Рє СЃРµСЂРІРµСЂСѓ.',
+      );
+    } on FormatException {
+      throw const ApiConnectionException('РЎРµСЂРІРµСЂ РІРµСЂРЅСѓР» РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РѕС‚РІРµС‚.');
+    } on TimeoutException {
+      throw const ApiConnectionException(
+        'РЎРµСЂРІРµСЂ РЅРµ РѕС‚РІРµС‡Р°РµС‚. РџСЂРѕРІРµСЂСЊС‚Рµ backend Рё РїРѕРІС‚РѕСЂРёС‚Рµ РїРѕРїС‹С‚РєСѓ.',
+      );
+    }
+  }
+
   Future<http.Response> _sendDeleteRequest(
     String path, {
+    Map<String, dynamic>? body,
     Map<String, String>? headers,
     String? baseUrlOverride,
     Duration? timeoutOverride,
@@ -210,7 +282,10 @@ class ApiClient {
       return await _client
           .delete(
             Uri.parse(_resolveUrl(path, baseUrlOverride: baseUrlOverride)),
-            headers: _buildGetHeaders(headers),
+            headers: body == null
+                ? _buildGetHeaders(headers)
+                : _buildJsonHeaders(headers),
+            body: body == null ? null : jsonEncode(body),
           )
           .timeout(timeoutOverride ?? AppApiConfig.requestTimeout);
     } on SocketException {
@@ -245,5 +320,32 @@ class ApiClient {
   String _resolveUrl(String path, {String? baseUrlOverride}) {
     final baseUrl = baseUrlOverride ?? AppApiConfig.baseUrl;
     return '$baseUrl$path';
+  }
+
+  String _extractErrorMessage(http.Response response) {
+    if (response.body.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          final errors = decoded['errors'];
+          if (errors is Map) {
+            for (final value in errors.values) {
+              if (value is List && value.isNotEmpty) {
+                return value.first.toString();
+              }
+            }
+          }
+
+          final message = decoded['message']?.toString();
+          if (message != null && message.isNotEmpty) {
+            return message;
+          }
+        }
+      } on FormatException {
+        // Ignore malformed non-JSON error bodies and use fallback below.
+      }
+    }
+
+    return 'Не удалось выполнить запрос к серверу.';
   }
 }

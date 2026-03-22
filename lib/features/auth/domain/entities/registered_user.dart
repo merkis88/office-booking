@@ -9,6 +9,12 @@ class RegisteredUser {
     required this.post,
     required this.company,
     required this.photo,
+    required this.qrHash,
+    required this.qrVisible,
+    required this.qrMessage,
+    required this.qrAvailableFrom,
+    required this.qrAvailableUntil,
+    required this.qrTimeWindow,
   });
 
   final int id;
@@ -20,6 +26,12 @@ class RegisteredUser {
   final String? post;
   final String? company;
   final String? photo;
+  final String? qrHash;
+  final bool qrVisible;
+  final String? qrMessage;
+  final String? qrAvailableFrom;
+  final String? qrAvailableUntil;
+  final String? qrTimeWindow;
 
   String get fullName {
     return <String>[
@@ -27,5 +39,13 @@ class RegisteredUser {
       firstName.trim(),
       patronymic?.trim() ?? '',
     ].where((part) => part.isNotEmpty).join(' ');
+  }
+
+  bool get hasQrCode {
+    return qrVisible ||
+        (qrHash?.trim().isNotEmpty ?? false) ||
+        (qrAvailableFrom?.trim().isNotEmpty ?? false) ||
+        (qrAvailableUntil?.trim().isNotEmpty ?? false) ||
+        (qrTimeWindow?.trim().isNotEmpty ?? false);
   }
 }

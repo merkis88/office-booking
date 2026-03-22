@@ -6,9 +6,16 @@ import 'package:wordpice/features/profile/presentation/widgets/styles/profile_ca
 import 'package:wordpice/features/profile/presentation/widgets/styles/profile_card_styles.dart';
 
 class ProfileRequestCard extends StatelessWidget {
-  const ProfileRequestCard({super.key, required this.item});
+  const ProfileRequestCard({
+    super.key,
+    required this.item,
+    required this.onDownloadPressed,
+    required this.isDownloading,
+  });
 
   final ProfileRequestItem item;
+  final Future<void> Function(ProfileRequestItem item) onDownloadPressed;
+  final bool isDownloading;
 
   @override
   Widget build(BuildContext context) {
@@ -32,20 +39,27 @@ class ProfileRequestCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _RequestDetailRow(text: 'Тип заявки: ${item.requestType}'),
-              _RequestDetailRow(
-                text:
-                    'Тип помещения: ${item.roomType} Кабинет №: ${item.roomNumber}',
-              ),
+              _RequestDetailRow(text: 'Тип помещения: ${item.roomType}'),
+              _RequestDetailRow(text: 'Кабинет №: ${item.roomNumber}'),
               _RequestDetailRow(text: 'Время работы: ${item.workTime}'),
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
                     child: _RequestDetailRow(
                       text: 'Комментарий: ${item.comment}',
                     ),
                   ),
-                  if (item.hasAttachment) const _RequestAttachmentIcon(),
+                  if (item.hasAttachment) ...[
+                    const SizedBox(width: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: _RequestAttachmentIcon(
+                        isLoading: isDownloading,
+                        onTap: () => onDownloadPressed(item),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -68,17 +82,38 @@ class _RequestDetailRow extends StatelessWidget {
 }
 
 class _RequestAttachmentIcon extends StatelessWidget {
-  const _RequestAttachmentIcon();
+  const _RequestAttachmentIcon({
+    required this.onTap,
+    required this.isLoading,
+  });
+
+  final VoidCallback onTap;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      'assets/icons/document_download.svg',
-      width: 28,
-      height: 28,
-      colorFilter: const ColorFilter.mode(
-        AppColors.textPrimary,
-        BlendMode.srcIn,
+    if (isLoading) {
+      return const SizedBox(
+        width: 28,
+        height: 28,
+        child: Padding(
+          padding: EdgeInsets.all(4),
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: SvgPicture.asset(
+        'assets/icons/document_download.svg',
+        width: 28,
+        height: 28,
+        colorFilter: const ColorFilter.mode(
+          AppColors.textPrimary,
+          BlendMode.srcIn,
+        ),
       ),
     );
   }

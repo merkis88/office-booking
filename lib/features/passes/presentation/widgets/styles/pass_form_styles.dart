@@ -46,7 +46,6 @@ class PassFormStyles {
     fontSize: 14,
     fontWeight: FontWeight.w400,
   );
-  static const parkingNumber = TextStyle(fontSize: 13, color: Colors.black87);
 
   static const editableFieldDecoration = InputDecoration(
     filled: true,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
 
-/// Единый нижний навигационный бар (подвал) для всех основных экранов.
 class AppBottomNavBar extends StatefulWidget {
   const AppBottomNavBar({
     super.key,
@@ -28,7 +27,6 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
     _NavItemData(label: 'Пропуск', iconAsset: 'assets/icons/nav_pass.svg'),
     _NavItemData(label: 'Профиль', iconAsset: 'assets/icons/nav_profile.svg'),
     _NavItemData(label: 'Отзывы', iconAsset: 'assets/icons/nav_reviews.svg'),
-    _NavItemData(label: 'Парковка', iconAsset: 'assets/icons/nav_parking.svg'),
     _NavItemData(label: 'Архив', iconAsset: 'assets/icons/nav_archive.svg'),
   ];
 
@@ -36,6 +34,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
   late int _page;
 
   int get _itemsCount => _items.length;
+
   @override
   void initState() {
     super.initState();
@@ -46,11 +45,6 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
       initialPage: _page,
       viewportFraction: 1 / _visibleCount,
     );
-  }
-
-  @override
-  void didUpdateWidget(covariant AppBottomNavBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -215,8 +209,8 @@ class _NavItem extends StatelessWidget {
 }
 
 class _NavItemData {
+  const _NavItemData({required this.label, required this.iconAsset});
+
   final String label;
   final String iconAsset;
-
-  const _NavItemData({required this.label, required this.iconAsset});
 }

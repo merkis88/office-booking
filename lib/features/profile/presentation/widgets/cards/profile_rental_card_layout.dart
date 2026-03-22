@@ -49,6 +49,7 @@ class ProfileRentalCardContent extends StatelessWidget {
     super.key,
     required this.title,
     required this.room,
+    required this.priceLabel,
     required this.capacity,
     this.timeText,
     this.favoriteInitiallyFilled = false,
@@ -56,6 +57,7 @@ class ProfileRentalCardContent extends StatelessWidget {
 
   final String title;
   final String room;
+  final String priceLabel;
   final String capacity;
   final String? timeText;
   final bool favoriteInitiallyFilled;
@@ -68,26 +70,25 @@ class ProfileRentalCardContent extends StatelessWidget {
         const _RentalThumbnail(),
         const SizedBox(width: 12),
         Expanded(
-          child: SizedBox(
-            height: timeText == null ? 90 : 112,
-            child: Stack(
-              children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: FavoriteHeartToggle(
-                    initialFilled: favoriteInitiallyFilled,
-                  ),
+          child: Stack(
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: FavoriteHeartToggle(
+                  initialFilled: favoriteInitiallyFilled,
                 ),
-                Center(
-                  child: _RentalTextColumn(
-                    title: title,
-                    room: room,
-                    capacity: capacity,
-                    timeText: timeText,
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 34),
+                child: _RentalTextColumn(
+                  title: title,
+                  room: room,
+                  priceLabel: priceLabel,
+                  capacity: capacity,
+                  timeText: timeText,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
@@ -115,12 +116,14 @@ class _RentalTextColumn extends StatelessWidget {
   const _RentalTextColumn({
     required this.title,
     required this.room,
+    required this.priceLabel,
     required this.capacity,
     this.timeText,
   });
 
   final String title;
   final String room;
+  final String priceLabel;
   final String capacity;
   final String? timeText;
 
@@ -130,16 +133,45 @@ class _RentalTextColumn extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: ProfileCardStyles.rentalText),
+        _OneLineRentalText(title, style: ProfileCardStyles.rentalText),
         const SizedBox(height: 3),
-        Text(room, style: ProfileCardStyles.rentalText),
+        _OneLineRentalText(room, style: ProfileCardStyles.rentalText),
         const SizedBox(height: 3),
-        Text(capacity, style: ProfileCardStyles.rentalText),
         if (timeText != null) ...[
           const SizedBox(height: 3),
-          Text(timeText!, style: ProfileCardStyles.rentalText),
+          _OneLineRentalText(timeText!, style: ProfileCardStyles.rentalText),
         ],
+        if (priceLabel.isNotEmpty) ...[
+          const SizedBox(height: 3),
+          _OneLineRentalText(priceLabel, style: ProfileCardStyles.rentalText),
+        ],
+        const SizedBox(height: 3),
+        _OneLineRentalText(capacity, style: ProfileCardStyles.rentalText),
       ],
+    );
+  }
+}
+
+class _OneLineRentalText extends StatelessWidget {
+  const _OneLineRentalText(this.text, {required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: FittedBox(
+        alignment: Alignment.centerLeft,
+        fit: BoxFit.scaleDown,
+        child: Text(
+          text,
+          maxLines: 1,
+          softWrap: false,
+          style: style,
+        ),
+      ),
     );
   }
 }

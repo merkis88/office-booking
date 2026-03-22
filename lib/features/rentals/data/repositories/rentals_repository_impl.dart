@@ -2,6 +2,7 @@ import 'package:wordpice/features/rentals/data/models/create_booking_request_mod
 import 'package:wordpice/features/rentals/data/datasources/rentals_data_source.dart';
 import 'package:wordpice/features/rentals/domain/entities/create_booking_params.dart';
 import 'package:wordpice/features/rentals/domain/entities/create_booking_result.dart';
+import 'package:wordpice/features/rentals/domain/entities/rental_place_details.dart';
 import 'package:wordpice/features/rentals/domain/entities/rental_places_result.dart';
 import 'package:wordpice/features/rentals/domain/repositories/rentals_repository.dart';
 
@@ -22,6 +23,18 @@ class RentalsRepositoryImpl implements RentalsRepository {
       date: date,
       minPrice: minPrice,
       maxPrice: maxPrice,
+    );
+    return response.toEntity();
+  }
+
+  @override
+  Future<RentalPlaceDetails> getPlaceDetails({
+    required int placeId,
+    String? date,
+  }) async {
+    final response = await _dataSource.getPlaceDetails(
+      placeId: placeId,
+      date: date,
     );
     return response.toEntity();
   }

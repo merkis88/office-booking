@@ -8,12 +8,10 @@ class ProfileInfoCard extends StatelessWidget {
     super.key,
     required this.onEditTap,
     required this.email,
-    required this.company,
   });
 
   final VoidCallback onEditTap;
   final String email;
-  final String company;
 
   @override
   Widget build(BuildContext context) {
@@ -23,16 +21,7 @@ class ProfileInfoCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _ProfileInfoField(label: 'Почта', value: email),
-                  const SizedBox(height: 10),
-                  _ProfileInfoField(label: 'Компания', value: company),
-                ],
-              ),
-            ),
+            Expanded(child: _ProfileInfoField(label: 'Почта', value: email)),
             _ProfileEditButton(onTap: onEditTap),
           ],
         ),

@@ -14,7 +14,7 @@ class ArchiveScreen extends StatefulWidget {
 }
 
 class _ArchiveScreenState extends State<ArchiveScreen> {
-  static const int _tabIndex = 6;
+  static const int _tabIndex = 5;
   int _selectedBottomIndex = _tabIndex;
 
   void _onBottomChanged(int index) {

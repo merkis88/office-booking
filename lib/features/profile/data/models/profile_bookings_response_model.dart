@@ -48,12 +48,14 @@ class ProfileBookingsResponseModel {
 class ProfileBookingItemModel {
   const ProfileBookingItemModel({
     required this.bookingId,
+    required this.placeId,
     required this.status,
     required this.startTime,
     required this.endTime,
     required this.placeNumber,
     required this.placeType,
     required this.capacity,
+    required this.price,
   });
 
   factory ProfileBookingItemModel.fromJson(Map<String, dynamic> json) {
@@ -61,22 +63,26 @@ class ProfileBookingItemModel {
 
     return ProfileBookingItemModel(
       bookingId: (json['id'] as num?)?.toInt(),
+      placeId: (json['place_id'] as num?)?.toInt(),
       status: (json['status'] as String? ?? '').trim().toLowerCase(),
       startTime: _parseDateTime(json['start_time']),
       endTime: _parseDateTime(json['end_time']),
       placeNumber: (place['number_place'] as num?)?.toInt() ?? 0,
       placeType: (place['type'] as String? ?? '').trim(),
       capacity: (place['capacity'] as num?)?.toInt() ?? 0,
+      price: _parsePrice(json['price']),
     );
   }
 
   final int? bookingId;
+  final int? placeId;
   final String status;
   final DateTime startTime;
   final DateTime endTime;
   final int placeNumber;
   final String placeType;
   final int capacity;
+  final int price;
 
   bool get isActive => status == 'active' || status == 'pending';
 
@@ -86,11 +92,14 @@ class ProfileBookingItemModel {
 
     return RentalHistoryItem(
       bookingId: bookingId,
+      placeId: placeId,
+      placeType: placeType,
+      dateIso: _formatDateIso(date),
       dateLabel: RentalDateTextHelper.formatFullDate(date),
       title: _mapTypeToTitle(placeType),
       room: room,
       capacity: 'Вместимость: $capacity человек',
-      priceLabel: '',
+      priceLabel: price > 0 ? 'Стоимость: ${price}р' : '',
       timeSlots: <String>[_formatTimeRange(startTime, endTime)],
     );
   }
@@ -98,6 +107,12 @@ class ProfileBookingItemModel {
   static DateTime _parseDateTime(Object? value) {
     final text = value?.toString() ?? '';
     return DateTime.tryParse(text)?.toLocal() ?? DateTime.now();
+  }
+
+  static int _parsePrice(Object? value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString().split('.').first ?? '') ?? 0;
   }
 
   static String _mapTypeToTitle(String type) {
@@ -122,5 +137,11 @@ class ProfileBookingItemModel {
     }
 
     return '${format(startTime)} - ${format(endTime)}';
+  }
+
+  static String _formatDateIso(DateTime value) {
+    final month = value.month.toString().padLeft(2, '0');
+    final day = value.day.toString().padLeft(2, '0');
+    return '${value.year}-$month-$day';
   }
 }

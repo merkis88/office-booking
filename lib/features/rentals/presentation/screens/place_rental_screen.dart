@@ -8,6 +8,7 @@ import 'package:wordpice/features/rentals/presentation/models/office_rental_item
 import 'package:wordpice/features/rentals/presentation/utils/rental_date_text_helper.dart';
 import 'package:wordpice/features/rentals/presentation/utils/rental_time_slots_helper.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/cards/office_rental_card.dart';
+import 'package:wordpice/features/rentals/presentation/widgets/modals/place_details_modal.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/sections/rental_filter_controls_section.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/states/rental_empty_rooms_state.dart';
 
@@ -228,6 +229,29 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
     await _loadPlaces();
   }
 
+  Future<void> _showPlaceDetails(OfficeRentalItem item) async {
+    try {
+      final details = await AppScope.of(context).rentalsRepository.getPlaceDetails(
+        placeId: item.id,
+        date: _selectedDateKey,
+      );
+      if (!mounted) return;
+      await PlaceDetailsModal.show(context, details: details);
+    } on ApiConnectionException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Не удалось загрузить информацию о помещении.'),
+        ),
+      );
+    }
+  }
+
   String _formatPrice(double price) {
     final text = price.round().toString();
     if (text.length <= 3) return text;
@@ -307,6 +331,7 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
                             item: item,
                             nextValue: nextValue,
                           ),
+                          onDetailsTap: () => _showPlaceDetails(item),
                         ),
                       ],
                     ),

@@ -17,6 +17,7 @@ class OfficeRentalCard extends StatefulWidget {
     required this.onBook,
     required this.onBooked,
     required this.onFavoriteToggle,
+    required this.onDetailsTap,
   });
 
   final OfficeRentalItem item;
@@ -25,6 +26,7 @@ class OfficeRentalCard extends StatefulWidget {
   final Future<String?> Function(String timeRange) onBook;
   final void Function(String sourceRange, String bookedRange) onBooked;
   final Future<String?> Function(bool nextValue) onFavoriteToggle;
+  final Future<void> Function() onDetailsTap;
 
   @override
   State<OfficeRentalCard> createState() => _OfficeRentalCardState();
@@ -180,58 +182,71 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: SizedBox(
-                    height: 90,
-                    child: Stack(
-                      children: [
-                        Align(
-                          alignment: Alignment.topRight,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              FavoriteHeartToggle(
-                                filled: _isFavorite,
-                                isBusy: _isFavoriteLoading,
-                                onTap: _toggleFavorite,
+                  child: Stack(
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            FavoriteHeartToggle(
+                              filled: _isFavorite,
+                              isBusy: _isFavoriteLoading,
+                              onTap: _toggleFavorite,
+                            ),
+                            const SizedBox(height: 6),
+                            SvgPicture.asset(
+                              'assets/icons/nav_archive.svg',
+                              width: 22,
+                              height: 22,
+                              colorFilter: const ColorFilter.mode(
+                                Colors.black87,
+                                BlendMode.srcIn,
                               ),
-                              const SizedBox(height: 6),
-                              SvgPicture.asset(
-                                'assets/icons/nav_archive.svg',
-                                width: 22,
-                                height: 22,
-                                colorFilter: const ColorFilter.mode(
-                                  Colors.black87,
-                                  BlendMode.srcIn,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 36),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _OneLineRentalText(
+                              item.title,
+                              style: RentalWidgetStyles.cardText,
+                            ),
+                            const SizedBox(height: 3),
+                            _OneLineRentalText(
+                              item.room,
+                              style: RentalWidgetStyles.cardText,
+                            ),
+                            const SizedBox(height: 3),
+                            _OneLineRentalText(
+                              'Стоимость: ${item.price}р/час',
+                              style: RentalWidgetStyles.cardText,
+                            ),
+                            const SizedBox(height: 3),
+                            _OneLineRentalText(
+                              'Вместимость: ${item.capacity} человек',
+                              style: RentalWidgetStyles.cardText,
+                            ),
+                            const SizedBox(height: 6),
+                            InkWell(
+                              onTap: widget.onDetailsTap,
+                              child: Text(
+                                'Подробнее',
+                                style: RentalWidgetStyles.cardText.copyWith(
+                                  decoration: TextDecoration.underline,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.title,
-                                style: RentalWidgetStyles.cardText,
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                item.room,
-                                style: RentalWidgetStyles.cardText,
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                'Вместимость: ${item.capacity} человек',
-                                style: RentalWidgetStyles.cardText,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -339,17 +354,15 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
               ),
             ),
         ],
-        const SizedBox(height: 10),
         if (_isBooking)
           const Padding(
-            padding: EdgeInsets.only(bottom: 8),
+            padding: EdgeInsets.only(top: 10, bottom: 8),
             child: SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
           ),
-        Text('${item.price}р', style: RentalWidgetStyles.priceText),
       ],
     );
   }
@@ -389,6 +402,30 @@ class _PhotoPlaceholder extends StatelessWidget {
       Icons.image_outlined,
       size: 28,
       color: Colors.white,
+    );
+  }
+}
+
+class _OneLineRentalText extends StatelessWidget {
+  const _OneLineRentalText(this.text, {required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: FittedBox(
+        alignment: Alignment.centerLeft,
+        fit: BoxFit.scaleDown,
+        child: Text(
+          text,
+          maxLines: 1,
+          softWrap: false,
+          style: style,
+        ),
+      ),
     );
   }
 }

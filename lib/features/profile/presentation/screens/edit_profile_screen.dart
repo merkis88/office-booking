@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/app/navigation/app_tab_navigator.dart';
+import 'package:wordpice/core/network/api_client.dart';
 import 'package:wordpice/core/widgets/layout/app_constrained_scroll_view.dart';
 import 'package:wordpice/core/widgets/layout/app_shell.dart';
 import 'package:wordpice/features/auth/domain/entities/registered_user.dart';
+import 'package:wordpice/features/profile/domain/entities/update_profile_params.dart';
 import 'package:wordpice/features/profile/presentation/screens/change_password_screen.dart';
 import 'package:wordpice/features/profile/presentation/widgets/cards/edit_profile_cards.dart';
 import 'package:wordpice/features/profile/presentation/widgets/delete_account_modal.dart';
@@ -25,36 +28,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _middleNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _positionController = TextEditingController();
-  final TextEditingController _companyController = TextEditingController();
 
   late final List<TextEditingController> _controllers = <TextEditingController>[
     _nameController,
     _middleNameController,
     _lastNameController,
     _emailController,
-    _positionController,
-    _companyController,
   ];
+
+  late RegisteredUser _user = widget.user;
+  bool _isSaving = false;
 
   late final List<EditProfileField> _editorFields = <EditProfileField>[
     EditProfileField(label: 'Имя', controller: _nameController),
     EditProfileField(label: 'Отчество', controller: _middleNameController),
     EditProfileField(label: 'Фамилия', controller: _lastNameController),
-    EditProfileField(label: 'Эл.почта', controller: _emailController),
-    EditProfileField(label: 'Должность', controller: _positionController),
-    EditProfileField(label: 'Компания', controller: _companyController),
+    EditProfileField(
+      label: 'Эл.почта',
+      controller: _emailController,
+      enabled: false,
+    ),
   ];
 
   @override
   void initState() {
     super.initState();
-    _nameController.text = widget.user.firstName;
-    _middleNameController.text = widget.user.patronymic ?? '';
-    _lastNameController.text = widget.user.lastName;
-    _emailController.text = widget.user.email;
-    _positionController.text = widget.user.post ?? '';
-    _companyController.text = widget.user.company ?? '';
+    _fillControllers();
+  }
+
+  void _fillControllers() {
+    _nameController.text = _user.firstName;
+    _middleNameController.text = _user.patronymic ?? '';
+    _lastNameController.text = _user.lastName;
+    _emailController.text = _user.email;
   }
 
   void _onBottomChanged(int index) {
@@ -77,6 +83,56 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _showDeleteAccountDialog() => DeleteAccountModal.show(context);
 
+  Future<void> _saveProfile() async {
+    if (_isSaving) {
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final updatedUser = await AppScope.of(context).profileRepository
+          .updateProfile(
+            UpdateProfileParams(
+              firstName: _nameController.text,
+              lastName: _lastNameController.text,
+              patronymic: _middleNameController.text,
+              email: _emailController.text,
+            ),
+          );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _user = updatedUser;
+        _fillControllers();
+      });
+
+      Navigator.of(context).pop(updatedUser);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      final message = error is ApiConnectionException
+          ? error.message
+          : 'Не удалось обновить профиль.';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     for (final controller in _controllers) {
@@ -95,7 +151,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         padding: EditProfileStyles.screenPadding,
         child: Column(
           children: [
-            EditProfilePreviewCard(user: widget.user),
+            EditProfilePreviewCard(user: _user),
             const SizedBox(height: 30),
             SizedBox(
               width: EditProfileStyles.editorWidth,
@@ -107,8 +163,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 14),
             EditProfileActionsSection(
-              onSaveTap: _closeScreen,
+              onSaveTap: _saveProfile,
               onExitTap: _closeScreen,
+              isSaving: _isSaving,
             ),
           ],
         ),

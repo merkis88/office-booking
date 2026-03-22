@@ -6,6 +6,7 @@ class ProfileIdentityAvatar extends StatelessWidget {
   const ProfileIdentityAvatar({
     super.key,
     this.onEditTap,
+    this.photoUrl,
     this.size = 60,
     this.avatarSize = 54,
     this.iconSize = 26,
@@ -15,6 +16,7 @@ class ProfileIdentityAvatar extends StatelessWidget {
   });
 
   final VoidCallback? onEditTap;
+  final String? photoUrl;
   final double size;
   final double avatarSize;
   final double iconSize;
@@ -34,7 +36,11 @@ class ProfileIdentityAvatar extends StatelessWidget {
           Positioned(
             left: 0,
             bottom: 0,
-            child: _AvatarBody(size: avatarSize, iconSize: iconSize),
+            child: _AvatarBody(
+              size: avatarSize,
+              iconSize: iconSize,
+              photoUrl: photoUrl,
+            ),
           ),
           Positioned(
             top: 0,
@@ -54,13 +60,20 @@ class ProfileIdentityAvatar extends StatelessWidget {
 }
 
 class _AvatarBody extends StatelessWidget {
-  const _AvatarBody({required this.size, required this.iconSize});
+  const _AvatarBody({
+    required this.size,
+    required this.iconSize,
+    required this.photoUrl,
+  });
 
   final double size;
   final double iconSize;
+  final String? photoUrl;
 
   @override
   Widget build(BuildContext context) {
+    final hasPhoto = photoUrl != null && photoUrl!.trim().isNotEmpty;
+
     return Container(
       width: size,
       height: size,
@@ -68,7 +81,14 @@ class _AvatarBody extends StatelessWidget {
         color: AppColors.background,
         borderRadius: BorderRadius.circular(size / 2),
       ),
-      child: Icon(Icons.person_outline, size: iconSize),
+      clipBehavior: Clip.antiAlias,
+      child: hasPhoto
+          ? Image.network(
+              photoUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => Icon(Icons.person_outline, size: iconSize),
+            )
+          : Icon(Icons.person_outline, size: iconSize),
     );
   }
 }

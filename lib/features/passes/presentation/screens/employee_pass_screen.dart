@@ -4,7 +4,6 @@ import 'package:wordpice/core/theme/app_colors.dart';
 import 'package:wordpice/core/widgets/layout/app_constrained_scroll_view.dart';
 import 'package:wordpice/core/widgets/layout/app_shell.dart';
 import 'package:wordpice/features/passes/presentation/widgets/forms/pass_form_widgets.dart';
-import 'package:wordpice/features/passes/presentation/widgets/forms/pass_parking_selector.dart';
 import 'package:wordpice/features/passes/presentation/widgets/modals/pass_confirmation_modal.dart';
 import 'package:wordpice/features/passes/presentation/widgets/styles/pass_form_styles.dart';
 
@@ -21,10 +20,9 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
 
   final int _selectedBottomIndex = _tabIndex;
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _companyController = TextEditingController();
-  final TextEditingController _positionController = TextEditingController();
-  bool _isParkingMenuOpen = false;
-  int? _selectedParkingPlace;
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _middleNameController = TextEditingController();
 
   void _onAnyFieldChanged() => setState(() {});
 
@@ -32,52 +30,40 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
   void initState() {
     super.initState();
     _emailController.addListener(_onAnyFieldChanged);
-    _companyController.addListener(_onAnyFieldChanged);
-    _positionController.addListener(_onAnyFieldChanged);
+    _lastNameController.addListener(_onAnyFieldChanged);
+    _firstNameController.addListener(_onAnyFieldChanged);
+    _middleNameController.addListener(_onAnyFieldChanged);
   }
 
   void _onBottomChanged(int index) {
     AppTabNavigator.goToTab(context, index);
   }
 
-  void _toggleParkingMenu() {
-    setState(() => _isParkingMenuOpen = !_isParkingMenuOpen);
-  }
-
-  void _selectParkingPlace(int place) {
-    setState(() {
-      _selectedParkingPlace = place;
-      _isParkingMenuOpen = false;
-    });
-  }
-
   Future<void> _showPurchaseModal() {
-    final parking = _selectedParkingPlace == null
-        ? 'Парковочное место: нет'
-        : 'Парковочное место №$_selectedParkingPlace';
-
     return PassConfirmationModal.show(
       context,
       email: _emailController.text.trim(),
-      company: _companyController.text.trim(),
-      position: _positionController.text.trim(),
-      parking: parking,
+      lastName: _lastNameController.text.trim(),
+      firstName: _firstNameController.text.trim(),
+      middleName: _middleNameController.text.trim(),
     );
   }
 
   bool get _canBuyPass =>
       _emailController.text.trim().isNotEmpty &&
-      _companyController.text.trim().isNotEmpty &&
-      _positionController.text.trim().isNotEmpty;
+      _lastNameController.text.trim().isNotEmpty &&
+      _firstNameController.text.trim().isNotEmpty;
 
   @override
   void dispose() {
     _emailController.removeListener(_onAnyFieldChanged);
-    _companyController.removeListener(_onAnyFieldChanged);
-    _positionController.removeListener(_onAnyFieldChanged);
+    _lastNameController.removeListener(_onAnyFieldChanged);
+    _firstNameController.removeListener(_onAnyFieldChanged);
+    _middleNameController.removeListener(_onAnyFieldChanged);
     _emailController.dispose();
-    _companyController.dispose();
-    _positionController.dispose();
+    _lastNameController.dispose();
+    _firstNameController.dispose();
+    _middleNameController.dispose();
     super.dispose();
   }
 
@@ -101,21 +87,11 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
                 color: AppColors.formBlockBackground,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Column(
-                children: [
-                  _EmployeePassFieldsSection(
-                    emailController: _emailController,
-                    companyController: _companyController,
-                    positionController: _positionController,
-                  ),
-                  const SizedBox(height: 18),
-                  PassParkingSelector(
-                    selectedParkingPlace: _selectedParkingPlace,
-                    isOpen: _isParkingMenuOpen,
-                    onToggle: _toggleParkingMenu,
-                    onSelect: _selectParkingPlace,
-                  ),
-                ],
+              child: _EmployeePassFieldsSection(
+                emailController: _emailController,
+                lastNameController: _lastNameController,
+                firstNameController: _firstNameController,
+                middleNameController: _middleNameController,
               ),
             ),
             const SizedBox(height: 26),
@@ -154,13 +130,15 @@ class _EmployeePassHeader extends StatelessWidget {
 class _EmployeePassFieldsSection extends StatelessWidget {
   const _EmployeePassFieldsSection({
     required this.emailController,
-    required this.companyController,
-    required this.positionController,
+    required this.lastNameController,
+    required this.firstNameController,
+    required this.middleNameController,
   });
 
   final TextEditingController emailController;
-  final TextEditingController companyController;
-  final TextEditingController positionController;
+  final TextEditingController lastNameController;
+  final TextEditingController firstNameController;
+  final TextEditingController middleNameController;
 
   @override
   Widget build(BuildContext context) {
@@ -174,15 +152,21 @@ class _EmployeePassFieldsSection extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         _EmployeePassField(
-          label: 'Компания*',
-          hint: 'Введите компанию',
-          controller: companyController,
+          label: 'Фамилия*',
+          hint: 'Введите фамилию',
+          controller: lastNameController,
         ),
         const SizedBox(height: 18),
         _EmployeePassField(
-          label: 'Должность*',
-          hint: 'Введите должность',
-          controller: positionController,
+          label: 'Имя*',
+          hint: 'Введите имя',
+          controller: firstNameController,
+        ),
+        const SizedBox(height: 18),
+        _EmployeePassField(
+          label: 'Отчество (необязательно)',
+          hint: 'Введите отчество',
+          controller: middleNameController,
         ),
       ],
     );

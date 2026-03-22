@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/app/navigation/app_tab_navigator.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
-import 'package:wordpice/features/requests/data/mock/request_booking_mock_data.dart';
 import 'package:wordpice/core/widgets/layout/app_constrained_scroll_view.dart';
 import 'package:wordpice/core/widgets/layout/app_shell.dart';
+import 'package:wordpice/features/auth/data/datasources/auth_data_source.dart';
+import 'package:wordpice/features/requests/domain/entities/create_request_params.dart';
+import 'package:wordpice/features/requests/domain/entities/request_booking_option.dart';
 import 'package:wordpice/features/requests/presentation/widgets/forms/request_form_comment_field.dart';
 import 'package:wordpice/features/requests/presentation/widgets/forms/request_form_dropdown_menu.dart';
 import 'package:wordpice/features/requests/presentation/widgets/forms/request_form_field_label.dart';
@@ -30,14 +33,35 @@ class RequestsScreen extends StatefulWidget {
 class _RequestsScreenState extends State<RequestsScreen> {
   static const int _tabIndex = 1;
   static const double _contentWidth = double.infinity;
-  static const List<String> _requestTypes = ['Клининг', 'Техобслуживание'];
+  static const List<String> _requestTypes = ['Клининг', 'ТО'];
 
   int _selectedBottomIndex = _tabIndex;
   DateTime? _selectedDate;
-  String? _selectedBooking;
+  RequestBookingOption? _selectedBooking;
   String? _selectedRequestType;
   String? _selectedTime;
   _RequestMenu? _openMenu;
+  bool _isLoadingBookings = true;
+  bool _isSubmitting = false;
+  bool _hasLoadedBookings = false;
+  String? _bookingsError;
+  String? _submitError;
+  List<RequestBookingOption> _bookingOptions = const <RequestBookingOption>[];
+  final TextEditingController _commentController = TextEditingController();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedBookings) return;
+    _hasLoadedBookings = true;
+    _loadBookings();
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
 
   void _onBottomChanged(int index) {
     if (index == _tabIndex) return;
@@ -45,53 +69,107 @@ class _RequestsScreenState extends State<RequestsScreen> {
     AppTabNavigator.goToTab(context, index);
   }
 
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? today,
-      firstDate: today,
-      lastDate: DateTime(today.year + 5),
-      locale: const Locale('ru', 'RU'),
-    );
-    if (picked == null) return;
-    setState(() => _selectedDate = picked);
+  Future<void> _loadBookings() async {
+    setState(() {
+      _isLoadingBookings = true;
+      _bookingsError = null;
+    });
+
+    try {
+      final bookings = await AppScope.of(context).requestsRepository.getMyBookings();
+      if (!mounted) return;
+
+      setState(() {
+        _bookingOptions = bookings;
+        _isLoadingBookings = false;
+
+        if (_selectedBooking != null) {
+          final selectedId = _selectedBooking!.id;
+          _selectedBooking = bookings.cast<RequestBookingOption?>().firstWhere(
+                (item) => item?.id == selectedId,
+                orElse: () => null,
+              );
+
+          if (_selectedBooking != null) {
+            _selectedDate = _parseServiceDate(_selectedBooking!.serviceDate);
+            if (!_timeSlots.contains(_selectedTime)) {
+              _selectedTime = null;
+            }
+          }
+        }
+      });
+    } on AuthRequestException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingBookings = false;
+        _bookingsError = error.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingBookings = false;
+        _bookingsError = 'Не удалось загрузить бронирования.';
+      });
+    }
   }
 
-  List<String> get _timeSlots => List<String>.generate(12, (index) {
-    final start = 9 + index;
-    final end = start + 1;
-    final startText = start.toString().padLeft(2, '0');
-    final endText = end.toString().padLeft(2, '0');
-    return '$startText:00 - $endText:00';
-  });
+  List<String> get _timeSlots => _selectedBooking?.timeSlots ?? const <String>[];
 
   String get _dateText {
-    final value = _selectedDate;
-    if (value == null) return 'Выберите дату';
-    final day = value.day.toString().padLeft(2, '0');
-    final month = value.month.toString().padLeft(2, '0');
-    return '$day.$month.${value.year}';
+    if (_selectedBooking != null) {
+      return _selectedBooking!.dateLabel;
+    }
+    return 'Выберите бронирование';
   }
 
-  String get _bookingText => _selectedBooking ?? 'Выберите бронирование';
-  String get _timeText => _selectedTime ?? 'Выберите желаемое время';
-  String get _requestTypeText => _selectedRequestType ?? 'Выберите тип заявки';
+  String get _bookingText {
+    if (_selectedBooking != null) return _selectedBooking!.displayText;
+    if (_isLoadingBookings) return 'Загрузка бронирований...';
+    if (_bookingsError != null) return 'Не удалось загрузить бронирования';
+    if (_bookingOptions.isEmpty) return 'Нет активных бронирований';
+    return 'Выберите бронирование';
+  }
+
+  String get _timeText {
+    if (_selectedTime != null) return _selectedTime!;
+    if (_selectedBooking == null) return 'Сначала выберите бронирование';
+    if (_timeSlots.isEmpty) return 'Нет доступного времени';
+    return 'Выберите время из бронирования';
+  }
+
+  String get _requestTypeText =>
+      _selectedRequestType ?? 'Выберите тип заявки';
 
   bool get _isBookingMenuOpen => _openMenu == _RequestMenu.booking;
   bool get _isTimeMenuOpen => _openMenu == _RequestMenu.time;
   bool get _isRequestTypeMenuOpen => _openMenu == _RequestMenu.requestType;
 
   void _toggleMenu(_RequestMenu menu) {
+    if (menu == _RequestMenu.booking &&
+        (_isLoadingBookings || _bookingOptions.isEmpty)) {
+      if (_bookingsError != null) {
+        _loadBookings();
+      }
+      return;
+    }
+
+    if (menu == _RequestMenu.time &&
+        (_selectedBooking == null || _timeSlots.isEmpty)) {
+      return;
+    }
+
     setState(() {
       _openMenu = _openMenu == menu ? null : menu;
     });
   }
 
-  void _selectBooking(String booking) {
+  void _selectBooking(RequestBookingOption booking) {
     setState(() {
       _selectedBooking = booking;
+      _selectedDate = _parseServiceDate(booking.serviceDate);
+      if (!_timeSlots.contains(_selectedTime)) {
+        _selectedTime = null;
+      }
       _openMenu = null;
     });
   }
@@ -110,24 +188,100 @@ class _RequestsScreenState extends State<RequestsScreen> {
     });
   }
 
+  int get _serviceTypeId {
+    switch (_selectedRequestType) {
+      case 'Клининг':
+        return 1;
+      case 'ТО':
+        return 2;
+      default:
+        return 0;
+    }
+  }
+
   bool get _canCreateRequest =>
+      !_isSubmitting &&
       _selectedDate != null &&
       _selectedBooking != null &&
       _selectedRequestType != null &&
       _selectedTime != null;
 
-  Future<void> _showCreateRequestModal() {
-    final selectedDate = _selectedDate!;
-    final day = selectedDate.day.toString().padLeft(2, '0');
-    final month = selectedDate.month.toString().padLeft(2, '0');
+  String _extractServiceTime(String slot) {
+    final parts = slot.split('-');
+    if (parts.isEmpty) return slot.trim();
+    return parts.first.trim();
+  }
 
-    return RequestConfirmationModal.show(
+  DateTime? _parseServiceDate(String rawValue) {
+    final parts = rawValue.split('-');
+    if (parts.length != 3) {
+      return null;
+    }
+
+    final year = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final day = int.tryParse(parts[2]);
+    if (year == null || month == null || day == null) {
+      return null;
+    }
+
+    return DateTime(year, month, day);
+  }
+
+  Future<void> _createRequest() async {
+    final selectedDate = _selectedDate;
+    final selectedBooking = _selectedBooking;
+    final selectedRequestType = _selectedRequestType;
+    final selectedTime = _selectedTime;
+
+    if (selectedDate == null ||
+        selectedBooking == null ||
+        selectedRequestType == null ||
+        selectedTime == null) {
+      return;
+    }
+
+    final confirmed = await RequestConfirmationModal.show(
       context,
-      date: '$day.$month.${selectedDate.year}',
-      time: _selectedTime!,
-      requestType: _selectedRequestType!,
-      booking: _selectedBooking!,
+      date: _dateText,
+      time: selectedTime,
+      requestType: selectedRequestType,
+      booking: selectedBooking.displayText,
     );
+
+    if (!confirmed || !mounted) return;
+
+    setState(() {
+      _isSubmitting = true;
+      _submitError = null;
+    });
+
+    try {
+      await AppScope.of(context).requestsRepository.createRequest(
+        CreateRequestParams(
+          bookingId: selectedBooking.id,
+          serviceTypeId: _serviceTypeId,
+          serviceDate: selectedBooking.serviceDate,
+          serviceTime: _extractServiceTime(selectedTime),
+          comment: _commentController.text.trim(),
+        ),
+      );
+
+      if (!mounted) return;
+      AppTabNavigator.goToTab(context, 3);
+    } on AuthRequestException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _isSubmitting = false;
+        _submitError = error.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isSubmitting = false;
+        _submitError = 'Не удалось создать заявку.';
+      });
+    }
   }
 
   @override
@@ -153,16 +307,16 @@ class _RequestsScreenState extends State<RequestsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _RequestDropdownSection(
-                    label: 'Список бронирований*',
+                  _RequestBookingSection(
                     value: _bookingText,
                     isOpen: _isBookingMenuOpen,
                     onTap: () => _toggleMenu(_RequestMenu.booking),
-                    items: requestBookingMockData,
+                    items: _bookingOptions,
                     onSelect: _selectBooking,
-                    menuHeight: 108,
+                    errorText: _bookingsError,
+                    onRetry: _loadBookings,
                   ),
-                  _RequestDateSection(dateText: _dateText, onTap: _pickDate),
+                  _RequestDateSection(dateText: _dateText),
                   _RequestDropdownSection(
                     label: 'Время*',
                     value: _timeText,
@@ -181,15 +335,25 @@ class _RequestsScreenState extends State<RequestsScreen> {
                     onSelect: _selectRequestType,
                     menuHeight: 74,
                   ),
-                  const _RequestCommentSection(),
+                  _RequestCommentSection(controller: _commentController),
                 ],
               ),
             ),
+            if (_submitError != null) ...[
+              const SizedBox(height: 12),
+              Center(
+                child: Text(
+                  _submitError!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.redAccent),
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
             Center(
               child: RequestFormSubmitButton(
-                text: 'Создать заявку',
-                onPressed: _canCreateRequest ? _showCreateRequestModal : null,
+                text: _isSubmitting ? 'Создание...' : 'Создать заявку',
+                onPressed: _canCreateRequest ? _createRequest : null,
               ),
             ),
           ],
@@ -199,11 +363,68 @@ class _RequestsScreenState extends State<RequestsScreen> {
   }
 }
 
+class _RequestBookingSection extends StatelessWidget {
+  const _RequestBookingSection({
+    required this.value,
+    required this.isOpen,
+    required this.onTap,
+    required this.items,
+    required this.onSelect,
+    required this.errorText,
+    required this.onRetry,
+  });
+
+  final String value;
+  final bool isOpen;
+  final VoidCallback onTap;
+  final List<RequestBookingOption> items;
+  final ValueChanged<RequestBookingOption> onSelect;
+  final String? errorText;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _kSectionGap,
+        const RequestFormFieldLabel('Список бронирований*'),
+        _kLabelGap,
+        RequestFormInputField(
+          hint: value,
+          trailing: Icon(
+            isOpen
+                ? Icons.keyboard_arrow_up_rounded
+                : Icons.keyboard_arrow_down_rounded,
+            size: 26,
+          ),
+          onTap: onTap,
+          borderRadius: isOpen
+              ? RequestFormStyles.dropdownOpenRadius
+              : RequestFormStyles.fieldBorderRadius,
+        ),
+        if (errorText != null && !isOpen) ...[
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: onRetry,
+            child: const Text('Повторить загрузку бронирований'),
+          ),
+        ],
+        if (isOpen)
+          RequestBookingDropdownMenu(
+            items: items,
+            onSelect: onSelect,
+            height: 132,
+          ),
+      ],
+    );
+  }
+}
+
 class _RequestDateSection extends StatelessWidget {
-  const _RequestDateSection({required this.dateText, required this.onTap});
+  const _RequestDateSection({required this.dateText});
 
   final String dateText;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +445,6 @@ class _RequestDateSection extends StatelessWidget {
               BlendMode.srcIn,
             ),
           ),
-          onTap: onTap,
           showTrailingFrame: false,
         ),
       ],
@@ -284,17 +504,19 @@ class _RequestDropdownSection extends StatelessWidget {
 }
 
 class _RequestCommentSection extends StatelessWidget {
-  const _RequestCommentSection();
+  const _RequestCommentSection({required this.controller});
+
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _kSectionGap,
-        RequestFormFieldLabel('Комментарий (необязательно)'),
+        const RequestFormFieldLabel('Комментарий (необязательно)'),
         _kLabelGap,
-        RequestFormCommentField(),
+        RequestFormCommentField(controller: controller),
       ],
     );
   }

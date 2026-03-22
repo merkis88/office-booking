@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wordpice/app/app_scope.dart';
+import 'package:wordpice/core/network/api_client.dart';
 import 'package:wordpice/core/theme/app_input_decorations.dart';
 import 'package:wordpice/core/widgets/layout/app_logo_top_left.dart';
 import 'package:wordpice/features/auth/data/datasources/auth_data_source.dart';
@@ -126,8 +127,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() {
         _errors = RegisterFormErrorState.fromApi(error.fieldErrors);
       });
+      if (error.fieldErrors.isEmpty) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } on ApiConnectionException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(error.message)));
     } catch (_) {
-      // Intentionally ignore connection errors in the UI.
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Не удалось выполнить регистрацию')),
+        );
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);

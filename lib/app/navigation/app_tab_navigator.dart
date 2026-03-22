@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wordpice/features/archive/presentation/screens/archive_screen.dart';
-import 'package:wordpice/features/parking/presentation/screens/parking_screen.dart';
 import 'package:wordpice/features/passes/presentation/screens/passes_screen.dart';
 import 'package:wordpice/features/profile/presentation/screens/profile_screen.dart';
 import 'package:wordpice/features/requests/presentation/screens/requests_screen.dart';
@@ -23,8 +22,6 @@ class AppTabNavigator {
       case 4:
         return const ReviewsScreen();
       case 5:
-        return const ParkingScreen();
-      case 6:
         return const ArchiveScreen();
       default:
         return const _PlaceholderScreen(title: 'Раздел');

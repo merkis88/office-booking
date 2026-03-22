@@ -13,17 +13,16 @@ class PassConfirmationModal {
   static Future<void> show(
     BuildContext context, {
     String? email,
-    String? company,
-    String? position,
-    String? parking,
-    String price = '1500р',
+    String? lastName,
+    String? firstName,
+    String? middleName,
   }) async {
     final lines = <String>[
       if (email != null && email.trim().isNotEmpty) email.trim(),
-      if (company != null && company.trim().isNotEmpty) company.trim(),
-      if (position != null && position.trim().isNotEmpty) position.trim(),
-      if (parking != null && parking.trim().isNotEmpty) parking.trim(),
-      'Стоимость пропуска: $price',
+      if (lastName != null && lastName.trim().isNotEmpty) lastName.trim(),
+      if (firstName != null && firstName.trim().isNotEmpty) firstName.trim(),
+      if (middleName != null && middleName.trim().isNotEmpty)
+        middleName.trim(),
     ];
 
     await AppConfirmationDialog.show<void>(

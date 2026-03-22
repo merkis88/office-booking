@@ -1,5 +1,6 @@
 class ProfileRequestItem {
   const ProfileRequestItem({
+    required this.id,
     required this.number,
     required this.requestType,
     required this.roomType,
@@ -10,6 +11,7 @@ class ProfileRequestItem {
     this.attachmentLabel = 'pdf',
   });
 
+  final int id;
   final int number;
   final String requestType;
   final String roomType;
