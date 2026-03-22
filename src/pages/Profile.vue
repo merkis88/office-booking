@@ -158,15 +158,19 @@
 
   const placeTypeFilters = [
     { label: 'Все аренды', value: null },
-    { label: 'Переговорные', value: 'meeting_room' },
+    { label: 'Переговорные', value: 'meeting' },
     { label: 'Коворкинг', value: 'coworking' },
     { label: 'Офис', value: 'office' },
   ];
 
   const filteredBookings = computed(() => {
-    const bookings = bookingsStore.bookings;
-    if (!activePlaceType.value) return bookings;
-    return bookings.filter(b => b.place?.type === activePlaceType.value);
+    // Показываем только активные (cancelled отфильтровываем на фронте,
+    // т.к. бэкенд пока не поддерживает фильтр status=active)
+    let bookings = bookingsStore.bookings.filter(b => b.status !== 'cancelled');
+    if (activePlaceType.value) {
+      bookings = bookings.filter(b => b.place?.type === activePlaceType.value);
+    }
+    return bookings;
   });
 
   const groupedBookings = computed(() => {
