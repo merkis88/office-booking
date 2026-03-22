@@ -49,6 +49,7 @@ services:
     volumes:
       - ./docs/openapi.yaml:/spec/openapi.yaml:ro
       - ./public:/app/public:ro
+      - ./storage/app/public:/app/storage/app/public:ro
     depends_on:
       - php
       - phpmyadmin
