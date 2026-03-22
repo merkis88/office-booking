@@ -1,7 +1,6 @@
 <script setup>
   import { ref, computed, watch } from 'vue';
   import { useBookingsStore } from '@/store/bookings';
-  import { formatBookingDate } from '@/utils/dateFormat';
   import axios from 'axios';
   import BaseModal from '@/components/modals/BaseModal.vue';
 
@@ -27,13 +26,13 @@
   const errorMessage = ref('');
 
   // Данные слотов
-  const availableSlots = ref([]);
-  const mergedIntervals = ref([]);
-  const selectedInterval = ref(null);
+  const availableSlots = ref([]);     // из API (свободные)
+  const mergedIntervals = ref([]);    // мерженные интервалы для экрана 1
+  const selectedInterval = ref(null); // выбранный интервал { start, end }
 
   // Данные для экрана 2 (выбор часа начала)
-  const timePoints = ref([]);
-  const selectedStartIndex = ref(null);
+  const timePoints = ref([]);        // доступные часы начала
+  const selectedStartIndex = ref(null); // выбранный час начала
 
   const screenTitle = computed(() => {
     if (screen.value === 'intervals') return 'Перенос брони';
@@ -66,7 +65,7 @@
     isSlotsLoading.value = true;
     try {
       const placeId = props.booking.place_id || props.booking.place?.id;
-      const date = props.booking.start_time.slice(0, 10);
+      const date = props.booking.start_time.slice(0, 10); // 'YYYY-MM-DD'
 
       const { data } = await axios.get(`/api/places/${placeId}`, {
         params: { date },
@@ -75,21 +74,13 @@
       const placeData = data.data ?? data;
       const freeSlots = placeData.available_slots || [];
 
-      // Добавить время текущей брони к свободным слотам.
-      // Времена в БД и слотах — в одном формате (без конвертации TZ).
-      // Парсим часы напрямую из ISO-строки.
-      const bookingSlots = [];
-      const startH = parseInt(props.booking.start_time.slice(11, 13));
-      const endH = parseInt(props.booking.end_time.slice(11, 13));
+      // Добавить время текущей брони к свободным слотам
+      const bookingStart = new Date(props.booking.start_time)
+        .toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const bookingEnd = new Date(props.booking.end_time)
+        .toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
 
-      for (let h = startH; h < endH; h++) {
-        bookingSlots.push({
-          start: `${String(h).padStart(2, '0')}:00`,
-          end: `${String(h + 1).padStart(2, '0')}:00`,
-        });
-      }
-
-      const allSlots = [...freeSlots, ...bookingSlots];
+      const allSlots = [...freeSlots, { start: bookingStart, end: bookingEnd }];
 
       // Сортировать и мержить в интервалы
       availableSlots.value = allSlots;
@@ -111,6 +102,7 @@
     for (let i = 1; i < sorted.length; i++) {
       const slot = sorted[i];
       if (slot.start <= current.end) {
+        // Слоты пересекаются или смежные — мержим
         if (slot.end > current.end) current.end = slot.end;
       } else {
         result.push({ ...current });
@@ -128,15 +120,15 @@
   function selectInterval(interval) {
     selectedInterval.value = interval;
 
-    // Генерируем ВСЕ часовые точки внутри интервала
+    // Генерируем ВСЕ граничные точки внутри интервала (включая конец)
     const points = [];
     let [h, m] = interval.start.split(':').map(Number);
     const [endH, endM] = interval.end.split(':').map(Number);
     const endMinutes = endH * 60 + endM;
 
-    while (h * 60 + m < endMinutes) {
+    while (h * 60 + m <= endMinutes) {
       points.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-      h += 1;
+      h += 1; // шаг 1 час
     }
 
     timePoints.value = points;
@@ -144,20 +136,24 @@
     screen.value = 'slots';
   }
 
-  function isSelectable(index) {
-    // Можно выбрать только если от этого часа помещается вся длительность
-    return index + bookingDurationHours.value <= timePoints.value.length;
+  // Можно ли кликнуть на эту точку как начало?
+  function canSelectHour(index) {
+    // От этой точки должно помещаться duration слотов
+    // т.е. index + duration <= timePoints.length - 1
+    return index + bookingDurationHours.value <= timePoints.value.length - 1;
   }
 
   function selectHour(index) {
-    if (!isSelectable(index)) return;
+    if (!canSelectHour(index)) return;
     selectedStartIndex.value = index;
   }
 
   function isSelected(index) {
     if (selectedStartIndex.value === null) return false;
+    // Подсветить точки от start до start + duration (включительно)
+    // duration слотов = duration + 1 точек
     return index >= selectedStartIndex.value
-      && index < selectedStartIndex.value + bookingDurationHours.value;
+      && index <= selectedStartIndex.value + bookingDurationHours.value;
   }
 
   const isValidSelection = computed(() => {
@@ -167,14 +163,11 @@
   const bookingTime = computed(() => {
     if (!isValidSelection.value) return '';
     const startTime = timePoints.value[selectedStartIndex.value];
-    // Вычислить end time: start + duration часов
-    const [h, m] = startTime.split(':').map(Number);
-    const endH = h + bookingDurationHours.value;
-    const endTime = `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const endTime = timePoints.value[selectedStartIndex.value + bookingDurationHours.value];
     return `${startTime} - ${endTime}`;
   });
 
-  // Computed для start_time и end_time при отправке на API
+  // Для отправки на API
   const newStartTime = computed(() => {
     if (!isValidSelection.value) return '';
     return timePoints.value[selectedStartIndex.value];
@@ -182,9 +175,7 @@
 
   const newEndTime = computed(() => {
     if (!isValidSelection.value) return '';
-    const [h, m] = newStartTime.value.split(':').map(Number);
-    const endH = h + bookingDurationHours.value;
-    return `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    return timePoints.value[selectedStartIndex.value + bookingDurationHours.value];
   });
 
   const bookingDate = computed(() => {
@@ -194,7 +185,7 @@
 
   const formattedDate = computed(() => {
     if (!bookingDate.value) return '';
-    return formatBookingDate(props.booking.start_time);
+    return new Date(bookingDate.value).toLocaleDateString('ru-RU');
   });
 
   async function confirmReschedule() {
@@ -291,8 +282,11 @@
             v-for="(time, index) in timePoints"
             :key="time"
             class="reschedule__slot"
-            :class="{ active: isSelected(index), disabled: !isSelectable(index) }"
-            :disabled="!isSelectable(index)"
+            :class="{
+              active: isSelected(index),
+              disabled: !canSelectHour(index) && !isSelected(index),
+            }"
+            :disabled="!canSelectHour(index) && !isSelected(index)"
             @click="selectHour(index)"
           >
             {{ time }}
@@ -429,21 +423,6 @@
       &.active {
         background: $color-header-bg;
         font-weight: 500;
-      }
-
-      &.disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-
-        &:hover {
-          background: $color-input-bg;
-        }
-      }
-
-      // Disabled но подсвечен (хвост выделения)
-      &.disabled.active {
-        background: $color-header-bg;
-        opacity: 0.6;
       }
     }
 
