@@ -128,17 +128,15 @@
   function selectInterval(interval) {
     selectedInterval.value = interval;
 
-    // Генерируем часовые точки внутри интервала,
-    // но ТОЛЬКО те, куда помещается вся длительность брони
+    // Генерируем ВСЕ часовые точки внутри интервала
     const points = [];
     let [h, m] = interval.start.split(':').map(Number);
     const [endH, endM] = interval.end.split(':').map(Number);
     const endMinutes = endH * 60 + endM;
-    const duration = bookingDurationHours.value;
 
-    while ((h + duration) * 60 + m <= endMinutes) {
+    while (h * 60 + m < endMinutes) {
       points.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-      h += 1; // шаг 1 час
+      h += 1;
     }
 
     timePoints.value = points;
@@ -146,13 +144,18 @@
     screen.value = 'slots';
   }
 
+  function isSelectable(index) {
+    // Можно выбрать только если от этого часа помещается вся длительность
+    return index + bookingDurationHours.value <= timePoints.value.length;
+  }
+
   function selectHour(index) {
+    if (!isSelectable(index)) return;
     selectedStartIndex.value = index;
   }
 
   function isSelected(index) {
     if (selectedStartIndex.value === null) return false;
-    // Подсветить все часы от выбранного до выбранного + длительность
     return index >= selectedStartIndex.value
       && index < selectedStartIndex.value + bookingDurationHours.value;
   }
@@ -288,7 +291,8 @@
             v-for="(time, index) in timePoints"
             :key="time"
             class="reschedule__slot"
-            :class="{ active: isSelected(index) }"
+            :class="{ active: isSelected(index), disabled: !isSelectable(index) }"
+            :disabled="!isSelectable(index)"
             @click="selectHour(index)"
           >
             {{ time }}
@@ -425,6 +429,21 @@
       &.active {
         background: $color-header-bg;
         font-weight: 500;
+      }
+
+      &.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+
+        &:hover {
+          background: $color-input-bg;
+        }
+      }
+
+      // Disabled но подсвечен (хвост выделения)
+      &.disabled.active {
+        background: $color-header-bg;
+        opacity: 0.6;
       }
     }
 
