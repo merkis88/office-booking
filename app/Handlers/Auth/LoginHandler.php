@@ -9,14 +9,6 @@ use Illuminate\Validation\ValidationException;
 
 class LoginHandler
 {
-    /**
-     * Обработка авторизации пользователя
-     *
-     * @param LoginDTO $dto
-     * @return array
-     * @throws InvalidCredentialsException
-     */
-
     public function handle(LoginDTO $dto): array
     {
         $user = User::where('email', $dto->email)->first();
