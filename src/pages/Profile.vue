@@ -7,9 +7,7 @@
   import { useRouter } from 'vue-router';
   import QRCode from 'qrcode';
   import ServiceRequestCard from '@/components/ServiceRequestCard.vue';
-  import StatusBadge from '@/components/StatusBadge.vue';
-  import BookingDetailsModal from '@/components/modals/BookingDetailsModal.vue';
-  import BookingFilters from '@/components/BookingFilters.vue';
+  import BookingCard from '@/components/BookingCard.vue';
   import CancelBookingModal from '@/components/modals/CancelBookingModal.vue';
   import RescheduleBookingModal from '@/components/modals/RescheduleBookingModal.vue';
   import DeleteAccountModal from '@/components/modals/DeleteAccountModal.vue';
@@ -130,14 +128,6 @@
 
   const showDeleteModal = ref(false);
 
-  const selectedBookingId = ref(null);
-  const showBookingDetails = ref(false);
-
-  function openBookingDetails(bookingId) {
-    selectedBookingId.value = bookingId;
-    showBookingDetails.value = true;
-  }
-
   const cancelBookingData = ref(null);
   const showCancelModal = ref(false);
 
@@ -148,7 +138,6 @@
 
   function onBookingCancelled() {
     showCancelModal.value = false;
-    showBookingDetails.value = false;
     bookingsStore.fetchMyBookings();
   }
 
@@ -162,20 +151,40 @@
 
   function onBookingRescheduled() {
     showRescheduleModal.value = false;
-    showBookingDetails.value = false;
     bookingsStore.fetchMyBookings();
   }
 
-  const activeBookings = computed(() =>
-    bookingsStore.bookings.filter(b => b.status !== 'rejected')
-  );
+  const activePlaceType = ref(null);
 
-  function applyFilters(newFilters) {
-    Object.entries(newFilters).forEach(([key, value]) => {
-      bookingsStore.filters[key] = value;
-    });
-    bookingsStore.currentPage = 1;
-    bookingsStore.fetchMyBookings();
+  const placeTypeFilters = [
+    { label: 'Все аренды', value: null },
+    { label: 'Переговорные', value: 'meeting_room' },
+    { label: 'Коворкинг', value: 'coworking' },
+    { label: 'Офис', value: 'office' },
+  ];
+
+  const filteredBookings = computed(() => {
+    const bookings = bookingsStore.bookings;
+    if (!activePlaceType.value) return bookings;
+    return bookings.filter(b => b.place?.type === activePlaceType.value);
+  });
+
+  const groupedBookings = computed(() => {
+    const groups = {};
+    for (const booking of filteredBookings.value) {
+      const date = new Date(booking.start_time).toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(booking);
+    }
+    return groups;
+  });
+
+  function handleBookingInvite(booking) {
+    router.push({ path: '/passes', query: { booking: booking.id } });
   }
 
   const handleSave = async () => {
@@ -187,7 +196,6 @@
         first_name: editableUser.value.first_name,
         last_name: editableUser.value.last_name,
         patronymic: editableUser.value.patronymic || null,
-        email: editableUser.value.email,
       });
       isEditing.value = false;
     } catch (error) {
@@ -209,16 +217,6 @@
     saveError.value = '';
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('ru-RU');
-  };
-
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 </script>
 
 <template>
@@ -255,7 +253,7 @@
 
             <div class="profile__field">
               <label class="profile__label">Почта</label>
-              <input v-model="editableUser.email" class="profile__input" />
+              <input v-model="editableUser.email" class="profile__input" readonly />
             </div>
           </div>
         </div>
@@ -337,36 +335,43 @@
           </button>
         </div>
 
-        <div v-if="activeTab === 0" class="profile__bottom-content">
-          <BookingFilters
-            :filters="bookingsStore.filters"
-            @update:filters="applyFilters"
-          />
-
-          <div v-if="bookingsStore.isLoading">Загрузка...</div>
-
-          <div
-            v-else
-            v-for="booking in bookingsStore.bookings"
-            :key="booking.id"
-            class="profile__booking-card profile__booking-card--clickable"
-            @click="openBookingDetails(booking.id)"
-          >
-            <div class="profile__booking-info">
-              <h3>
-                {{ booking.place.name }}
-              </h3>
-
-              <p>
-                {{ formatDate(booking.start_time) }} — {{ formatTime(booking.start_time) }} -
-                {{ formatTime(booking.end_time) }}
-              </p>
-
-              <p>Вместимость: {{ booking.place.capacity }} человек</p>
-
-              <StatusBadge :status="booking.status" />
-            </div>
+        <div v-if="activeTab === 0" class="profile__bookings">
+          <div class="profile__place-filter">
+            <button
+              v-for="filter in placeTypeFilters"
+              :key="filter.value"
+              class="profile__place-filter-btn"
+              :class="{ 'profile__place-filter-btn--active': activePlaceType === filter.value }"
+              @click="activePlaceType = filter.value"
+            >
+              {{ filter.label }}
+            </button>
           </div>
+
+          <div v-if="bookingsStore.isLoading" class="profile__loading">Загрузка...</div>
+
+          <div v-else-if="!filteredBookings.length" class="profile__placeholder-card">
+            <p>У вас нет активных бронирований</p>
+          </div>
+
+          <template v-else>
+            <div
+              v-for="(group, date) in groupedBookings"
+              :key="date"
+              class="profile__booking-group"
+            >
+              <h3 class="profile__booking-date">{{ date }}</h3>
+
+              <BookingCard
+                v-for="booking in group"
+                :key="booking.id"
+                :booking="booking"
+                @invite="handleBookingInvite"
+                @reschedule="handleBookingReschedule"
+                @cancel="handleBookingCancel"
+              />
+            </div>
+          </template>
 
           <div class="profile__pagination" v-if="bookingsStore.lastPage > 1">
             <button
@@ -454,13 +459,6 @@
         </div>
       </div>
     </div>
-
-    <BookingDetailsModal
-      v-model="showBookingDetails"
-      :booking-id="selectedBookingId"
-      @cancel="handleBookingCancel"
-      @reschedule="handleBookingReschedule"
-    />
 
     <CancelBookingModal
       v-model="showCancelModal"
@@ -695,26 +693,67 @@
     &__tabs {
       display: flex;
       justify-content: center;
-      gap: 1.5rem;
+      gap: 0;
       margin-bottom: 2rem;
     }
 
     &__tab {
-      padding: 0.5rem 4rem;
-      border-radius: $radius-sm;
+      padding: 0.75rem 2.5rem;
       border: 1px solid $color-border;
       background: $color-input-bg;
-      font-size: $text-lg;
-      transition: 0.2s;
+      font-size: $text-base;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
       white-space: nowrap;
-      flex-shrink: 0;
+
+      &:first-child {
+        border-radius: $radius-sm 0 0 $radius-sm;
+      }
+
+      &:last-child {
+        border-radius: 0 $radius-sm $radius-sm 0;
+      }
+
+      &:not(:first-child) {
+        border-left: none;
+      }
 
       &:hover {
         background: $color-input-bg-dark;
       }
 
       &--active {
-        filter: drop-shadow(0 4px 4px rgba($color-border, 0.5));
+        background: $color-header-bg;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      }
+    }
+
+    &__place-filter {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    &__place-filter-btn {
+      padding: 0.4rem 1.5rem;
+      border-radius: $radius-sm;
+      border: 1px solid $color-border;
+      background: $color-input-bg;
+      font-size: $text-sm;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: $color-input-bg-dark;
+      }
+
+      &--active {
+        background: $color-header-bg;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
       }
     }
 
@@ -755,34 +794,27 @@
       gap: 2rem;
     }
 
-    &__booking-card {
-      width: 60%;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      background: $color-card-bg;
-      border-radius: $radius-lg;
-      border: 1px solid $color-border;
-
-      &--clickable {
-        cursor: pointer;
-        transition: all 0.2s ease;
-
-        &:hover {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          transform: translateY(-2px);
-        }
-
-        &:active {
-          transform: translateY(0);
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-      }
-    }
-
-    &__booking-info {
+    &__bookings {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      align-items: center;
+      width: 100%;
+    }
+
+    &__booking-group {
+      width: 60%;
+      margin-bottom: 1.5rem;
+    }
+
+    &__booking-date {
+      font-size: $text-base;
+      font-weight: 500;
+      color: $color-text;
+      margin-bottom: 1rem;
+    }
+
+    &__booking-group :deep(.booking-card) {
+      margin-bottom: 1rem;
     }
 
     &__pagination {
@@ -904,6 +936,11 @@
       }
 
       &__tabs {
+        overflow-x: auto;
+        justify-content: flex-start;
+      }
+
+      &__place-filter {
         overflow-x: auto;
         justify-content: flex-start;
       }
