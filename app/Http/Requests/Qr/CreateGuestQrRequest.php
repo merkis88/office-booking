@@ -16,16 +16,15 @@ final class CreateGuestQrRequest extends FormRequest
     {
         return [
             'recipient_email' => ['required', 'email', 'max:255'],
-            'guest_name'      => ['nullable', 'string', 'max:255'],
+            'guest_name' => ['nullable', 'string', 'max:255'],
         ];
     }
 
     public function toDTO(): CreateGuestQrDTO
     {
         return new CreateGuestQrDTO(
-            recipientEmail: (string) $this->input('recipient_email'),
-            guestName: $this->input('guest_name'),
-            timeWindow: $this->input('time_window'),
+            (string) $this->input('recipient_email'),
+            $this->input('guest_name'),
         );
     }
 }
