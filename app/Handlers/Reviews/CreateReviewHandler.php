@@ -8,12 +8,6 @@ use Illuminate\Validation\ValidationException;
 
 class CreateReviewHandler
 {
-    /**
-     * Создание нового отзыва
-     *
-     * @param CreateReviewDTO $dto
-     * @return Review
-     */
     public function handle(CreateReviewDTO $dto, User $user): Review
     {
         if (!$user->hasVerifiedEmail()) {

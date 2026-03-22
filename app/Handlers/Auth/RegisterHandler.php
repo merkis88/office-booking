@@ -8,13 +8,6 @@ use Illuminate\Support\Facades\DB;
 
 class RegisterHandler
 {
-    /**
-     * Обработка регистрации пользователя
-     *
-     * @param RegisterDTO $dto
-     * @return array
-     */
-
     public function __construct(
         private SendVerificationHandler $sendVerificationHandler
     )

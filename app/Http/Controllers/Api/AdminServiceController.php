@@ -79,7 +79,7 @@ class AdminServiceController extends Controller
     }
     public function getServiceTypes(): JsonResponse
     {
-        $types = ServiceType::where('is_active', true)->get();
+        $types = ServiceType::all();
 
         return response()->json([
             'success' => true,

@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Qr\TenantQrController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\ServiceExportController;
+use App\Http\Controllers\Api\ServiceTypeController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\Profile\ProfileController;
 use Illuminate\Http\Request;
@@ -96,6 +97,8 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
         //ServicePdf
         Route::get('/{service}/export', [ServiceExportController::class, 'export']);
     });
+    //ServicesTypes
+    Route::get('/service-types', [ServiceTypeController::class, 'index']);
 
    // Admin
     Route::middleware('is_admin')->prefix('admin')->group(function () {

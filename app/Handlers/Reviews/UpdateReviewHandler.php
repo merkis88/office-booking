@@ -7,13 +7,6 @@ use Illuminate\Validation\ValidationException;
 
 class UpdateReviewHandler
 {
-    /**
-     * Обновление отзыва
-     *
-     * @param Review $review
-     * @param UpdateReviewDTO $dto
-     * @return Review
-     */
     public function handle(Review $review,UpdateReviewDTO $dto): Review
     {
         $data = [];
