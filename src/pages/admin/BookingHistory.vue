@@ -51,12 +51,12 @@
         </span>
 
         <span>
-          {{ booking.place?.name }}
+          {{ booking.place?.number_place }}
         </span>
 
         <span>{{ booking.place?.capacity }} человек</span>
 
-        <span>{{ booking.price ?? 0 }}р</span>
+        <span>{{ Math.round(booking.place?.price) }} р/час</span>
       </div>
     </div>
 
@@ -74,8 +74,11 @@
 </template>
 
 <style lang="scss" scoped>
+  @use '@/assets/styles/variables' as *;
+  @use '@/assets/styles/mixins' as *;
+
   .admin-bookings {
-    max-width: 1100px;
+    width: 90%;
     margin: 0 auto;
 
     &__title {
@@ -94,17 +97,19 @@
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       padding-bottom: 15px;
-      border-bottom: 1px solid black;
+      border-bottom: 1px solid $color-footer-bg;
       margin-bottom: 15px;
+      text-align: center;
     }
 
     &__row {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       padding: 12px;
-      border: 1px solid black;
+      border: 1px solid $color-footer-bg;
       border-radius: 10px;
       margin-bottom: 10px;
+      text-align: center;
     }
 
     &__pagination {
