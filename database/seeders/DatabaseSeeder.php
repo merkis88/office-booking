@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Parking_place;
 use App\Models\ServiceType;
 use App\Models\User;
 use App\Models\Role;

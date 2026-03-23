@@ -31,6 +31,7 @@ class User extends Authenticatable
         'post',
         'company',
         'is_verified',
+        'is_blocked',
         'verification_code',
         'verification_code_expires_at',
     ];

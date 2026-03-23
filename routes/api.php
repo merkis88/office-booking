@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Profile\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Place\FavoritePlaceListController;
+use App\Http\Controllers\Api\Admin\AdminUserController;
 
 
 //восстановление пароля
@@ -108,6 +109,7 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
         Route::post('/users/{user}/delete', [UserController::class, 'destroy']); // merk
         Route::post('/users/block', [UserController::class, 'block']);     // merk
         Route::post('/users/unblock', [UserController::class, 'unBlock']); // merk
+        Route::get('/admin/users', [AdminUserController::class, 'getUser']); // merk
 
         //Places admin
         Route::get('/places', [AdminPlaceController::class, 'index']);// Osip

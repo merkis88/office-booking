@@ -11,6 +11,7 @@ use App\Services\Bookings\BookingBusinessHoursService;
 use App\Services\Bookings\BookingOverlapService;
 use Illuminate\Support\Facades\DB;
 use App\Services\Bookings\BookingPriceService;
+use App\Services\Bookings\BookingTimeValidator;
 
 final class CreateBookingHandler
 {
@@ -18,12 +19,14 @@ final class CreateBookingHandler
         private readonly BookingOverlapService $overlap,
         private readonly BookingBusinessHoursService $hours,
         private readonly CreateUserQrHandler $qrHandler,
-        private readonly BookingPriceService $price
+        private readonly BookingPriceService $price,
+        private readonly BookingTimeValidator $timeValidator
     ) {}
 
     public function handle(CreateBookingDTO $dto, User $user): Booking
     {
         $this->hours->assertWithinBusinessHours($dto->startTime, $dto->endTime);
+        $this->timeValidator->validate($dto->startTime, $dto->endTime);
 
         return DB::transaction(function () use ($dto, $user) {
             $this->overlap->assertNoOverlap(
