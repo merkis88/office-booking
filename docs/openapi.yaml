@@ -1425,44 +1425,17 @@ paths:
   /qr/{booking}/user-qr:
     post:
       tags: [ "Merk · QR" ]
-      summary: Create user QR (current user)
+      summary: Create user QR
       description: |
         Owner: merk
         Auth: Sanctum Bearer token.
 
-        Выдача qr-кода для арендатора помещения
+        Выдача qr-кода для юзера в системе
       parameters:
         - in: path
           name: booking
           required: true
           schema: { type: integer }
-      responses:
-        "201": { description: Created }
-        "403": { $ref: "#/components/responses/Forbidden" }
-
-  /qr/{booking}/issue-qr:
-    post:
-      tags: [ "Merk · QR" ]
-      summary: Issue QR to another registered user
-      description: |
-        Owner: merk
-        Auth: Sanctum Bearer token.
-
-        Выдача qr-кода, другому пользователю от арендатора помещения
-      parameters:
-        - in: path
-          name: booking
-          required: true
-          schema: { type: integer }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [ recipient_user_id ]
-              properties:
-                recipient_user_id: { type: integer }
       responses:
         "201": { description: Created }
         "403": { $ref: "#/components/responses/Forbidden" }
@@ -4149,4 +4122,96 @@ paths:
 
         "404":
           description: Помещение не найдено
+
+
+  /profile/photo:
+    post:
+      tags: [ "Merk · Profile" ]
+      summary: Update profile photo
+      description: |
+        Owner: merk
+
+        Обновляет фото профиля текущего авторизованного пользователя.
+
+        Принимает multipart/form-data с файлом изображения.
+        Требуется Bearer Token.
+
+        Допустимые форматы:
+        - jpg
+        - jpeg
+        - png
+        - webp
+
+        Максимальный размер файла:
+        - 5 MB
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - photo
+              properties:
+                photo:
+                  type: string
+                  format: binary
+                  description: Файл изображения профиля
+      responses:
+        "200":
+          description: Фото профиля успешно обновлено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      photo:
+                        type: string
+                        nullable: true
+                        example: profile-photos/abc123xyz.jpg
+                      photo_url:
+                        type: string
+                        nullable: true
+                        example: /storage/profile-photos/abc123xyz.jpg
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: "2026-03-23T12:00:00.000000Z"
+        "401":
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: The photo field must be an image.
+                  errors:
+                    type: object
+                    properties:
+                      photo:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - The photo field must be an image.
 

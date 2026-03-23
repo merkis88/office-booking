@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Qr\QrAvailabilityService;
 use App\Services\Qr\QrWindowService;
 use App\DTO\Qr\CreateUserQrDTO;
+use Illuminate\Support\Facades\Storage;
 
 final class GetProfileHandler
 {
@@ -65,7 +66,7 @@ final class GetProfileHandler
 
         return [
             'id' => $user->id,
-            'photo' => $user->photo,
+            'photo_url' => $user->photo ? Storage::disk('public')->url($user->photo) : null,
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
             'patronymic' => $user->patronymic,

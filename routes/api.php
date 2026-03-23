@@ -52,6 +52,7 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
     Route::get('/profile/', [ProfileController::class, 'profile']); // merk
     Route::delete('/profile', [ProfileController::class, 'delete']); // merk
     Route::patch('/profile', [ProfileController::class, 'update']); // merk
+    Route::post('/profile/photo', [ProfileController::class, 'updatePhoto']);
 
     // Reviews
     Route::post('/reviews', [ReviewController::class, 'store']);// Osip
@@ -70,7 +71,6 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
     Route::get('/tenant/qrs', [TenantQrController::class, 'createTenantQr']); // merk
     Route::post('/qr/{booking}/guest-qr', [QrController::class, 'createGuestQr']); // merk
     Route::post('/qr/{booking}/user-qr', [QrController::class, 'createUserQr']); // merk
-    Route::post('/qr/{booking}/issue-qr', [QrController::class, 'issueUserQr']); // merk
 
     //Places
     Route::get('/places/favorites', [FavoritePlaceListController::class, 'getPlace']); // merk
