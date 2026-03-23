@@ -29,7 +29,7 @@ class AdminUpdatePlaceRequest extends FormRequest
             'capacity' => 'sometimes|integer|min:1',
             'number_place' => 'sometimes|integer|min:1',
             'price' => 'sometimes|numeric|min:0|max:99999999.99',
-            'photo' => 'nullable|string|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'description' => 'nullable|string|max:5000',
             'is_active' => 'sometimes|boolean',
         ];
