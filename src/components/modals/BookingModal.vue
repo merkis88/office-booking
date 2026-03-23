@@ -114,7 +114,7 @@
     const hour = String(h).padStart(2, '0');
     const min = String(m).padStart(2, '0');
 
-    return `${date}T${hour}:${min}:00+00:00`;
+    return `${date}T${hour}:${min}:00`;
   }
 
   async function confirmBooking() {
@@ -152,7 +152,6 @@
         errorMessage.value =
           error.response?.data?.message || 'Не удалось создать бронирование. Повторите попытку.';
       }
-      alert(error.response?.data?.message || 'Ошибка бронирования');
     } finally {
       isLoading.value = false;
     }

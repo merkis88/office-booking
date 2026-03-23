@@ -11,22 +11,27 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use App\Mail\GuestQrMail;
+use App\Services\Qr\QrWindowService;
+use App\Services\Qr\QrAccessValidator;
 
 final class CreateGuestQrHandler
 {
-    public function __construct(private readonly QrHashService $hashService) {}
+    public function __construct(
+        private readonly QrHashService $hashService,
+        private readonly QrWindowService $windowService,
+        private readonly QrAccessValidator $qrAccessValidator
+    ) {}
 
-    private int $windowSeconds = 1800;
-    private int $beforeMinutes = 30;
-    private int $afterMinutes  = 15;
 
-    public function handle(Booking $booking, User $user, CreateGuestQrDTO $dto): Qr
+    public function handle(Booking $booking, User $tenant, CreateGuestQrDTO $dto): Qr
     {
-        $this->assertCanInvite($booking, $user);
-        $this->assertQrAllowed($booking);
+        $this->assertCanUseBooking($booking, $tenant);
+
+        $this->qrAccessValidator->assertCanIssue($booking);
+        $this->assertCanUseBooking($booking, $tenant);
 
         $email = mb_strtolower(trim($dto->recipientEmail));
-        $window = $dto->timeWindow ?? $this->currentWindow();
+        $window = $this->windowService->current();
 
         $qr = Qr::query()
             ->where('booking_id', $booking->id)
@@ -35,7 +40,7 @@ final class CreateGuestQrHandler
             ->first();
 
         if (!$qr) {
-            $qr = DB::transaction(function () use ($booking, $user, $dto, $window, $email) {
+            $qr = DB::transaction(function () use ($booking, $tenant, $dto, $window, $email) {
 
                 $existing = Qr::query()
                     ->where('booking_id', $booking->id)
@@ -68,46 +73,13 @@ final class CreateGuestQrHandler
 
     }
 
-    private function currentWindow(): int
+    private function assertCanUseBooking(Booking $booking, User $tenant): void
     {
-        return intdiv(now()->timestamp, $this->windowSeconds);
-    }
-
-    private function assertCanInvite(Booking $booking, User $user): void
-    {
-        $isOwner = $booking->user_id !== null && (int) $booking->user_id === (int) $user->id;
-        $isCreator = (int) $booking->created_by === (int) $user->id;
+        $isOwner = $booking->user_id !== null && (int) $booking->user_id === (int) $tenant->id;
+        $isCreator = (int) $booking->created_by === (int) $tenant->id;
 
         if (!($isOwner || $isCreator)) {
             abort(403, 'Нет прав приглашать гостей в рамках этого бронирования');
-        }
-    }
-
-    private function assertQrAllowed(Booking $booking): void
-    {
-        if ($booking->status !== 'active') {
-            throw ValidationException::withMessages([
-                'status' => ['QR доступен только для активных бронирований'],
-            ]);
-        }
-
-        $now = now();
-        $start = $booking->start_time;
-        $end   = $booking->end_time;
-
-        $openFrom = $start->copy()->subMinutes($this->beforeMinutes);
-        $closeAt  = $end->copy()->addMinutes($this->afterMinutes);
-
-        if ($now->lt($openFrom)) {
-            throw ValidationException::withMessages([
-                'time' => ['QR будет доступен ближе к началу бронирования'],
-            ]);
-        }
-
-        if ($now->gt($closeAt)) {
-            throw ValidationException::withMessages([
-                'time' => ['QR уже недоступен. Время бронирования прошло'],
-            ]);
         }
     }
 }

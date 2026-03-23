@@ -8,7 +8,8 @@ RUN apk add --no-cache \
     libzip-dev \
     icu-dev \
     oniguruma-dev \
-    mysql-client
+    mysql-client \
+    tzdata
 
 # PHP-расширения для Laravel
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -28,6 +29,10 @@ COPY --from=composer:2.9.5 /usr/bin/composer /usr/bin/composer
 # Конфиги
 COPY php.ini /usr/local/etc/php/php.ini
 COPY php-fpm.conf /usr/local/etc/php-fpm.d/zz-custom.conf
+
+ENV TZ=Asia/Tomsk
+ENV APP_TIMEZONE=Asia/Tomsk
+ENV BC_TIMEZONE=Asia/Tomsk
 
 WORKDIR /app
 

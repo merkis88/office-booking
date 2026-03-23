@@ -39,12 +39,10 @@ export const useQrStore = defineStore('qr', {
      * Получить гостевой QR
      * POST /api/qr/{bookingId}/guest-qr
      */
-    async createGuestQr(bookingId, { recipient_email, guest_name, time_window }) {
+    async createGuestQr(bookingId, { recipient_email }) {
       try {
         const { data } = await axios.post(`/api/qr/${bookingId}/guest-qr`, {
           recipient_email,
-          guest_name: guest_name || undefined,
-          time_window: time_window || undefined,
         });
         return data.data ?? data;
       } catch (e) {
@@ -56,10 +54,10 @@ export const useQrStore = defineStore('qr', {
      * Выдать QR зарегистрированному сотруднику
      * POST /api/qr/{bookingId}/issue-qr
      */
-    async issueQr(bookingId, recipientUserId) {
+    async issueQr(bookingId, { recipient_email }) {
       try {
         const { data } = await axios.post(`/api/qr/${bookingId}/issue-qr`, {
-          recipient_user_id: recipientUserId,
+          recipient_email,
         });
         return data.data ?? data;
       } catch (e) {

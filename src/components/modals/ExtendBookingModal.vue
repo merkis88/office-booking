@@ -1,6 +1,7 @@
 <script setup>
   import { ref, computed, watch } from 'vue';
   import { useBookingsStore } from '@/store/bookings';
+  import { formatBookingTime } from '@/utils/dateFormat';
   import BaseModal from '@/components/modals/BaseModal.vue';
 
   const props = defineProps({
@@ -42,10 +43,7 @@
 
   const currentEndTime = computed(() => {
     if (!props.booking) return '';
-    return new Date(props.booking.end_time).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return formatBookingTime(props.booking.end_time);
   });
 
   function selectPreset(preset) {

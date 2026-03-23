@@ -1,6 +1,7 @@
 <script setup>
   import { ref, computed, watch } from 'vue';
   import { useBookingsStore } from '@/store/bookings';
+  import axios from 'axios';
   import BaseModal from '@/components/modals/BaseModal.vue';
 
   const props = defineProps({
@@ -17,88 +18,186 @@
   const emit = defineEmits(['update:modelValue', 'rescheduled']);
 
   const bookingsStore = useBookingsStore();
-  const isSubmitting = ref(false);
-  const error = ref('');
 
-  const newDate = ref('');
-  const newStartTime = ref('');
-  const newEndTime = ref('');
+  const screen = ref('intervals'); // 'intervals' | 'slots' | 'confirm'
+  const isLoading = ref(false);
+  const isSlotsLoading = ref(false);
+  const isSubmitting = ref(false);
+  const errorMessage = ref('');
+
+  // Данные слотов
+  const availableSlots = ref([]);     // из API (свободные)
+  const mergedIntervals = ref([]);    // мерженные интервалы для экрана 1
+  const selectedInterval = ref(null); // выбранный интервал { start, end }
+
+  // Данные для экрана 2 (выбор часа начала)
+  const timePoints = ref([]);        // доступные часы начала
+  const selectedStartIndex = ref(null); // выбранный час начала
+
+  const screenTitle = computed(() => {
+    if (screen.value === 'intervals') return 'Перенос брони';
+    if (screen.value === 'slots') return 'Выберите время';
+    return 'Подтверждение';
+  });
+
+  // Длительность текущей брони в часах (фиксирована, менять нельзя)
+  const bookingDurationHours = computed(() => {
+    if (!props.booking) return 1;
+    const start = new Date(props.booking.start_time);
+    const end = new Date(props.booking.end_time);
+    return Math.round((end - start) / (1000 * 60 * 60));
+  });
 
   watch(
     () => props.modelValue,
-    (isOpen) => {
+    async (isOpen) => {
       if (isOpen && props.booking) {
-        const start = new Date(props.booking.start_time);
-        const end = new Date(props.booking.end_time);
-        newDate.value = start.toISOString().slice(0, 10);
-        newStartTime.value = start.toLocaleTimeString('ru-RU', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        });
-        newEndTime.value = end.toLocaleTimeString('ru-RU', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        });
-        error.value = '';
+        screen.value = 'intervals';
+        selectedInterval.value = null;
+        selectedStartIndex.value = null;
+        errorMessage.value = '';
+        await loadSlots();
       }
     },
   );
 
-  const currentFormattedDate = computed(() => {
+  async function loadSlots() {
+    isSlotsLoading.value = true;
+    try {
+      const placeId = props.booking.place_id || props.booking.place?.id;
+      const date = props.booking.start_time.slice(0, 10); // 'YYYY-MM-DD'
+
+      const { data } = await axios.get(`/api/places/${placeId}`, {
+        params: { date },
+      });
+
+      const placeData = data.data ?? data;
+      const freeSlots = placeData.available_slots || [];
+
+      // Добавить время текущей брони к свободным слотам
+      const bookingStart = new Date(props.booking.start_time)
+        .toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const bookingEnd = new Date(props.booking.end_time)
+        .toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+      const allSlots = [...freeSlots, { start: bookingStart, end: bookingEnd }];
+
+      // Сортировать и мержить в интервалы
+      availableSlots.value = allSlots;
+      mergedIntervals.value = mergeSlots(allSlots);
+    } catch (e) {
+      errorMessage.value = 'Не удалось загрузить доступное время';
+    } finally {
+      isSlotsLoading.value = false;
+    }
+  }
+
+  function mergeSlots(slots) {
+    if (!slots.length) return [];
+
+    const sorted = [...slots].sort((a, b) => a.start.localeCompare(b.start));
+    const result = [];
+    let current = { start: sorted[0].start, end: sorted[0].end };
+
+    for (let i = 1; i < sorted.length; i++) {
+      const slot = sorted[i];
+      if (slot.start <= current.end) {
+        // Слоты пересекаются или смежные — мержим
+        if (slot.end > current.end) current.end = slot.end;
+      } else {
+        result.push({ ...current });
+        current = { start: slot.start, end: slot.end };
+      }
+    }
+    result.push({ ...current });
+
+    return result.map(s => ({
+      ...s,
+      label: `${s.start} - ${s.end}`,
+    }));
+  }
+
+  function selectInterval(interval) {
+    selectedInterval.value = interval;
+
+    // Генерируем ВСЕ граничные точки внутри интервала (включая конец)
+    const points = [];
+    let [h, m] = interval.start.split(':').map(Number);
+    const [endH, endM] = interval.end.split(':').map(Number);
+    const endMinutes = endH * 60 + endM;
+
+    while (h * 60 + m <= endMinutes) {
+      points.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+      h += 1; // шаг 1 час
+    }
+
+    timePoints.value = points;
+    selectedStartIndex.value = null;
+    screen.value = 'slots';
+  }
+
+  // Можно ли кликнуть на эту точку как начало?
+  function canSelectHour(index) {
+    // От этой точки должно помещаться duration слотов
+    // т.е. index + duration <= timePoints.length - 1
+    return index + bookingDurationHours.value <= timePoints.value.length - 1;
+  }
+
+  function selectHour(index) {
+    if (!canSelectHour(index)) return;
+    selectedStartIndex.value = index;
+  }
+
+  function isSelected(index) {
+    if (selectedStartIndex.value === null) return false;
+    // Подсветить точки от start до start + duration (включительно)
+    // duration слотов = duration + 1 точек
+    return index >= selectedStartIndex.value
+      && index <= selectedStartIndex.value + bookingDurationHours.value;
+  }
+
+  const isValidSelection = computed(() => {
+    return selectedStartIndex.value !== null;
+  });
+
+  const bookingTime = computed(() => {
+    if (!isValidSelection.value) return '';
+    const startTime = timePoints.value[selectedStartIndex.value];
+    const endTime = timePoints.value[selectedStartIndex.value + bookingDurationHours.value];
+    return `${startTime} - ${endTime}`;
+  });
+
+  // Для отправки на API
+  const newStartTime = computed(() => {
+    if (!isValidSelection.value) return '';
+    return timePoints.value[selectedStartIndex.value];
+  });
+
+  const newEndTime = computed(() => {
+    if (!isValidSelection.value) return '';
+    return timePoints.value[selectedStartIndex.value + bookingDurationHours.value];
+  });
+
+  const bookingDate = computed(() => {
     if (!props.booking) return '';
-    return new Date(props.booking.start_time).toLocaleDateString('ru-RU');
+    return props.booking.start_time.slice(0, 10);
   });
 
-  const currentFormattedTime = computed(() => {
-    if (!props.booking) return '';
-    const start = new Date(props.booking.start_time).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    const end = new Date(props.booking.end_time).toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    return `${start} - ${end}`;
+  const formattedDate = computed(() => {
+    if (!bookingDate.value) return '';
+    return new Date(bookingDate.value).toLocaleDateString('ru-RU');
   });
 
-  const isActiveStatus = computed(() => {
-    return props.booking?.status === 'active';
-  });
-
-  const todayStr = computed(() => {
-    return new Date().toISOString().slice(0, 10);
-  });
-
-  const validationError = computed(() => {
-    if (!newDate.value || !newStartTime.value || !newEndTime.value) {
-      return 'Заполните все поля';
-    }
-    if (newDate.value < todayStr.value) {
-      return 'Дата не может быть в прошлом';
-    }
-    if (newStartTime.value >= newEndTime.value) {
-      return 'Время окончания должно быть позже времени начала';
-    }
-    return '';
-  });
-
-  const canSubmit = computed(() => {
-    return !validationError.value && !isSubmitting.value;
-  });
-
-  async function handleSubmit() {
-    if (!canSubmit.value || !props.booking) return;
+  async function confirmReschedule() {
+    if (isSubmitting.value || !isValidSelection.value) return;
 
     isSubmitting.value = true;
-    error.value = '';
+    errorMessage.value = '';
+
+    const start_time = `${bookingDate.value}T${newStartTime.value}:00`;
+    const end_time = `${bookingDate.value}T${newEndTime.value}:00`;
 
     try {
-      const start_time = `${newDate.value}T${newStartTime.value}:00+00:00`;
-      const end_time = `${newDate.value}T${newEndTime.value}:00+00:00`;
-
       await bookingsStore.rescheduleBooking(props.booking.id, {
         start_time,
         end_time,
@@ -107,174 +206,233 @@
       emit('update:modelValue', false);
     } catch (e) {
       if (e.response?.status === 422) {
-        const msg = e.response.data?.message || '';
-        if (msg.toLowerCase().includes('overlap') || msg.toLowerCase().includes('пересек')) {
-          error.value = 'Выбранное время пересекается с другим бронированием';
-        } else {
-          error.value = msg || 'Не удалось перенести бронирование';
-        }
+        errorMessage.value = e.response.data?.message || 'Выбранное время занято';
+        screen.value = 'intervals';
       } else {
-        error.value = 'Произошла ошибка. Попробуйте позже.';
+        errorMessage.value = 'Произошла ошибка. Попробуйте позже.';
       }
     } finally {
       isSubmitting.value = false;
     }
   }
 
-  function handleClose() {
-    error.value = '';
-    emit('update:modelValue', false);
+  function goToConfirm() {
+    screen.value = 'confirm';
+  }
+
+  function handleBack() {
+    errorMessage.value = '';
+    if (screen.value === 'confirm') {
+      screen.value = 'slots';
+    } else if (screen.value === 'slots') {
+      screen.value = 'intervals';
+    } else {
+      emit('update:modelValue', false);
+    }
   }
 </script>
 
 <template>
   <BaseModal
     :model-value="modelValue"
-    title="Перенести бронирование"
+    :title="screenTitle"
     max-width="520px"
+    :show-close-button="false"
     :close-on-backdrop="true"
-    @update:model-value="handleClose"
+    @update:model-value="$emit('update:modelValue', $event)"
   >
-    <div class="reschedule-modal">
-      <template v-if="booking">
-        <div class="reschedule-modal__current">
-          <span class="reschedule-modal__label">Текущее:</span>
-          <span class="reschedule-modal__value">
-            {{ currentFormattedDate }}, {{ currentFormattedTime }}
-          </span>
+    <button class="reschedule__back" @click="handleBack">
+      <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
+    </button>
+
+    <div class="reschedule__content">
+      <!-- Экран 1: Выбор интервала -->
+      <div v-if="screen === 'intervals'">
+        <p class="reschedule__subtitle">Выберите пожалуйста подходящее время</p>
+
+        <div v-if="isSlotsLoading" class="reschedule__loading">Загрузка...</div>
+
+        <div v-else-if="!mergedIntervals.length" class="reschedule__empty">
+          Нет доступного времени для переноса
         </div>
 
-        <div class="reschedule-modal__form">
-          <div class="reschedule-modal__field">
-            <label class="reschedule-modal__field-label">Новая дата:</label>
-            <input
-              v-model="newDate"
-              type="date"
-              class="reschedule-modal__input"
-              :min="todayStr"
-            />
-          </div>
-
-          <div class="reschedule-modal__field">
-            <label class="reschedule-modal__field-label">Новое время начала:</label>
-            <input
-              v-model="newStartTime"
-              type="time"
-              class="reschedule-modal__input"
-              step="3600"
-            />
-          </div>
-
-          <div class="reschedule-modal__field">
-            <label class="reschedule-modal__field-label">Новое время окончания:</label>
-            <input
-              v-model="newEndTime"
-              type="time"
-              class="reschedule-modal__input"
-              step="3600"
-            />
-          </div>
+        <div v-else class="reschedule__intervals">
+          <button
+            v-for="interval in mergedIntervals"
+            :key="interval.start"
+            class="reschedule__interval-btn"
+            @click="selectInterval(interval)"
+          >
+            {{ interval.label }}
+          </button>
         </div>
+      </div>
 
-        <p v-if="isActiveStatus" class="reschedule-modal__notice">
-          После переноса бронирование потребует повторного подтверждения (статус изменится на "ожидает").
+      <!-- Экран 2: Выбор часа начала (длительность фиксирована) -->
+      <div v-else-if="screen === 'slots'">
+        <p class="reschedule__subtitle">
+          Выберите время начала (длительность: {{ bookingDurationHours }} ч.)
         </p>
 
-        <p v-if="error" class="reschedule-modal__error">{{ error }}</p>
-        <p
-          v-else-if="validationError && (newDate || newStartTime || newEndTime)"
-          class="reschedule-modal__validation"
+        <div
+          class="reschedule__slots"
+          :style="{ gridTemplateColumns: `repeat(${Math.min(timePoints.length, 5)}, auto)` }"
         >
-          {{ validationError }}
-        </p>
-
-        <div class="reschedule-modal__actions">
           <button
-            class="reschedule-modal__btn reschedule-modal__btn--primary"
-            :disabled="!canSubmit"
-            @click="handleSubmit"
+            v-for="(time, index) in timePoints"
+            :key="time"
+            class="reschedule__slot"
+            :class="{
+              active: isSelected(index),
+              disabled: !canSelectHour(index) && !isSelected(index),
+            }"
+            :disabled="!canSelectHour(index) && !isSelected(index)"
+            @click="selectHour(index)"
           >
-            {{ isSubmitting ? 'Перенос...' : 'Перенести' }}
-          </button>
-          <button
-            class="reschedule-modal__btn"
-            :disabled="isSubmitting"
-            @click="handleClose"
-          >
-            Отмена
+            {{ time }}
           </button>
         </div>
-      </template>
+      </div>
+
+      <!-- Экран 3: Подтверждение -->
+      <div v-else class="reschedule__confirm-screen">
+        <p class="reschedule__subtitle">Проверьте правильность данных</p>
+        <p class="reschedule__info">{{ formattedDate }}, {{ bookingTime }}</p>
+        <p class="reschedule__info">{{ booking?.place?.name }}</p>
+        <p class="reschedule__info">Вместимость: {{ booking?.place?.capacity }}</p>
+      </div>
+
+      <p v-if="errorMessage" class="reschedule__error">{{ errorMessage }}</p>
     </div>
+
+    <template #footer>
+      <div v-if="screen === 'slots'">
+        <button
+          class="reschedule__btn"
+          :disabled="!isValidSelection"
+          @click="goToConfirm"
+        >
+          Далее
+        </button>
+      </div>
+
+      <div v-else-if="screen === 'confirm'">
+        <button
+          class="reschedule__btn"
+          :disabled="isSubmitting"
+          @click="confirmReschedule"
+        >
+          {{ isSubmitting ? 'Перенос...' : 'Перенести' }}
+        </button>
+      </div>
+    </template>
   </BaseModal>
 </template>
 
 <style lang="scss" scoped>
   @use '@/assets/styles/variables' as *;
 
-  .reschedule-modal {
-    &__current {
+  .reschedule {
+    &__back {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      width: 2.5rem;
+      height: 2.5rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      padding: 0.75rem 1rem;
-      background: $color-input-bg;
-      border-radius: $radius-sm;
-    }
-
-    &__label {
-      font-size: $text-base;
-      font-weight: 500;
-      color: rgba($color-text, 0.6);
-    }
-
-    &__value {
-      font-size: $text-base;
-      color: $color-text;
-      font-weight: 500;
-    }
-
-    &__form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    &__field {
-      display: flex;
-      flex-direction: column;
-      gap: 0.375rem;
-    }
-
-    &__field-label {
-      font-size: $text-sm;
-      font-weight: 500;
-      color: $color-text;
-    }
-
-    &__input {
-      padding: 0.625rem 0.75rem;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
       border: 1px solid $color-border;
       border-radius: $radius-sm;
-      background: $color-input-bg;
-      font-size: $text-base;
-      outline: none;
-      transition: 0.2s;
+      background: transparent;
 
-      &:focus {
+      &:hover {
         background: $color-input-bg-dark;
+      }
+
+      img {
+        width: 1.5rem;
+        height: 1.5rem;
       }
     }
 
-    &__notice {
-      font-size: $text-sm;
-      color: #92400e;
-      background: #fef3c7;
-      padding: 0.5rem 1rem;
+    &__content {
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    &__subtitle {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: $text-base;
+      color: $color-text;
+    }
+
+    &__loading,
+    &__empty {
+      text-align: center;
+      padding: 2rem;
+      color: rgba($color-text, 0.6);
+    }
+
+    &__intervals {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    &__interval-btn {
+      padding: 0.75rem 2rem;
+      font-size: $text-xl;
+      border: 1px solid $color-border;
       border-radius: $radius-sm;
-      margin-bottom: 1rem;
+      background: $color-input-bg;
+      cursor: pointer;
+      transition: 0.2s;
+
+      &:hover {
+        background: $color-input-bg-dark;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      }
+    }
+
+    &__slots {
+      display: grid;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    &__slot {
+      font-size: $text-xl;
+      background: $color-input-bg;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: $radius-sm;
+      transition: 0.2s;
+
+      &:hover {
+        background: $color-input-bg-dark;
+      }
+
+      &.active {
+        background: $color-header-bg;
+        font-weight: 500;
+      }
+    }
+
+    &__confirm-screen {
+      text-align: center;
+    }
+
+    &__info {
+      margin-bottom: 0.5rem;
+      font-size: $text-base;
     }
 
     &__error {
@@ -283,55 +441,26 @@
       background: #fee2e2;
       padding: 0.5rem 1rem;
       border-radius: $radius-sm;
-      margin-bottom: 1rem;
-    }
-
-    &__validation {
-      font-size: $text-sm;
-      color: #92400e;
-      margin-bottom: 1rem;
-    }
-
-    &__actions {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
+      margin-top: 1rem;
+      text-align: center;
     }
 
     &__btn {
-      padding: 0.625rem 1.5rem;
-      border: 1px solid $color-border;
-      border-radius: $radius-sm;
-      background: $color-input-bg;
       font-size: $text-base;
-      font-weight: 500;
+      padding: 10px 24px;
+      border-radius: $radius-sm;
+      border: 1px solid $color-border;
+      background: $color-input-bg;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: 0.2s;
 
       &:hover {
         background: $color-input-bg-dark;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-      }
-
-      &:active {
-        transform: translateY(0);
       }
 
       &:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-      }
-
-      &--primary {
-        background: $color-header-bg;
-        color: $color-text;
-
-        &:hover {
-          background: $color-footer-bg;
-        }
       }
     }
   }
