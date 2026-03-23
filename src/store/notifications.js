@@ -36,11 +36,9 @@ export const useNotificationsStore = defineStore('notifications', {
           payload.user_email = notificationData.email;
         }
 
-        console.log('Отправка уведомления:', payload);
 
         const { data } = await axios.post('/api/admin/notifications', payload);
 
-        console.log('Уведомление отправлено:', data);
 
         this.successMessage = data.message || 'Уведомление успешно отправлено!';
 
@@ -76,7 +74,6 @@ export const useNotificationsStore = defineStore('notifications', {
 
         this.notifications = data.data || data;
 
-        console.log('Уведомления загружены:', this.notifications);
 
         return { success: true, data: this.notifications };
       } catch (error) {
@@ -97,7 +94,6 @@ export const useNotificationsStore = defineStore('notifications', {
           notification.is_read = true;
         }
 
-        console.log(`Уведомление ${notificationId} отмечено как прочитанное`);
 
         return { success: true };
       } catch (error) {
@@ -114,7 +110,6 @@ export const useNotificationsStore = defineStore('notifications', {
           n.is_read = true;
         });
 
-        console.log('Все уведомления отмечены как прочитанные');
 
         return { success: true };
       } catch (error) {
@@ -129,7 +124,6 @@ export const useNotificationsStore = defineStore('notifications', {
 
         this.notifications = this.notifications.filter((n) => n.id !== notificationId);
 
-        console.log(`Уведомление ${notificationId} удалено`);
 
         return { success: true };
       } catch (error) {

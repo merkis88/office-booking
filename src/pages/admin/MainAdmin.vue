@@ -10,6 +10,10 @@
   const router = useRouter();
 
   const { places, isLoading } = storeToRefs(placesStore);
+  const deletingPlaceId = ref(null);
+  const showDeleteModal = ref(false);
+  const deleteSuccess = ref(false);
+  const isDeleting = ref(false);
 
   const firstThreePlaces = computed(() => {
     return places.value.slice(0, 3);
@@ -31,13 +35,37 @@
   });
 
   function editPlace(placeId) {
-    console.log('Редактировать помещение:', placeId);
+    router.push(`/admin/places/${placeId}/edit`);
   }
 
   function deletePlace(placeId) {
-    if (confirm('Вы уверены, что хотите удалить это помещение?')) {
-      places.value = places.value.filter((p) => p.id !== placeId);
+    deletingPlaceId.value = placeId;
+    showDeleteModal.value = true;
+  }
+
+  async function confirmDelete() {
+    isDeleting.value = true;
+    const result = await placesStore.deletePlace(deletingPlaceId.value);
+    isDeleting.value = false;
+
+    if (result.success) {
+      deleteSuccess.value = true;
+      setTimeout(() => {
+        showDeleteModal.value = false;
+        deleteSuccess.value = false;
+        deletingPlaceId.value = null;
+      }, 1200);
     }
+  }
+
+  function cancelDelete() {
+    showDeleteModal.value = false;
+    deletingPlaceId.value = null;
+  }
+
+  function getDeletePlaceNumber() {
+    const place = placesStore.places.find((p) => p.id === deletingPlaceId.value);
+    return place ? place.number_place : '';
   }
 
   function formatCapacity(capacity) {
@@ -74,7 +102,7 @@
           <p class="admin__welcome-footer">Команда и система рассчитывают на вас!</p>
         </div>
         <div class="admin__welcome-image">
-          <img src="@/assets/images/photos/admin-welcome.png" alt="Добро пожаловать" />
+          <img src="/admin-welcome.png" alt="Добро пожаловать" />
         </div>
       </div>
 
@@ -120,20 +148,51 @@
                 @click="deletePlace(place.id)"
                 aria-label="Удалить"
               >
-                <img src="@/assets/images/icons/delete-themes.svg" alt="Удалить" />
+                <img src="/delete-themes.svg" alt="Удалить" />
               </button>
               <button
                 class="admin__action-btn admin__action-btn--edit"
                 @click="editPlace(place.id)"
                 aria-label="Редактировать"
               >
-                <img src="@/assets/images/icons/edit.svg" alt="Редактировать" />
+                <img src="/edit.svg" alt="Редактировать" />
               </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <transition name="modal">
+      <div v-if="showDeleteModal" class="modal-overlay" @click.self="cancelDelete">
+        <div class="modal" :class="{ 'modal--success': deleteSuccess }">
+          <h2 class="modal__title">{{ deleteSuccess ? 'Готово' : 'Удаление' }}</h2>
+          <p class="modal__text">
+            <template v-if="deleteSuccess">Помещение успешно удалено</template>
+            <template v-else>
+              Вы действительно хотите удалить помещение №{{ getDeletePlaceNumber() }}?
+            </template>
+          </p>
+          <div v-if="!deleteSuccess" class="modal__actions">
+            <button
+              class="modal__btn modal__btn--confirm"
+              :disabled="isDeleting"
+              @click="confirmDelete"
+            >
+              <span v-if="isDeleting" class="modal__btn-spinner"></span>
+              {{ isDeleting ? 'Удаление...' : 'Подтвердить' }}
+            </button>
+            <button
+              class="modal__btn modal__btn--cancel"
+              :disabled="isDeleting"
+              @click="cancelDelete"
+            >
+              Отмена
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -375,6 +434,168 @@
       &__welcome-footer {
         font-size: $text-sm;
       }
+    }
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .dropdown-enter-active {
+    animation: dropdown-in 0.2s ease-out;
+  }
+
+  .dropdown-leave-active {
+    animation: dropdown-out 0.2s ease-in;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal {
+    background: #fff;
+    border-radius: $radius-lg;
+    padding: 2.5rem 3rem;
+    min-width: 420px;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+
+    &--success {
+      border: 2px solid #27ae60;
+    }
+
+    &__title {
+      font-family: $font-title;
+      font-size: $text-xl;
+      font-weight: 700;
+      color: $color-text;
+      margin: 0 0 1rem 0;
+    }
+
+    &__text {
+      font-size: $text-base;
+      color: $color-text;
+      margin: 0 0 2rem 0;
+      font-family: $font-base;
+    }
+
+    &__actions {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+    }
+
+    &__btn {
+      flex: 1;
+      padding: 0.875rem 1.5rem;
+      border: 1px solid $color-text;
+      border-radius: $radius-sm;
+      font-size: $text-base;
+      font-family: $font-base;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+
+      &--confirm {
+        background: transparent;
+        color: $color-text;
+
+        &:hover:not(:disabled) {
+          background: $color-text;
+          color: #fff;
+        }
+      }
+
+      &--cancel {
+        background: transparent;
+        color: $color-text;
+
+        &:hover:not(:disabled) {
+          background: rgba($color-text, 0.05);
+        }
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    &__btn-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba($color-text, 0.3);
+      border-top-color: $color-text;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+  }
+
+  .modal-enter-active {
+    animation: modal-in 0.25s ease-out;
+  }
+
+  .modal-leave-active {
+    animation: modal-out 0.2s ease-in;
+  }
+
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes modal-out {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+
+  @keyframes dropdown-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes dropdown-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
     }
   }
 </style>

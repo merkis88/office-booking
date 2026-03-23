@@ -16,9 +16,11 @@ import BookingHistory from '@/pages/admin/BookingHistory.vue';
 import Offices from '@/pages/Offices.vue';
 import Coworking from '@/pages/Coworking.vue';
 import Requests from '@/pages/Requests.vue';
-import Passes from '@/pages/Passes.vue';
 import Notifications from '@/pages/admin/Notifications.vue';
 import MainAdmin from '@/pages/admin/MainAdmin.vue';
+import Places from '@/pages/admin/Places.vue';
+import CreatePlace from '@/pages/admin/CreatePlace.vue';
+import EditPlace from '@/pages/admin/EditPlace.vue';
 
 const routes = [
   {
@@ -37,7 +39,6 @@ const routes = [
       { path: 'coworking', component: Coworking },
       { path: 'meeting-rooms', component: MeetingRooms },
       { path: '/requests', component: Requests },
-      { path: 'passes', component: Passes },
     ],
   },
   {
@@ -47,6 +48,9 @@ const routes = [
       { path: '', component: MainAdmin },
       { path: 'notifications', component: Notifications },
       { path: 'booking-history', component: BookingHistory },
+      { path: 'places', component: Places },
+      { path: 'create-place', component: CreatePlace },
+      { path: 'places/:id/edit', component: EditPlace },
     ],
   },
 ];

@@ -86,10 +86,8 @@
 
       window.URL.revokeObjectURL(url);
 
-      console.log('PDF успешно скачан');
     } catch (error) {
       console.error('Ошибка скачивания PDF:', error);
-      alert(`Ошибка: ${error.message}`);
     } finally {
       isDownloading.value = false;
     }
@@ -136,7 +134,7 @@
         :disabled="isDownloading"
       >
         <div v-if="isDownloading" class="service-card__spinner"></div>
-        <img v-else src="@/assets/images/icons/download.svg" alt="Скачать" />
+        <img v-else src="/download.svg" alt="Скачать" />
       </button>
     </div>
   </div>

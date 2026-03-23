@@ -10,7 +10,7 @@
       <div class="service-section__container">
         <div class="service-section__image-wrap">
           <div class="service-section__bg"></div>
-          <img src="@/assets/images/photos/meeting-room.jpg" alt="Переговорные комнаты" class="service-section__image" />
+          <img src="/meeting-room.jpg" alt="Переговорные комнаты" class="service-section__image" />
         </div>
 
         <div class="service-section__content">
@@ -49,7 +49,7 @@
 
         <div class="service-section__image-wrap">
           <div class="service-section__bg"></div>
-          <img src="@/assets/images/photos/office.jpg" alt="Офисы" class="service-section__image" />
+          <img src="/office.jpg" alt="Офисы" class="service-section__image" />
         </div>
       </div>
     </section>
@@ -58,7 +58,7 @@
       <div class="service-section__container">
         <div class="service-section__image-wrap">
           <div class="service-section__bg"></div>
-          <img src="@/assets/images/photos/coworking.jpg" alt="Коворкинг" class="service-section__image" />
+          <img src="/coworking.jpg" alt="Коворкинг" class="service-section__image" />
         </div>
 
         <div class="service-section__content">

@@ -20,26 +20,29 @@
 
     <nav class="sidebar__nav">
       <router-link to="/admin/users" class="sidebar__btn">
-        <img src="@/assets/images/icons/admin-user.svg" alt="" />
+        <img src="/admin-user.svg " alt="" />
         Пользователи
       </router-link>
 
-      <router-link to="/admin/rooms" class="sidebar__btn">
-        <img src="@/assets/images/icons/handbag.svg" alt="" />
+      <router-link to="/admin/places" class="sidebar__btn">
+        <img src="/handbag.svg" alt="" />
         Помещения
       </router-link>
 
       <router-link to="/admin/requests" class="sidebar__btn">
-        <img src="@/assets/images/icons/menu-board.svg" alt="" />
+        <img src="/menu-board.svg" alt="" />
         Заявки
       </router-link>
 
       <router-link to="/admin/notifications" class="sidebar__btn">
-        <img src="@/assets/images/icons/notification-admin.svg" alt="" />
+        <img src="/notification-admin.svg" alt="" />
         Уведомления
       </router-link>
 
-      <router-link to="/" class="sidebar__btn sidebar__logout">Выход</router-link>
+      <router-link to="/" class="sidebar__btn sidebar__logout">
+        <img src="" alt="" />
+        Выход
+      </router-link>
     </nav>
   </aside>
 </template>
@@ -97,7 +100,7 @@
     display: flex;
     align-items: center;
     gap: 2rem;
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .sidebar__btn:hover {
@@ -105,8 +108,11 @@
   }
 
   .sidebar__logout {
+    display: flex;
+    justify-content: center;
     margin-top: 20px;
     text-align: center;
+    gap: 0;
   }
 
   .sidebar__avatar img {

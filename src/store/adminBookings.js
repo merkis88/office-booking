@@ -28,17 +28,11 @@ export const useAdminBookingsStore = defineStore('adminBookings', {
       this.isLoading = true;
 
       try {
-        const rawParams = {
+        const params = new URLSearchParams({
           page,
           per_page: this.perPage,
           ...this.filters,
-        };
-
-        const filteredParams = Object.fromEntries(
-          Object.entries(rawParams).filter(([_, v]) => v !== null && v !== undefined && v !== ''),
-        );
-
-        const params = new URLSearchParams(filteredParams);
+        });
 
         const res = await fetch(`/api/admin/bookings?${params}`, {
           headers: {

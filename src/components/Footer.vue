@@ -5,7 +5,7 @@
     <div class="footer__inner">
       <section class="footer__brand">
         <div class="footer__logo">
-          <img src="@/assets/images/logo.svg" alt="logo" />
+          <img src="/logo.svg" alt="logo" />
           <span>LOGOTYPE</span>
         </div>
         <div class="footer__description">
@@ -20,38 +20,38 @@
 
       <section class="footer__nav">
         <div class="footer__link">
-          <img src="@/assets/images/icons/user-footer.svg" alt="" />
+          <img src="/user-footer.svg" alt="" />
           <a href="">Личный кабинет</a>
         </div>
         <div class="footer__link">
-          <img src="@/assets/images/icons/handbag-footer.svg" alt="" />
+          <img src="/handbag-footer.svg" alt="" />
           <a href="">Услуги</a>
         </div>
         <div class="footer__link">
-          <img src="@/assets/images/icons/bank-transfer-footer.svg" alt="" />
+          <img src="/bank-transfer-footer.svg" alt="" />
           <a href="">Пропуск</a>
         </div>
         <div class="footer__link">
-          <img src="@/assets/images/icons/routing-footer.svg" alt="" />
+          <img src="/routing-footer.svg" alt="" />
           <a href="">Как добраться</a>
         </div>
       </section>
 
       <section class="footer__contacts">
         <div class="footer__link">
-          <img src="@/assets/images/icons/call-calling-footer.svg" alt="" />
+          <img src="/call-calling-footer.svg" alt="" />
           <a href="">+7 930 454 54 04</a>
         </div>
         <div class="footer__link">
-          <img src="@/assets/images/icons/send-2-footer.svg" alt="" />
+          <img src="/send-2-footer.svg" alt="" />
           <a href="">@operatingPoint.</a>
         </div>
         <div class="footer__link">
-          <img src="@/assets/images/icons/sms-edit-footer.svg" alt="" />
+          <img src="/sms-edit-footer.svg" alt="" />
           <a href="">operatingPoint.@mail.ru</a>
         </div>
         <div class="footer__link">
-          <img src="@/assets/images/icons/location-marker-footer.svg" alt="" />
+          <img src="/location-marker-footer.svg" alt="" />
           <a href="">Говорова 35</a>
         </div>
       </section>

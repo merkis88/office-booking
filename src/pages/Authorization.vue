@@ -54,7 +54,7 @@
     <div class="auth__card">
       <div class="auth__image">
         <div class="auth__gradient"></div>
-        <img src="@/assets/images/photos/people-login.png" alt="people" />
+        <img src="/people-login.png" alt="people" />
       </div>
 
       <div class="auth__content">
@@ -80,8 +80,8 @@
                 type="button"
                 class="auth__toggle-password"
               >
-                <img v-if="showPassword" src="@/assets/images/icons/eye.svg" alt="Скрыть" />
-                <img v-else src="@/assets/images/icons/eye-off.svg" alt="Показать" />
+                <img v-if="showPassword" src="/eye.svg" alt="Скрыть" />
+                <img v-else src="/eye-off.svg" alt="Показать" />
               </button>
             </div>
             <p v-if="error" class="auth__error">{{ error }}</p>

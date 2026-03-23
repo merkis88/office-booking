@@ -92,8 +92,6 @@
   const selectedSlots = ref([]);
   const selectedPlace = ref(null);
 
-  const bookingDate = ref('');
-
   function openBookingModal(data) {
     const { place, range, availableSlots } = data;
 
@@ -102,13 +100,10 @@
     );
     selectedPlace.value = place;
 
-    // Если дата не выбрана — подставить сегодняшнюю (YYYY-MM-DD)
-    bookingDate.value = selectedDate.value || new Date().toISOString().slice(0, 10);
-
     showBookingModal.value = true;
   }
 
-  function createBooking() {
+  function createBooking(booking) {
     loadPlaces();
   }
 
@@ -165,7 +160,7 @@
     v-model="showBookingModal"
     :slots="selectedSlots"
     :place="selectedPlace"
-    :date="bookingDate"
+    :date="selectedDate"
     @close="showBookingModal = false"
     @confirm="createBooking"
   />
@@ -229,7 +224,7 @@
           :disabled="currentPage === 1"
           @click="goToPage(currentPage - 1)"
         >
-          <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
+          <img src="/arrow-left.svg" alt="Назад" />
         </button>
 
         <button
@@ -247,7 +242,7 @@
           :disabled="currentPage === totalPages"
           @click="goToPage(currentPage + 1)"
         >
-          <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
+          <img src="/arrow-right.svg" alt="Вперед" />
         </button>
       </div>
     </div>

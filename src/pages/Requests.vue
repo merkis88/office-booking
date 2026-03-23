@@ -211,7 +211,7 @@
         }, 5000);
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
       isSubmitting.value = false;
     }
@@ -230,7 +230,7 @@
 
       <div class="requests__content">
         <div class="requests__image">
-          <img src="@/assets/images/photos/men-request.png" alt="Заявки" />
+          <img src="/man-request.png" alt="Заявки" />
         </div>
 
         <div class="requests__form-wrapper">
@@ -271,7 +271,7 @@
                     readonly
                   />
                   <img
-                    src="@/assets/images/icons/arrow-square-down.svg"
+                    src="/arrow-square-down.svg"
                     alt=""
                     class="requests__icon"
                     :class="{ 'requests__icon--rotate': showBookingDropdown }"
@@ -326,7 +326,7 @@
                     readonly
                   />
                   <img
-                    src="@/assets/images/icons/arrow-square-down.svg"
+                    src="/arrow-square-down.svg"
                     alt=""
                     class="requests__icon"
                     :class="{ 'requests__icon--rotate': showTimeDropdown }"
@@ -366,7 +366,7 @@
                     readonly
                   />
                   <img
-                    src="@/assets/images/icons/arrow-square-down.svg"
+                    src="/arrow-square-down.svg"
                     alt=""
                     class="requests__icon"
                     :class="{ 'requests__icon--rotate': showRequestTypeDropdown }"

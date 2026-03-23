@@ -28,6 +28,7 @@
       locale: Russian,
       dateFormat: 'Y-m-d',
       defaultDate: props.modelValue || null,
+      minDate: 'today',
       onChange: (selectedDates, dateStr) => {
         emit('update:modelValue', dateStr);
 
@@ -76,7 +77,7 @@
     <div class="date-picker-custom__display" @click="openCalendar">
       <span v-if="!formattedDate" class="date-picker-custom__value-placeholder">Выберите дату</span>
       <span v-if="formattedDate" class="date-picker-custom__value">{{ formattedDate }}</span>
-      <img src="@/assets/images/icons/calendar.svg" alt="" class="date-picker-custom__icon" />
+      <img src="/calendar.svg" alt="" class="date-picker-custom__icon" />
     </div>
   </div>
 </template>
@@ -280,8 +281,10 @@
 
     .dayContainer {
       width: 100%;
-      min-width: 280px;
-      max-width: 320px;
+      min-width: unset !important;
+      max-width: unset !important;
+      display: grid !important;
+      grid-template-columns: repeat(7, 1fr) !important;
     }
 
     .flatpickr-day {
@@ -324,9 +327,11 @@
       &.flatpickr-disabled {
         color: rgba($color-text, 0.2);
         cursor: not-allowed;
+        text-decoration: line-through;
 
         &:hover {
           background: transparent;
+          border-color: transparent;
         }
       }
     }

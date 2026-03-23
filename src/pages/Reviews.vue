@@ -11,9 +11,6 @@
   const { reviews, isLoading, filterRating } = storeToRefs(reviewsStore);
   const { user } = storeToRefs(authStore);
 
-  import starIconUrl from '@/assets/images/icons/star-icon.svg';
-  import starEmptyUrl from '@/assets/images/icons/star-empty.svg';
-
   const rating = ref(0);
   const reviewText = ref('');
   const isSubmitting = ref(false);
@@ -199,55 +196,55 @@
             :class="{ 'reviews__filter--active': filterRating === 5 }"
             @click="filterByRating(5)"
           >
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
           </button>
           <button
             class="reviews__filter"
             :class="{ 'reviews__filter--active': filterRating === 4 }"
             @click="filterByRating(4)"
           >
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
           </button>
           <button
             class="reviews__filter"
             :class="{ 'reviews__filter--active': filterRating === 3 }"
             @click="filterByRating(3)"
           >
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-empty.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
           </button>
           <button
             class="reviews__filter"
             :class="{ 'reviews__filter--active': filterRating === 2 }"
             @click="filterByRating(2)"
           >
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-empty.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-empty.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
           </button>
           <button
             class="reviews__filter"
             :class="{ 'reviews__filter--active': filterRating === 1 }"
             @click="filterByRating(1)"
           >
-            <img src="@/assets/images/icons/star-icon.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-empty.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-empty.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-empty.svg" alt="" class="reviews__filter-icon" />
-            <img src="@/assets/images/icons/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-icon.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
+            <img src="/star-empty.svg" alt="" class="reviews__filter-icon" />
           </button>
         </div>
       </div>
@@ -275,7 +272,7 @@
           :disabled="currentPage === 1"
           @click="goToPage(currentPage - 1)"
         >
-          <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
+          <img src="/arrow-left.svg" alt="Назад" />
         </button>
 
         <button
@@ -293,7 +290,7 @@
           :disabled="currentPage === totalPages"
           @click="goToPage(currentPage + 1)"
         >
-          <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
+          <img src="/arrow-right.svg" alt="Вперед" />
         </button>
       </div>
 
@@ -332,7 +329,7 @@
                 :disabled="isSubmitting"
               >
                 <img
-                  :src="star <= rating ? starIconUrl : starEmptyUrl"
+                  :src="star <= rating ? '/star-icon.svg' : '/star-empty.svg'"
                   alt="star"
                   class="reviews__star"
                 />

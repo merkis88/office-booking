@@ -55,7 +55,7 @@
 <template>
   <div class="notifications">
     <button class="notifications__button" @click="togglePanel" aria-label="Уведомления">
-      <img src="@/assets/images/icons/notification.svg" alt="Уведомления" />
+      <img src="/notification.svg" alt="Уведомления" />
       <span v-if="unreadCount > 0" class="notifications__badge">{{ unreadCount }}</span>
     </button>
 
@@ -67,7 +67,7 @@
       <div v-if="isOpen" class="notifications__panel">
         <div class="notifications__header">
           <button class="notifications__close" @click="closePanel" aria-label="Закрыть">
-            <img src="@/assets/images/icons/arrow-square-left.svg" alt="" />
+            <img src="/arrow-square-left.svg" alt="" />
           </button>
 
           <h2 class="notifications__title">Уведомления</h2>
@@ -150,7 +150,7 @@
                   v-if="deletingNotification === notification.id"
                   class="notification-item__delete-spinner"
                 ></div>
-                <img v-else src="@/assets/images/icons/delete-themes.svg" alt="" />
+                <img v-else src="/delete-themes.svg" alt="" />
               </button>
             </div>
           </div>

@@ -1,10 +1,8 @@
 <script setup>
   import { onMounted } from 'vue';
   import { useAdminBookingsStore } from '@/store/adminBookings';
-  import { useAuthStore } from '@/store/auth.js';
 
   const bookingsStore = useAdminBookingsStore();
-  const authStore = useAuthStore();
 
   onMounted(() => {
     bookingsStore.fetchBookings();
@@ -21,81 +19,15 @@
     });
   };
 
-  const formatDateOnly = (date) => {
-    return new Date(date).toLocaleDateString('ru-RU');
-  };
-
-  const formatTimeRange = (start, end) => {
-    const startTime = formatTime(start);
-    const endTime = formatTime(end);
-    return `${startTime}-${endTime}`;
-  };
-
   const placeTypeMap = {
     meeting_room: 'Переговорная',
     office: 'Офис',
     coworking: 'Коворкинг',
   };
-
-  const exportBookings = async () => {
-    try {
-      const params = new URLSearchParams(
-        Object.fromEntries(
-          Object.entries(bookingsStore.filters).filter(
-            ([_, v]) => v !== null && v !== undefined && v !== '',
-          ),
-        ),
-      );
-
-      const res = await fetch(`/api/admin/bookings/export?${params}`, {
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-          Accept: 'text/csv',
-        },
-      });
-
-      const blob = await res.blob();
-
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `bookings_${new Date().toISOString()}.csv`;
-
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      window.URL.revokeObjectURL(url);
-    } catch (e) {
-      console.error(e);
-    }
-  };
 </script>
 
 <template>
   <div class="admin-bookings">
-    <div class="admin-bookings__controls">
-      <button class="admin-bookings__btn admin-bookings__btn--icon">
-        <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
-      </button>
-
-      <button class="admin-bookings__btn">
-        <img src="@/assets/images/icons/menu.svg" alt="" />
-        Фильтрация
-      </button>
-
-      <button class="admin-bookings__btn">
-        <img src="@/assets/images/icons/search-normal.svg" alt="" />
-        Поиск
-      </button>
-
-      <button class="admin-bookings__btn" @click="exportBookings">
-        <img src="@/assets/images/icons/download.svg" alt="" />
-        Сохранить
-      </button>
-    </div>
-
     <h1 class="admin-bookings__title">История аренды помещений</h1>
 
     <div class="admin-bookings__table">
@@ -107,8 +39,6 @@
         <span>Кабинет №</span>
         <span>Вместимость</span>
         <span>Стоимость</span>
-        <span>Дата</span>
-        <span>Время</span>
       </div>
 
       <div v-for="booking in bookingsStore.bookings" :key="booking.id" class="admin-bookings__row">
@@ -121,16 +51,12 @@
         </span>
 
         <span>
-          {{ booking.place?.number_place }}
+          {{ booking.place?.name }}
         </span>
 
         <span>{{ booking.place?.capacity }} человек</span>
 
-        <span>{{ Math.round(booking.place?.price) }} р/час</span>
-
-        <span>{{ formatDateOnly(booking.start_time) }}</span>
-
-        <span>{{ formatTimeRange(booking.start_time, booking.end_time) }}</span>
+        <span>{{ booking.price ?? 0 }}р</span>
       </div>
     </div>
 
@@ -148,11 +74,8 @@
 </template>
 
 <style lang="scss" scoped>
-  @use '@/assets/styles/variables' as *;
-  @use '@/assets/styles/mixins' as *;
-
   .admin-bookings {
-    width: 90%;
+    max-width: 1100px;
     margin: 0 auto;
 
     &__title {
@@ -169,21 +92,19 @@
 
     &__head {
       display: grid;
-      grid-template-columns: repeat(9, 1fr);
+      grid-template-columns: repeat(7, 1fr);
       padding-bottom: 15px;
-      border-bottom: 1px solid $color-footer-bg;
+      border-bottom: 1px solid black;
       margin-bottom: 15px;
-      text-align: center;
     }
 
     &__row {
       display: grid;
-      grid-template-columns: repeat(9, 1fr);
+      grid-template-columns: repeat(7, 1fr);
       padding: 12px;
-      border: 1px solid $color-footer-bg;
+      border: 1px solid black;
       border-radius: 10px;
       margin-bottom: 10px;
-      text-align: center;
     }
 
     &__pagination {
@@ -202,53 +123,6 @@
     &__page.active {
       background: #8b9dad;
       color: white;
-    }
-
-    &__controls {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
-      align-items: center;
-    }
-
-    &__btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      padding: 8px 14px;
-      border: 1px solid #000;
-      border-radius: 10px;
-      background: transparent;
-      cursor: pointer;
-
-      font-size: 14px;
-
-      img {
-        width: 18px;
-        height: 18px;
-        object-fit: contain;
-      }
-
-      &:hover {
-        background: #cfd8df;
-      }
-    }
-
-    &__btn--icon {
-      padding: 8px;
-      border: none;
-      background: transparent;
-
-      img {
-        width: 30px;
-        height: 30px;
-      }
-
-      &:hover {
-        background: transparent;
-        opacity: 0.7;
-      }
     }
   }
 </style>

@@ -1,12 +1,5 @@
 <script setup>
   import { computed, ref } from 'vue';
-  import { useAuthStore } from '@/store/auth';
-  import { useFavoritesStore } from '@/store/favorites';
-  import heartFilledUrl from '@/assets/images/icons/heart-filled.svg';
-  import heartEmptyUrl from '@/assets/images/icons/heart-empty.svg';
-
-  const authStore = useAuthStore();
-  const favoritesStore = useFavoritesStore();
 
   const props = defineProps({
     place: {
@@ -18,7 +11,7 @@
   const emit = defineEmits(['select-slot']);
 
   const slotsPerPage = 2;
-  const startIndex = ref(0);
+  const slotPage = ref(0);
 
   const mergedSlots = computed(() => {
     const slots = props.place.available_slots || [];
@@ -49,19 +42,22 @@
     }));
   });
 
+  const totalPages = computed(() => Math.ceil(mergedSlots.value.length / slotsPerPage));
+
   const paginatedSlots = computed(() => {
-    return mergedSlots.value.slice(startIndex.value, startIndex.value + slotsPerPage);
+    const start = slotPage.value * slotsPerPage;
+    return mergedSlots.value.slice(start, start + slotsPerPage);
   });
 
   function nextSlots() {
-    if (startIndex.value < mergedSlots.value.length - slotsPerPage) {
-      startIndex.value++;
+    if (slotPage.value < totalPages.value - 1) {
+      slotPage.value++;
     }
   }
 
   function prevSlots() {
-    if (startIndex.value > 0) {
-      startIndex.value--;
+    if (slotPage.value > 0) {
+      slotPage.value--;
     }
   }
 
@@ -70,8 +66,11 @@
       place: props.place,
       range,
       availableSlots: props.place.available_slots,
+
     });
   }
+
+
 
   const placeTypeLabel = computed(() => {
     const types = {
@@ -80,48 +79,33 @@
       meeting: 'Аренда переговорной',
     };
     return types[props.place.type] || props.place.type;
+
   });
 
-  const isFav = computed(() => favoritesStore.isFavorite(props.place.id));
-  const isTogglingFav = ref(false);
 
-  async function toggleFavorite() {
-    if (isTogglingFav.value) return;
-    isTogglingFav.value = true;
-    try {
-      await favoritesStore.toggleFavorite(props.place.id);
-    } catch (error) {
-      // ошибка уже логируется в store
-    } finally {
-      isTogglingFav.value = false;
-    }
-  }
 </script>
 
 <template>
   <div class="place-card">
     <div class="place-card__main">
       <div class="place-card__image-wrapper">
-        <img :src="place.photo_url" :alt="place.name" class="place-card__image" />
+        <img
+          :src="place.photo_url"
+          :alt="place.name"
+          class="place-card__image"
+          @error="$event.target.src = '/placeholder.jpg'"
+        />
       </div>
 
       <div class="place-card__content">
         <h3 class="place-card__title">{{ placeTypeLabel }}</h3>
         <p class="place-card__number">Кабинет №{{ place.number_place }}</p>
-        <p class="place-card__price">Стоимость: {{ Math.round(place.price) }} р/час</p>
+        <p class="place-card__price">Стоимость: {{ place.price }}₽</p>
         <p class="place-card__capacity">Вместимость: {{ place.capacity }} человек</p>
       </div>
 
-      <button
-        v-if="authStore.isAuthenticated"
-        class="place-card__favorite"
-        :class="{ 'place-card__favorite--active': isFav }"
-        :title="isFav ? 'Убрать из избранного' : 'Добавить в избранное'"
-        :disabled="isTogglingFav"
-        aria-label="Добавить в избранное"
-        @click.stop="toggleFavorite"
-      >
-        <img :src="isFav ? heartFilledUrl : heartEmptyUrl" alt="" />
+      <button class="place-card__favorite" aria-label="Добавить в избранное">
+        <img src="/heart-empty.svg" alt="" />
       </button>
     </div>
 
@@ -130,9 +114,9 @@
         v-if="mergedSlots.length > 2"
         class="place-card__slot-arrow"
         @click="prevSlots"
-        :disabled="startIndex === 0"
+        :disabled="slotPage === 0"
       >
-        <img src="@/assets/images/icons/arrow-left.svg" alt="&lt;" />
+        <img src="/arrow-left.svg" alt="&lt;" />
       </button>
 
       <div class="place-card__slot-list">
@@ -154,9 +138,9 @@
         v-if="mergedSlots.length > 2"
         class="place-card__slot-arrow"
         @click="nextSlots"
-        :disabled="startIndex >= mergedSlots.length - slotsPerPage"
+        :disabled="slotPage >= totalPages - 1"
       >
-        <img src="@/assets/images/icons/arrow-right.svg" alt="&gt;" />
+        <img src="/arrow-right.svg" alt="&gt;" />
       </button>
     </div>
   </div>
@@ -249,15 +233,6 @@
         width: 2.5rem;
         height: 2.5rem;
       }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      &--active img {
-        filter: none;
-      }
     }
 
     &__time {
@@ -292,7 +267,7 @@
       border-radius: $radius-xs;
       background: $color-input-bg;
       cursor: pointer;
-      font-size: $text-xl;
+      font-size: $text-base;
       transition: 0.2s;
 
       &:hover {
@@ -307,13 +282,13 @@
       cursor: pointer;
 
       img {
-        width: 40px;
-        height: 40px;
+        width: 28px;
+        height: 28px;
       }
 
       &:disabled {
         opacity: 0.4;
-        cursor: default;
+        cursor: not-allowed;
       }
     }
 

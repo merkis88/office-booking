@@ -134,7 +134,7 @@
 
     <div v-if="isSuccess" class="verification-content">
       <div class="verification-content__header">
-        <img src="@/assets/images/icons/sms-tracking.svg" alt="Успех" class="success-icon" />
+        <img src="/sms-tracking.svg" alt="Успех" class="success-icon" />
         <p class="verification-content__title">
           Мы отправили вам временный пароль для входа в аккаунт, проверьте пожалуйста свой почтовый
           ящик

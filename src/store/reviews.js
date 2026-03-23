@@ -40,7 +40,6 @@ export const useReviewsStore = defineStore('reviews', {
       try {
         const { data } = await axios.get('/api/reviews');
 
-        console.log('Ответ от API:', data);
 
         if (data.data && Array.isArray(data.data)) {
           this.reviews = data.data;
@@ -52,9 +51,6 @@ export const useReviewsStore = defineStore('reviews', {
           console.warn('Неожиданный формат данных от API:', data);
           this.reviews = [];
         }
-
-        console.log('Отзывы загружены в store:', this.reviews);
-        console.log('Количество отзывов:', this.reviews.length);
       } catch (error) {
         console.error('Ошибка загрузки отзывов:', error);
         this.reviews = [];
@@ -73,7 +69,6 @@ export const useReviewsStore = defineStore('reviews', {
           user_id: reviewData.user_id,
         });
 
-        console.log('Отзыв создан:', data);
 
         let newReview = null;
 
@@ -93,7 +88,6 @@ export const useReviewsStore = defineStore('reviews', {
           }
 
           this.reviews.unshift(newReview);
-          console.log('Новый отзыв добавлен в список:', newReview);
         } else {
           console.warn('Не удалось извлечь новый отзыв из ответа, перезагружаем список');
           await this.fetchReviews();
@@ -116,7 +110,6 @@ export const useReviewsStore = defineStore('reviews', {
           rating: reviewData.rating,
         });
 
-        console.log('Отзыв обновлен:', data);
 
         let updatedReview = null;
 
@@ -136,7 +129,6 @@ export const useReviewsStore = defineStore('reviews', {
           if (index !== -1) {
             if (updatedReview) {
               this.reviews[index] = updatedReview;
-              console.log('Отзыв обновлен в списке:', updatedReview);
             } else {
               this.reviews[index] = {
                 ...this.reviews[index],
@@ -144,7 +136,6 @@ export const useReviewsStore = defineStore('reviews', {
                 rating: reviewData.rating,
                 updated_at: new Date().toISOString(),
               };
-              console.log('Отзыв обновлен локально');
             }
           } else {
             console.warn('Отзыв не найден в списке, перезагружаем');
@@ -166,11 +157,8 @@ export const useReviewsStore = defineStore('reviews', {
       try {
         const { data } = await axios.delete(`/api/reviews/${reviewId}`);
 
-        console.log('Отзыв удален:', data);
-
         if (Array.isArray(this.reviews)) {
           this.reviews = this.reviews.filter((r) => r.id !== reviewId);
-          console.log('Отзыв удален из списка, осталось:', this.reviews.length);
         }
 
         return data;

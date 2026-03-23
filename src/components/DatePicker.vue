@@ -19,11 +19,44 @@
 
   const formattedDate = ref('Выберите дату');
 
+  function applyGridStyles(instance) {
+    const container = instance.calendarContainer;
+
+    const weekdayContainer = container.querySelector('.flatpickr-weekdaycontainer');
+    if (weekdayContainer) {
+      weekdayContainer.style.display = 'grid';
+      weekdayContainer.style.gridTemplateColumns = 'repeat(7, 1fr)';
+      weekdayContainer.style.width = '100%';
+    }
+
+    const dayContainer = container.querySelector('.dayContainer');
+    if (dayContainer) {
+      dayContainer.style.display = 'grid';
+      dayContainer.style.gridTemplateColumns = 'repeat(7, 1fr)';
+      dayContainer.style.width = '100%';
+      dayContainer.style.minWidth = '100%';
+      dayContainer.style.maxWidth = '100%';
+      dayContainer.style.gap = '2px';
+    }
+
+    const days = container.querySelectorAll('.flatpickr-days');
+    days.forEach((el) => {
+      el.style.width = '100%';
+    });
+  }
+
   onMounted(() => {
     flatpickrInstance = flatpickr(dateInput.value, {
       locale: Russian,
       dateFormat: 'Y-m-d',
       defaultDate: props.modelValue || null,
+      minDate: 'today',
+      onReady: (selectedDates, dateStr, instance) => {
+        applyGridStyles(instance);
+      },
+      onMonthChange: (selectedDates, dateStr, instance) => {
+        setTimeout(() => applyGridStyles(instance), 0);
+      },
       onChange: (selectedDates, dateStr) => {
         emit('update:modelValue', dateStr);
 
@@ -66,7 +99,7 @@
     <input ref="dateInput" type="text" class="date-picker__input" />
     <div class="date-picker__display" @click="openCalendar">
       <span class="date-picker__value">{{ formattedDate }}</span>
-      <img src="@/assets/images/icons/arrow-square-down.svg" alt="" class="date-picker__icon" />
+      <img src="/arrow-square-down.svg" alt="" class="date-picker__icon" />
     </div>
   </div>
 </template>
@@ -93,7 +126,7 @@
       cursor: pointer;
       min-width: 200px;
       transition: all 0.2s;
-
+      justify-content: center;
     }
 
     &__value {
@@ -125,6 +158,7 @@
     padding: 1rem;
     margin-top: 0.5rem;
     font-family: $font-base;
+    width: 400px !important;
 
     &.arrowTop:before,
     &.arrowTop:after {
@@ -259,43 +293,63 @@
     }
 
     .flatpickr-weekdays {
-      margin-top: 0.5rem;
       height: auto;
+      margin-top: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .flatpickr-weekdaycontainer {
+      display: grid !important;
+      grid-template-columns: repeat(7, 1fr) !important;
+      width: 100% !important;
     }
 
     .flatpickr-weekday {
-      color: rgba($color-text, 0.6);
+      color: rgba($color-text, 0.5);
       font-size: $text-sm;
       font-weight: 600;
-      padding: 0.5rem 0;
+      padding: 0.4rem 0;
       line-height: 1;
+      text-align: center;
+      float: none !important;
     }
 
     .flatpickr-days {
-      width: 100%;
+      width: 100% !important;
     }
 
     .dayContainer {
-      width: 100%;
-      min-width: 280px;
-      max-width: 320px;
+      display: grid !important;
+      grid-template-columns: repeat(7, 2fr) !important;
+      width: 100% !important;
+      min-width: 100% !important;
+      max-width: 100% !important;
+      padding: 1rem !important;
+      gap: 19px !important;
+      justify-content: center !important;
     }
 
     .flatpickr-day {
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
       color: $color-text;
       border: none;
-      border-radius: $radius-xxs;
-      font-size: $text-base;
+      border-radius: $radius-xs;
+      font-size: $text-base !important;
       font-weight: 500;
-      height: 2.5rem;
-      line-height: 2.5rem;
-      max-width: 2.5rem;
-      margin: 2px;
+      height: 2.25rem;
+      line-height: 2.25rem;
+      max-width: 100% !important;
+      width: 100% !important;
+      padding: 0.5rem !important;
+      margin: 0 !important;
+      text-align: center;
       transition: all 0.2s;
 
       &:hover {
         background: rgba($color-text, 0.1);
-        border-color: rgba($color-text, 0.1);
+        border-color: transparent;
       }
 
       &.today {
@@ -321,9 +375,11 @@
       &.flatpickr-disabled {
         color: rgba($color-text, 0.2);
         cursor: not-allowed;
+        text-decoration: line-through;
 
         &:hover {
           background: transparent;
+          border-color: transparent;
         }
       }
     }

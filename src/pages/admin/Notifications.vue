@@ -186,7 +186,7 @@
         </div>
 
         <div class="notification-send__illustration">
-          <img src="@/assets/images/photos/men-notification.png" alt="Уведомления" />
+          <img src="/men-notification.png" alt="Уведомления" />
         </div>
       </div>
     </div>
