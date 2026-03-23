@@ -29,7 +29,7 @@ class AdminStorePlaceRequest extends FormRequest
             'capacity' => 'required|integer|min:1',
             'number_place' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0|max:99999999.99',
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'photo' => 'required|image|mimes:jpeg,png,jpg|max:5120',
             'description' => 'required|string|max:5000',
             'is_active' => 'sometimes|boolean',
         ];
@@ -48,7 +48,7 @@ class AdminStorePlaceRequest extends FormRequest
             'price.numeric' => 'Цена должна быть числом',
             'price.min' => 'Цена не может быть отрицательной',
             'photo.image' => 'Файл должен быть изображением',
-            'photo.mimes' => 'Допустимые форматы: jpeg, png, jpg, gif',
+            'photo.mimes' => 'Допустимые форматы: jpeg, png, jpg',
             'photo.max' => 'Размер файла не должен превышать 5MB',
         ];
     }

@@ -13,7 +13,7 @@ class UpdateServiceStatusRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user() && $this->user()->role->role_name === 'admin';;
+        return $this->user() && $this->user()->role->role_name === 'admin';
     }
 
     /**

@@ -22,7 +22,7 @@ class AdminStorePhotoPlaceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'photo' => 'required|image|mimes:jpeg,png,jpg|max:5120',
         ];
     }
     public function messages(): array
@@ -30,7 +30,7 @@ class AdminStorePhotoPlaceRequest extends FormRequest
         return [
             'photo.required' => 'Файл фото обязателен',
             'photo.image' => 'Файл должен быть изображением',
-            'photo.mimes' => 'Допустимые форматы: jpeg, png, jpg, gif',
+            'photo.mimes' => 'Допустимые форматы: jpeg, png, jpg',
             'photo.max' => 'Размер файла не должен превышать 5MB',
         ];
     }
