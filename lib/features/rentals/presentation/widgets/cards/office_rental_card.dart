@@ -18,6 +18,8 @@ class OfficeRentalCard extends StatefulWidget {
     required this.onBooked,
     required this.onFavoriteToggle,
     required this.onDetailsTap,
+    required this.showArchiveIcon,
+    this.onArchiveTap,
   });
 
   final OfficeRentalItem item;
@@ -27,6 +29,8 @@ class OfficeRentalCard extends StatefulWidget {
   final void Function(String sourceRange, String bookedRange) onBooked;
   final Future<String?> Function(bool nextValue) onFavoriteToggle;
   final Future<void> Function() onDetailsTap;
+  final bool showArchiveIcon;
+  final Future<String?> Function()? onArchiveTap;
 
   @override
   State<OfficeRentalCard> createState() => _OfficeRentalCardState();
@@ -38,6 +42,7 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
   bool _isBooking = false;
   bool _isFavorite = false;
   bool _isFavoriteLoading = false;
+  bool _isArchiveLoading = false;
 
   int get _maxWindowStart =>
       (_freeTimeSlots.length - 2).clamp(0, _freeTimeSlots.length);
@@ -126,6 +131,27 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
     widget.onBooked(sourceRange, picked);
   }
 
+  Future<void> _archivePlace() async {
+    final onArchiveTap = widget.onArchiveTap;
+    if (onArchiveTap == null || _isArchiveLoading) {
+      return;
+    }
+
+    setState(() => _isArchiveLoading = true);
+    final errorMessage = await onArchiveTap();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() => _isArchiveLoading = false);
+
+    if (errorMessage != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(errorMessage)));
+    }
+  }
+
   void _showPreviousSlots() {
     if (_isBooking) return;
     setState(() {
@@ -199,16 +225,33 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
                               isBusy: _isFavoriteLoading,
                               onTap: _toggleFavorite,
                             ),
-                            const SizedBox(height: 6),
-                            SvgPicture.asset(
-                              'assets/icons/nav_archive.svg',
-                              width: 22,
-                              height: 22,
-                              colorFilter: const ColorFilter.mode(
-                                Colors.black87,
-                                BlendMode.srcIn,
+                            if (widget.showArchiveIcon) ...[
+                              const SizedBox(height: 6),
+                              GestureDetector(
+                                onTap: _archivePlace,
+                                behavior: HitTestBehavior.opaque,
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: _isArchiveLoading
+                                      ? const Padding(
+                                          padding: EdgeInsets.all(2),
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : SvgPicture.asset(
+                                          'assets/icons/nav_archive.svg',
+                                          width: 22,
+                                          height: 22,
+                                          colorFilter: const ColorFilter.mode(
+                                            Colors.black87,
+                                            BlendMode.srcIn,
+                                          ),
+                                        ),
+                                ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),

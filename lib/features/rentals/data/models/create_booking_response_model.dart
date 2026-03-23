@@ -48,6 +48,6 @@ class CreateBookingResponseModel {
 
   static DateTime _parseDateTime(Object? value) {
     final text = value?.toString() ?? '';
-    return DateTime.tryParse(text)?.toLocal() ?? DateTime.now();
+    return DateTime.tryParse(text) ?? DateTime.now();
   }
 }

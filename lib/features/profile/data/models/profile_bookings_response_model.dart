@@ -1,5 +1,6 @@
 import 'package:wordpice/features/profile/domain/entities/profile_rentals_overview.dart';
 import 'package:wordpice/features/profile/domain/entities/rental_history_item.dart';
+import 'package:wordpice/core/config/app_api_config.dart';
 import 'package:wordpice/features/rentals/presentation/utils/rental_date_text_helper.dart';
 
 class ProfileBookingsResponseModel {
@@ -46,6 +47,8 @@ class ProfileBookingsResponseModel {
 }
 
 class ProfileBookingItemModel {
+  static const Duration _businessCenterOffset = Duration(hours: 7);
+
   const ProfileBookingItemModel({
     required this.bookingId,
     required this.placeId,
@@ -56,6 +59,7 @@ class ProfileBookingItemModel {
     required this.placeType,
     required this.capacity,
     required this.price,
+    required this.photoUrl,
   });
 
   factory ProfileBookingItemModel.fromJson(Map<String, dynamic> json) {
@@ -65,12 +69,17 @@ class ProfileBookingItemModel {
       bookingId: (json['id'] as num?)?.toInt(),
       placeId: (json['place_id'] as num?)?.toInt(),
       status: (json['status'] as String? ?? '').trim().toLowerCase(),
-      startTime: _parseDateTime(json['start_time']),
-      endTime: _parseDateTime(json['end_time']),
+      startTime: _parseBusinessCenterDateTime(json['start_time']),
+      endTime: _parseBusinessCenterDateTime(json['end_time']),
       placeNumber: (place['number_place'] as num?)?.toInt() ?? 0,
       placeType: (place['type'] as String? ?? '').trim(),
       capacity: (place['capacity'] as num?)?.toInt() ?? 0,
       price: _parsePrice(json['price']),
+      photoUrl: _buildPhotoUrl(
+        (place['photo_url'] as String?)?.trim() ??
+            (place['photo'] as String?)?.trim() ??
+            (place['photo_path'] as String?)?.trim(),
+      ),
     );
   }
 
@@ -83,6 +92,7 @@ class ProfileBookingItemModel {
   final String placeType;
   final int capacity;
   final int price;
+  final String? photoUrl;
 
   bool get isActive => status == 'active' || status == 'pending';
 
@@ -95,6 +105,7 @@ class ProfileBookingItemModel {
       placeId: placeId,
       placeType: placeType,
       dateIso: _formatDateIso(date),
+      photoUrl: photoUrl,
       dateLabel: RentalDateTextHelper.formatFullDate(date),
       title: _mapTypeToTitle(placeType),
       room: room,
@@ -104,9 +115,14 @@ class ProfileBookingItemModel {
     );
   }
 
-  static DateTime _parseDateTime(Object? value) {
+  static DateTime _parseBusinessCenterDateTime(Object? value) {
     final text = value?.toString() ?? '';
-    return DateTime.tryParse(text)?.toLocal() ?? DateTime.now();
+    final parsed = DateTime.tryParse(text);
+    if (parsed == null) {
+      return DateTime.now();
+    }
+
+    return parsed.toUtc().add(_businessCenterOffset);
   }
 
   static int _parsePrice(Object? value) {
@@ -143,5 +159,13 @@ class ProfileBookingItemModel {
     final month = value.month.toString().padLeft(2, '0');
     final day = value.day.toString().padLeft(2, '0');
     return '${value.year}-$month-$day';
+  }
+
+  static String? _buildPhotoUrl(String? photoUrl) {
+    if (photoUrl == null || photoUrl.isEmpty) return null;
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return photoUrl;
+    }
+    return '${AppApiConfig.baseOrigin}/storage/$photoUrl';
   }
 }

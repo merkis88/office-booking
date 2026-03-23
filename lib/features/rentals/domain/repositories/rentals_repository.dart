@@ -18,7 +18,14 @@ abstract class RentalsRepository {
 
   Future<CreateBookingResult> createBooking(CreateBookingParams params);
 
+  Future<String?> createUserQr({
+    required int bookingId,
+    required String email,
+  });
+
   Future<void> addFavorite({required int placeId});
 
   Future<void> removeFavorite({required int placeId});
+
+  Future<void> archivePlace({required int placeId});
 }

@@ -51,23 +51,29 @@ class ProfileRentalCardContent extends StatelessWidget {
     required this.room,
     required this.priceLabel,
     required this.capacity,
+    this.photoUrl,
     this.timeText,
     this.favoriteInitiallyFilled = false,
+    this.onFavoriteTap,
+    this.isFavoriteBusy = false,
   });
 
   final String title;
   final String room;
   final String priceLabel;
   final String capacity;
+  final String? photoUrl;
   final String? timeText;
   final bool favoriteInitiallyFilled;
+  final VoidCallback? onFavoriteTap;
+  final bool isFavoriteBusy;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const _RentalThumbnail(),
+        _RentalThumbnail(photoUrl: photoUrl),
         const SizedBox(width: 12),
         Expanded(
           child: Stack(
@@ -75,7 +81,9 @@ class ProfileRentalCardContent extends StatelessWidget {
               Align(
                 alignment: Alignment.topRight,
                 child: FavoriteHeartToggle(
-                  initialFilled: favoriteInitiallyFilled,
+                  filled: favoriteInitiallyFilled,
+                  onTap: onFavoriteTap,
+                  isBusy: isFavoriteBusy,
                 ),
               ),
               Padding(
@@ -97,17 +105,32 @@ class ProfileRentalCardContent extends StatelessWidget {
 }
 
 class _RentalThumbnail extends StatelessWidget {
-  const _RentalThumbnail();
+  const _RentalThumbnail({this.photoUrl});
+
+  final String? photoUrl;
 
   @override
   Widget build(BuildContext context) {
+    final imageUrl = photoUrl?.trim();
+
     return Container(
       width: 80,
       height: 80,
       decoration: ProfileCardDecorations.outlinedCard(
         color: const Color(0xFFBDBDBD),
       ),
-      child: const Icon(Icons.image_outlined, size: 28, color: Colors.white),
+      clipBehavior: Clip.antiAlias,
+      child: imageUrl != null && imageUrl.isNotEmpty
+          ? Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (_, error, stackTrace) => const Icon(
+                Icons.image_outlined,
+                size: 28,
+                color: Colors.white,
+              ),
+            )
+          : const Icon(Icons.image_outlined, size: 28, color: Colors.white),
     );
   }
 }

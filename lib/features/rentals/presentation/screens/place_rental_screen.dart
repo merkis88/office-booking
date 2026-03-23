@@ -101,6 +101,8 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
   }
 
   Future<void> _loadPlaces() async {
+    final dependencies = AppScope.of(context);
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -114,7 +116,7 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
           ? _priceRange.end.round()
           : _defaultMaxPrice;
 
-      final result = await AppScope.of(context).rentalsRepository.getPlaces(
+      final result = await dependencies.rentalsRepository.getPlaces(
         type: widget.placeType,
         date: _selectedDateKey,
         minPrice: requestMinPrice,
@@ -122,9 +124,7 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
       );
       Set<int> favoritePlaceIds = const <int>{};
       try {
-        final favorites = await AppScope.of(
-          context,
-        ).profileRepository.getFavoritePlaces();
+        final favorites = await dependencies.profileRepository.getFavoritePlaces();
         favoritePlaceIds = favorites
             .map((item) => item.placeId)
             .whereType<int>()
@@ -184,7 +184,8 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
     OfficeRentalItem item,
     String timeRange,
   ) async {
-    final currentUser = AppScope.of(context).appSession.currentUser;
+    final dependencies = AppScope.of(context);
+    final currentUser = dependencies.appSession.currentUser;
     if (currentUser == null) {
       return 'Не удалось определить пользователя для бронирования.';
     }
@@ -209,13 +210,26 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
     );
 
     try {
-      await AppScope.of(context).rentalsRepository.createBooking(
+      final result = await dependencies.rentalsRepository.createBooking(
         CreateBookingParams(
           placeId: item.id,
           userId: currentUser.id,
           startTime: startTime,
           endTime: endTime,
           passType: 'qr',
+        ),
+      );
+
+      final qrHash = await dependencies.rentalsRepository.createUserQr(
+        bookingId: result.id,
+        email: currentUser.email,
+      );
+
+      dependencies.appSession.updateUser(
+        currentUser.copyWith(
+          qrHash: qrHash,
+          qrVisible: qrHash?.trim().isNotEmpty == true,
+          qrAvailableUntil: endTime.toIso8601String(),
         ),
       );
     } on ApiConnectionException catch (error) {
@@ -267,6 +281,35 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
   Future<void> _applyPriceFilter(RangeValues values) async {
     setState(() => _priceRange = values);
     await _loadPlaces();
+  }
+
+  Future<String?> _archivePlace(OfficeRentalItem item) async {
+    try {
+      await AppScope.of(context).rentalsRepository.archivePlace(placeId: item.id);
+      if (!mounted) {
+        return null;
+      }
+
+      setState(() {
+        _items = _items.where((currentItem) => currentItem.id != item.id).toList();
+        if (_expandedPlaceId == item.id) {
+          _expandedPlaceId = null;
+          _expandedDetails = null;
+          _detailsLoadingPlaceId = null;
+        }
+      });
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Помещение отправлено в архив.')),
+        );
+      return null;
+    } on ApiConnectionException catch (error) {
+      return error.message;
+    } catch (_) {
+      return 'Не удалось отправить помещение в архив.';
+    }
   }
 
   Future<void> _togglePlaceDetails(OfficeRentalItem item) async {
@@ -328,6 +371,9 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final showArchiveIcon =
+        AppScope.of(context).appSession.currentUser?.isAdmin ?? false;
+
     return AppShell(
       selectedBottomIndex: _selectedBottomIndex,
       onBottomChanged: _onBottomChanged,
@@ -409,6 +455,10 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
                               nextValue: nextValue,
                             ),
                             onDetailsTap: () => _togglePlaceDetails(item),
+                            showArchiveIcon: showArchiveIcon,
+                            onArchiveTap: showArchiveIcon
+                                ? () => _archivePlace(item)
+                                : null,
                           ),
                       ],
                     ),

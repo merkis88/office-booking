@@ -13,16 +13,9 @@ class PassConfirmationModal {
   static Future<void> show(
     BuildContext context, {
     String? email,
-    String? lastName,
-    String? firstName,
-    String? middleName,
   }) async {
     final lines = <String>[
       if (email != null && email.trim().isNotEmpty) email.trim(),
-      if (lastName != null && lastName.trim().isNotEmpty) lastName.trim(),
-      if (firstName != null && firstName.trim().isNotEmpty) firstName.trim(),
-      if (middleName != null && middleName.trim().isNotEmpty)
-        middleName.trim(),
     ];
 
     await AppConfirmationDialog.show<void>(

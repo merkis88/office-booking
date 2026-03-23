@@ -16,12 +16,16 @@ class ProfileActiveRentalCard extends StatefulWidget {
     super.key,
     required this.item,
     required this.onCancelPressed,
+    required this.onFavoritePressed,
     this.isCancelling = false,
+    this.isFavoriteBusy = false,
   });
 
   final RentalHistoryItem item;
   final Future<void> Function(RentalHistoryItem item) onCancelPressed;
+  final Future<void> Function(RentalHistoryItem item) onFavoritePressed;
   final bool isCancelling;
+  final bool isFavoriteBusy;
 
   @override
   State<ProfileActiveRentalCard> createState() =>
@@ -405,7 +409,11 @@ class _ProfileActiveRentalCardState extends State<ProfileActiveRentalCard> {
             room: item.room,
             priceLabel: item.priceLabel,
             capacity: item.capacity,
+            photoUrl: item.photoUrl,
             timeText: displayedTime,
+            favoriteInitiallyFilled: item.isFavorite,
+            onFavoriteTap: () => widget.onFavoritePressed(item),
+            isFavoriteBusy: widget.isFavoriteBusy,
           ),
         ),
         const SizedBox(height: 10),

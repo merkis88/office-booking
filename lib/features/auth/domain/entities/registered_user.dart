@@ -48,4 +48,42 @@ class RegisteredUser {
         (qrAvailableUntil?.trim().isNotEmpty ?? false) ||
         (qrTimeWindow?.trim().isNotEmpty ?? false);
   }
+
+  bool get isAdmin => roleName?.trim().toLowerCase() == 'admin';
+
+  RegisteredUser copyWith({
+    int? id,
+    String? firstName,
+    String? lastName,
+    String? patronymic,
+    String? email,
+    String? roleName,
+    String? post,
+    String? company,
+    String? photo,
+    String? qrHash,
+    bool? qrVisible,
+    String? qrMessage,
+    String? qrAvailableFrom,
+    String? qrAvailableUntil,
+    String? qrTimeWindow,
+  }) {
+    return RegisteredUser(
+      id: id ?? this.id,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      patronymic: patronymic ?? this.patronymic,
+      email: email ?? this.email,
+      roleName: roleName ?? this.roleName,
+      post: post ?? this.post,
+      company: company ?? this.company,
+      photo: photo ?? this.photo,
+      qrHash: qrHash ?? this.qrHash,
+      qrVisible: qrVisible ?? this.qrVisible,
+      qrMessage: qrMessage ?? this.qrMessage,
+      qrAvailableFrom: qrAvailableFrom ?? this.qrAvailableFrom,
+      qrAvailableUntil: qrAvailableUntil ?? this.qrAvailableUntil,
+      qrTimeWindow: qrTimeWindow ?? this.qrTimeWindow,
+    );
+  }
 }

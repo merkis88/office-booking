@@ -298,6 +298,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   @override
   Widget build(BuildContext context) {
     final reviews = _reviews;
+    final isAdmin = AppScope.of(context).appSession.currentUser?.isAdmin ?? false;
 
     return AppShell(
       selectedBottomIndex: _selectedBottomIndex,
@@ -334,6 +335,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 controller: _reviewsPageController,
                 onDeleteReview: _deleteReview,
                 onEditReview: _startEditingReview,
+                isAdmin: isAdmin,
                 deletingReviewId: _deletingReviewId,
               ),
             ],
@@ -346,6 +348,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFB9EE63),
+                  border: Border.all(
+                    color: Colors.black87,
+                    width: 1,
+                  ),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: const [
                     BoxShadow(

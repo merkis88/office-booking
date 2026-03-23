@@ -296,6 +296,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         child: AppBottomNavBar(
           selectedIndex: widget.selectedBottomIndex,
           onChanged: _onBottomChanged,
+          showArchive:
+              AppScope.of(context).appSession.currentUser?.isAdmin ?? false,
         ),
       ),
     );

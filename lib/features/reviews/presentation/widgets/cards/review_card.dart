@@ -87,28 +87,30 @@ class ReviewCard extends StatelessWidget {
             ],
           ),
         ),
-        if (item.isOwnedByCurrentUser)
+        if (onEdit != null || onDelete != null)
           Positioned(
             right: 2,
             bottom: 2,
             child: Row(
               children: [
-                GestureDetector(
-                  onTap: isDeleting ? null : onEdit,
-                  child: Opacity(
-                    opacity: isDeleting ? 0.45 : 1,
-                    child: SvgPicture.asset(
-                      'assets/icons/edit-2.svg',
-                      width: 25,
-                      height: 25,
-                      colorFilter: const ColorFilter.mode(
-                        Colors.black54,
-                        BlendMode.srcIn,
+                if (onEdit != null) ...[
+                  GestureDetector(
+                    onTap: isDeleting ? null : onEdit,
+                    child: Opacity(
+                      opacity: isDeleting ? 0.45 : 1,
+                      child: SvgPicture.asset(
+                        'assets/icons/edit-2.svg',
+                        width: 25,
+                        height: 25,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.black54,
+                          BlendMode.srcIn,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
+                  const SizedBox(width: 10),
+                ],
                 GestureDetector(
                   onTap: isDeleting ? null : onDelete,
                   child: Opacity(

@@ -112,6 +112,9 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final showArchive =
+        AppScope.of(context).appSession.currentUser?.isAdmin ?? false;
+
     return Scaffold(
       backgroundColor: AppColors.screenBackground,
       body: Column(
@@ -136,6 +139,7 @@ class _AppShellState extends State<AppShell> {
         child: AppBottomNavBar(
           selectedIndex: widget.selectedBottomIndex,
           onChanged: widget.onBottomChanged,
+          showArchive: showArchive,
         ),
       ),
     );

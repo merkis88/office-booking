@@ -56,6 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List<RentalHistoryItem> _favoriteRentals = const <RentalHistoryItem>[];
   List<ProfileRequestItem> _requests = const <ProfileRequestItem>[];
   final Set<int> _cancelingBookingIds = <int>{};
+  final Set<int> _togglingFavoritePlaceIds = <int>{};
   final Set<int> _downloadingRequestIds = <int>{};
 
   @override
@@ -117,13 +118,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
+    final nextFavoriteRentals = favoriteRentals ?? _favoriteRentals;
+    final favoritePlaceIds = nextFavoriteRentals
+        .map((item) => item.placeId)
+        .whereType<int>()
+        .toSet();
+
     setState(() {
       _user = freshUser ?? _user;
-      _rentalsOverview = rentalsOverview ?? _rentalsOverview;
-      _favoriteRentals = favoriteRentals ?? _favoriteRentals;
+      _rentalsOverview = _applyFavoriteFlags(
+        rentalsOverview ?? _rentalsOverview,
+        favoritePlaceIds,
+      );
+      _favoriteRentals = nextFavoriteRentals;
       _requests = requests ?? _requests;
       _isLoading = false;
     });
+  }
+
+  ProfileRentalsOverview _applyFavoriteFlags(
+    ProfileRentalsOverview overview,
+    Set<int> favoritePlaceIds,
+  ) {
+    RentalHistoryItem applyFlag(RentalHistoryItem item) {
+      final placeId = item.placeId;
+      return item.copyWith(
+        isFavorite: placeId != null && favoritePlaceIds.contains(placeId),
+      );
+    }
+
+    return ProfileRentalsOverview(
+      activeRentals: overview.activeRentals.map(applyFlag).toList(),
+      rentalHistory: overview.rentalHistory.map(applyFlag).toList(),
+    );
   }
 
   Future<void> _cancelRental(RentalHistoryItem item) async {
@@ -178,6 +205,91 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isBookingCancelling(RentalHistoryItem item) {
     final bookingId = item.bookingId;
     return bookingId != null && _cancelingBookingIds.contains(bookingId);
+  }
+
+  Future<void> _toggleFavoriteRental(RentalHistoryItem item) async {
+    final placeId = item.placeId;
+    if (placeId == null || _togglingFavoritePlaceIds.contains(placeId)) {
+      return;
+    }
+
+    final nextValue = !item.isFavorite;
+
+    setState(() {
+      _togglingFavoritePlaceIds.add(placeId);
+    });
+
+    try {
+      final rentalsRepository = AppScope.of(context).rentalsRepository;
+      if (nextValue) {
+        await rentalsRepository.addFavorite(placeId: placeId);
+      } else {
+        await rentalsRepository.removeFavorite(placeId: placeId);
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _rentalsOverview = ProfileRentalsOverview(
+          activeRentals: _rentalsOverview.activeRentals
+              .map(
+                (current) => current.placeId == placeId
+                    ? current.copyWith(isFavorite: nextValue)
+                    : current,
+              )
+              .toList(),
+          rentalHistory: _rentalsOverview.rentalHistory
+              .map(
+                (current) => current.placeId == placeId
+                    ? current.copyWith(isFavorite: nextValue)
+                    : current,
+              )
+              .toList(),
+        );
+
+        if (nextValue) {
+          final alreadyExists = _favoriteRentals.any(
+            (favorite) => favorite.placeId == placeId,
+          );
+          if (!alreadyExists) {
+            _favoriteRentals = <RentalHistoryItem>[
+              item.copyWith(isFavorite: true),
+              ..._favoriteRentals,
+            ];
+          }
+        } else {
+          _favoriteRentals = _favoriteRentals
+              .where((favorite) => favorite.placeId != placeId)
+              .toList();
+        }
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      final message = error is ApiConnectionException
+          ? error.message
+          : nextValue
+              ? 'Не удалось добавить помещение в избранное.'
+              : 'Не удалось удалить помещение из избранного.';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _togglingFavoritePlaceIds.remove(placeId);
+        });
+      }
+    }
+  }
+
+  bool _isFavoriteBusy(RentalHistoryItem item) {
+    final placeId = item.placeId;
+    return placeId != null && _togglingFavoritePlaceIds.contains(placeId);
   }
 
   Future<void> _downloadRequestPdf(ProfileRequestItem item) async {
@@ -268,13 +380,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
+    final qrHash = user.qrHash?.trim();
     final validUntilText =
         _buildQrValidUntilText(user) ?? _buildFallbackQrValidUntilText();
-    if (validUntilText == null) {
+    if (validUntilText == null || qrHash == null || qrHash.isEmpty) {
       QrModal.showNoActiveRentals(context);
       return;
     }
-    QrModal.showQr(context, validUntilText: validUntilText);
+    QrModal.showQr(
+      context,
+      qrData: qrHash,
+      validUntilText: validUntilText,
+    );
   }
 
   String? _buildQrValidUntilText(RegisteredUser user) {
@@ -293,7 +410,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _formatQrDateTime(String value) {
-    final dateTime = DateTime.tryParse(value)?.toLocal();
+    final dateTime = DateTime.tryParse(value);
     if (dateTime == null) {
       return value;
     }
@@ -353,9 +470,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ProfilePassItem _buildProfilePass(RegisteredUser user) {
     final validUntilText =
         _buildQrValidUntilText(user) ?? _buildFallbackQrValidUntilText();
+    final hasQrHash = user.qrHash?.trim().isNotEmpty == true;
     return ProfilePassItem(
       title: 'Qr-код пропуск',
       showButtonLabel: 'Показать',
+      hasActivePass: hasQrHash && validUntilText != null,
       validUntilText: validUntilText,
     );
   }
@@ -383,7 +502,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       requests: _requests,
       onShowPassQr: _showPassQr,
       onCancelRental: _cancelRental,
+      onFavoriteRental: _toggleFavoriteRental,
       isBookingCancelling: _isBookingCancelling,
+      isFavoriteBusy: _isFavoriteBusy,
       onDownloadRequest: _downloadRequestPdf,
       isRequestDownloading: _isRequestDownloading,
     );
@@ -417,7 +538,9 @@ class _ProfileContent extends StatelessWidget {
     required this.requests,
     required this.onShowPassQr,
     required this.onCancelRental,
+    required this.onFavoriteRental,
     required this.isBookingCancelling,
+    required this.isFavoriteBusy,
     required this.onDownloadRequest,
     required this.isRequestDownloading,
   });
@@ -434,7 +557,9 @@ class _ProfileContent extends StatelessWidget {
   final List<ProfileRequestItem> requests;
   final VoidCallback onShowPassQr;
   final Future<void> Function(RentalHistoryItem item) onCancelRental;
+  final Future<void> Function(RentalHistoryItem item) onFavoriteRental;
   final bool Function(RentalHistoryItem item) isBookingCancelling;
+  final bool Function(RentalHistoryItem item) isFavoriteBusy;
   final Future<void> Function(ProfileRequestItem item) onDownloadRequest;
   final bool Function(ProfileRequestItem item) isRequestDownloading;
 
@@ -476,7 +601,9 @@ class _ProfileContent extends StatelessWidget {
             rentalHistory: rentalsOverview.rentalHistory,
             requests: requests,
             onCancelRental: onCancelRental,
+            onFavoriteRental: onFavoriteRental,
             isBookingCancelling: isBookingCancelling,
+            isFavoriteBusy: isFavoriteBusy,
             onDownloadRequest: onDownloadRequest,
             isRequestDownloading: isRequestDownloading,
           ),

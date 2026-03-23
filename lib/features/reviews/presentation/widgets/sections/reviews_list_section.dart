@@ -12,6 +12,7 @@ class ReviewsListSection extends StatelessWidget {
     required this.controller,
     required this.onDeleteReview,
     required this.onEditReview,
+    required this.isAdmin,
     this.deletingReviewId,
   });
 
@@ -19,6 +20,7 @@ class ReviewsListSection extends StatelessWidget {
   final PageController controller;
   final ValueChanged<ReviewItem> onDeleteReview;
   final ValueChanged<ReviewItem> onEditReview;
+  final bool isAdmin;
   final int? deletingReviewId;
 
   @override
@@ -55,7 +57,7 @@ class ReviewsListSection extends StatelessWidget {
                         onEdit: review.isOwnedByCurrentUser
                             ? () => onEditReview(review)
                             : null,
-                        onDelete: review.isOwnedByCurrentUser
+                        onDelete: (isAdmin || review.isOwnedByCurrentUser)
                             ? () => onDeleteReview(review)
                             : null,
                       ),

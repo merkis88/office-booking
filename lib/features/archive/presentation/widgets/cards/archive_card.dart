@@ -5,85 +5,106 @@ import 'package:wordpice/features/archive/presentation/models/archive_item.dart'
 import 'package:wordpice/features/archive/presentation/widgets/styles/archive_styles.dart';
 
 class ArchiveCard extends StatelessWidget {
-  const ArchiveCard({super.key, required this.item});
+  const ArchiveCard({
+    super.key,
+    required this.item,
+    required this.onDetailsTap,
+    required this.onRestoreTap,
+    required this.isRestoring,
+  });
 
   final ArchiveItem item;
+  final VoidCallback onDetailsTap;
+  final VoidCallback onRestoreTap;
+  final bool isRestoring;
 
   @override
   Widget build(BuildContext context) {
+    final hasPhoto = item.photoUrl != null && item.photoUrl!.trim().isNotEmpty;
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 332),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(14, 8, 12, 8),
-              decoration: ArchiveStyles.outlinedBox(
-                12,
-                color: AppColors.formSurface,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(14, 10, 12, 10),
+          decoration: ArchiveStyles.outlinedBox(
+            12,
+            color: AppColors.formSurface,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFBDBDBD),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: AppColors.bottomNavBackground,
+                    width: 1.5,
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: hasPhoto
+                      ? Image.network(
+                          item.photoUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => const _PhotoPlaceholder(),
+                        )
+                      : const _PhotoPlaceholder(),
+                ),
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFBDBDBD),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppColors.bottomNavBackground,
-                        width: 1.5,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Stack(
+                  children: [
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: _ArchivedBadgeIcon(
+                        onTap: onRestoreTap,
+                        isLoading: isRestoring,
                       ),
                     ),
-                    child: const Icon(
-                      Icons.image_outlined,
-                      size: 28,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SizedBox(
-                      height: 90,
-                      child: Stack(
+                    Padding(
+                      padding: const EdgeInsets.only(right: 34),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Align(
-                            alignment: Alignment.topRight,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [_ArchivedBadgeIcon()],
-                            ),
+                          Text(item.title, style: ArchiveStyles.cardText),
+                          const SizedBox(height: 3),
+                          Text(item.room, style: ArchiveStyles.cardText),
+                          const SizedBox(height: 3),
+                          Text(
+                            'Стоимость: ${item.price}р/час',
+                            style: ArchiveStyles.cardText,
                           ),
-                          Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item.title, style: ArchiveStyles.cardText),
-                                const SizedBox(height: 3),
-                                Text(item.room, style: ArchiveStyles.cardText),
-                                const SizedBox(height: 3),
-                                Text(
-                                  'Вместимость: ${item.capacity} человек',
-                                  style: ArchiveStyles.cardText,
-                                ),
-                              ],
+                          const SizedBox(height: 3),
+                          Text(
+                            'Вместимость: ${item.capacity} человек',
+                            style: ArchiveStyles.cardText,
+                          ),
+                          const SizedBox(height: 6),
+                          InkWell(
+                            onTap: onDetailsTap,
+                            child: Text(
+                              'Подробнее',
+                              style: ArchiveStyles.cardText.copyWith(
+                                decoration: TextDecoration.underline,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Text('${item.price}р', style: ArchiveStyles.priceText),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -91,30 +112,45 @@ class ArchiveCard extends StatelessWidget {
 }
 
 class _ArchivedBadgeIcon extends StatelessWidget {
-  const _ArchivedBadgeIcon();
+  const _ArchivedBadgeIcon({
+    required this.onTap,
+    required this.isLoading,
+  });
+
+  final VoidCallback onTap;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 24,
-      height: 24,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SvgPicture.asset(
-            'assets/icons/nav_archive.svg',
-            width: 20,
-            height: 20,
-            colorFilter: const ColorFilter.mode(
-              Colors.black87,
-              BlendMode.srcIn,
-            ),
-          ),
-          const CustomPaint(
-            size: Size(24, 24),
-            painter: _ArchiveSlashPainter(),
-          ),
-        ],
+    return GestureDetector(
+      onTap: isLoading ? null : onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 24,
+        height: 24,
+        child: isLoading
+            ? const Padding(
+                padding: EdgeInsets.all(2),
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Stack(
+                alignment: Alignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icons/nav_archive.svg',
+                    width: 20,
+                    height: 20,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.black87,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  const CustomPaint(
+                    size: Size(24, 24),
+                    painter: _ArchiveSlashPainter(),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -133,4 +169,17 @@ class _ArchiveSlashPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _PhotoPlaceholder extends StatelessWidget {
+  const _PhotoPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Icon(
+      Icons.image_outlined,
+      size: 28,
+      color: Colors.white,
+    );
+  }
 }

@@ -8,7 +8,7 @@ class ArchiveEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const AppEmptyStateText(
-      text: 'Помещения отсутствуют',
+      text: 'Архивных помещений нет',
       style: ArchiveStyles.emptyStateText,
       height: 420,
     );

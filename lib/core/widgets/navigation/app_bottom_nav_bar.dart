@@ -7,10 +7,12 @@ class AppBottomNavBar extends StatefulWidget {
     super.key,
     required this.selectedIndex,
     required this.onChanged,
+    required this.showArchive,
   });
 
   final int selectedIndex;
   final ValueChanged<int> onChanged;
+  final bool showArchive;
 
   @override
   State<AppBottomNavBar> createState() => _AppBottomNavBarState();
@@ -22,18 +24,46 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
   static int _persistedStartIndex = 0;
 
   final List<_NavItemData> _items = const <_NavItemData>[
-    _NavItemData(label: 'Аренды', iconAsset: 'assets/icons/nav_rentals.svg'),
-    _NavItemData(label: 'Заявки', iconAsset: 'assets/icons/nav_requests.svg'),
-    _NavItemData(label: 'Пропуск', iconAsset: 'assets/icons/nav_pass.svg'),
-    _NavItemData(label: 'Профиль', iconAsset: 'assets/icons/nav_profile.svg'),
-    _NavItemData(label: 'Отзывы', iconAsset: 'assets/icons/nav_reviews.svg'),
-    _NavItemData(label: 'Архив', iconAsset: 'assets/icons/nav_archive.svg'),
+    _NavItemData(
+      label: 'Аренды',
+      iconAsset: 'assets/icons/nav_rentals.svg',
+      routeIndex: 0,
+    ),
+    _NavItemData(
+      label: 'Заявки',
+      iconAsset: 'assets/icons/nav_requests.svg',
+      routeIndex: 1,
+    ),
+    _NavItemData(
+      label: 'Пропуск',
+      iconAsset: 'assets/icons/nav_pass.svg',
+      routeIndex: 2,
+    ),
+    _NavItemData(
+      label: 'Профиль',
+      iconAsset: 'assets/icons/nav_profile.svg',
+      routeIndex: 3,
+    ),
+    _NavItemData(
+      label: 'Отзывы',
+      iconAsset: 'assets/icons/nav_reviews.svg',
+      routeIndex: 4,
+    ),
+    _NavItemData(
+      label: 'Архив',
+      iconAsset: 'assets/icons/nav_archive.svg',
+      routeIndex: 5,
+    ),
   ];
 
   late final PageController _controller;
   late int _page;
 
-  int get _itemsCount => _items.length;
+  List<_NavItemData> get _visibleItems => widget.showArchive
+      ? _items
+      : _items.where((item) => item.routeIndex != 5).toList();
+
+  int get _itemsCount => _visibleItems.length;
 
   @override
   void initState() {
@@ -45,6 +75,18 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
       initialPage: _page,
       viewportFraction: 1 / _visibleCount,
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant AppBottomNavBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.showArchive != widget.showArchive) {
+      final nextStartIndex = _persistedStartIndex.clamp(0, _itemsCount - 1);
+      final nextPage = _itemsCount * _loopMultiplier + nextStartIndex;
+      _page = nextPage;
+      _persistedStartIndex = nextStartIndex;
+      _controller.jumpToPage(nextPage);
+    }
   }
 
   @override
@@ -96,15 +138,15 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
                 itemCount: _itemsCount * _loopMultiplier * 2,
                 itemBuilder: (_, page) {
                   final itemIndex = page % _itemsCount;
-                  final item = _items[itemIndex];
-                  final isSelected = itemIndex == widget.selectedIndex;
+                  final item = _visibleItems[itemIndex];
+                  final isSelected = item.routeIndex == widget.selectedIndex;
 
                   return SizedBox.expand(
                     child: _NavItem(
                       label: item.label,
                       iconAsset: item.iconAsset,
                       isSelected: isSelected,
-                      onTap: () => widget.onChanged(itemIndex),
+                      onTap: () => widget.onChanged(item.routeIndex),
                     ),
                   );
                 },
@@ -176,9 +218,7 @@ class _NavItem extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected
-                    ? const Color(0x40FFFFFF)
-                    : Colors.transparent,
+                color: isSelected ? const Color(0x40FFFFFF) : Colors.transparent,
               ),
               alignment: Alignment.center,
               child: SvgPicture.asset(
@@ -209,8 +249,13 @@ class _NavItem extends StatelessWidget {
 }
 
 class _NavItemData {
-  const _NavItemData({required this.label, required this.iconAsset});
+  const _NavItemData({
+    required this.label,
+    required this.iconAsset,
+    required this.routeIndex,
+  });
 
   final String label;
   final String iconAsset;
+  final int routeIndex;
 }

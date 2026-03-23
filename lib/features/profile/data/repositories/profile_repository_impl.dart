@@ -23,7 +23,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<RegisteredUser> getCurrentProfile() async {
-    final user = await _dataSource.getCurrentProfile();
+    final user = _preserveMissingSessionFields(
+      await _dataSource.getCurrentProfile(),
+    );
     _appSession.updateUser(user);
     final token = _appSession.token;
     if (token != null && token.isNotEmpty) {
@@ -82,13 +84,32 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<RegisteredUser> updateProfile(UpdateProfileParams params) async {
-    final user = await _dataSource.updateProfile(params);
+    final user = _preserveMissingSessionFields(
+      await _dataSource.updateProfile(params),
+    );
     _appSession.updateUser(user);
     final token = _appSession.token;
     if (token != null && token.isNotEmpty) {
       await _sessionStorage.saveSession(token: token, user: user);
     }
     return user;
+  }
+
+  RegisteredUser _preserveMissingSessionFields(RegisteredUser user) {
+    final currentUser = _appSession.currentUser;
+    if (currentUser == null) {
+      return user;
+    }
+
+    return user.copyWith(
+      roleName: user.roleName ?? currentUser.roleName,
+      qrHash: user.qrHash ?? currentUser.qrHash,
+      qrVisible: user.qrVisible || currentUser.qrVisible,
+      qrMessage: user.qrMessage ?? currentUser.qrMessage,
+      qrAvailableFrom: user.qrAvailableFrom ?? currentUser.qrAvailableFrom,
+      qrAvailableUntil: user.qrAvailableUntil ?? currentUser.qrAvailableUntil,
+      qrTimeWindow: user.qrTimeWindow ?? currentUser.qrTimeWindow,
+    );
   }
 
   @override

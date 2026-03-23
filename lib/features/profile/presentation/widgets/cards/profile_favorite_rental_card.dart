@@ -15,6 +15,7 @@ class ProfileFavoriteRentalCard extends StatelessWidget {
         room: item.room,
         priceLabel: item.priceLabel,
         capacity: item.capacity,
+        photoUrl: item.photoUrl,
         favoriteInitiallyFilled: item.isFavorite,
       ),
     );

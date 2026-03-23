@@ -18,7 +18,9 @@ class ProfileActivitySection extends StatelessWidget {
     required this.rentalHistory,
     required this.requests,
     required this.onCancelRental,
+    required this.onFavoriteRental,
     required this.isBookingCancelling,
+    required this.isFavoriteBusy,
     required this.onDownloadRequest,
     required this.isRequestDownloading,
   });
@@ -29,7 +31,9 @@ class ProfileActivitySection extends StatelessWidget {
   final List<RentalHistoryItem> rentalHistory;
   final List<ProfileRequestItem> requests;
   final Future<void> Function(RentalHistoryItem item) onCancelRental;
+  final Future<void> Function(RentalHistoryItem item) onFavoriteRental;
   final bool Function(RentalHistoryItem item) isBookingCancelling;
+  final bool Function(RentalHistoryItem item) isFavoriteBusy;
   final Future<void> Function(ProfileRequestItem item) onDownloadRequest;
   final bool Function(ProfileRequestItem item) isRequestDownloading;
 
@@ -47,7 +51,9 @@ class ProfileActivitySection extends StatelessWidget {
               ProfileActiveRentalCard(
                 item: activeRentals[i],
                 onCancelPressed: onCancelRental,
+                onFavoritePressed: onFavoriteRental,
                 isCancelling: isBookingCancelling(activeRentals[i]),
+                isFavoriteBusy: isFavoriteBusy(activeRentals[i]),
               ),
               if (i != activeRentals.length - 1) const SizedBox(height: 30),
             ],

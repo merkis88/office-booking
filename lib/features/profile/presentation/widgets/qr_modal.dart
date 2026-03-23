@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
 import 'package:wordpice/core/widgets/states/app_empty_state_text.dart';
 
@@ -24,6 +25,7 @@ class QrModal {
 
   static Future<void> showQr(
     BuildContext context, {
+    required String qrData,
     required String validUntilText,
   }) {
     return showDialog<void>(
@@ -60,8 +62,21 @@ class QrModal {
                               border: Border.all(color: Colors.black87),
                               borderRadius: BorderRadius.circular(14),
                             ),
-                            child: const Center(
-                              child: Icon(Icons.qr_code_2, size: 250),
+                            child: Center(
+                              child: QrImageView(
+                                data: qrData,
+                                version: QrVersions.auto,
+                                size: 250,
+                                backgroundColor: Colors.white,
+                                eyeStyle: const QrEyeStyle(
+                                  eyeShape: QrEyeShape.square,
+                                  color: Colors.black87,
+                                ),
+                                dataModuleStyle: const QrDataModuleStyle(
+                                  dataModuleShape: QrDataModuleShape.square,
+                                  color: Colors.black87,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -127,7 +142,7 @@ class QrModal {
   }
 
   static String _formatDateTime(String rawValue) {
-    final parsed = DateTime.tryParse(rawValue)?.toLocal();
+    final parsed = DateTime.tryParse(rawValue);
     if (parsed == null) {
       return rawValue;
     }

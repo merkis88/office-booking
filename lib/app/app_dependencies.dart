@@ -1,5 +1,8 @@
 import 'package:wordpice/app/app_session.dart';
 import 'package:wordpice/app/app_session_storage.dart';
+import 'package:wordpice/features/archive/data/datasources/archive_remote_data_source.dart';
+import 'package:wordpice/features/archive/data/repositories/archive_repository_impl.dart';
+import 'package:wordpice/features/archive/domain/repositories/archive_repository.dart';
 import 'package:wordpice/core/network/api_client.dart';
 import 'package:wordpice/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:wordpice/features/auth/data/repositories/auth_repository_impl.dart';
@@ -22,6 +25,7 @@ import 'package:wordpice/features/reviews/domain/repositories/reviews_repository
 
 class AppDependencies {
   final AuthRepository authRepository;
+  final ArchiveRepository archiveRepository;
   final NotificationsRepository notificationsRepository;
   final ProfileRepository profileRepository;
   final RequestsRepository requestsRepository;
@@ -31,6 +35,7 @@ class AppDependencies {
 
   AppDependencies({
     required this.authRepository,
+    required this.archiveRepository,
     required this.notificationsRepository,
     required this.profileRepository,
     required this.requestsRepository,
@@ -55,6 +60,9 @@ class AppDependencies {
       appSession: appSession,
       sessionStorage: sessionStorage,
     );
+
+    final archiveDataSource = ArchiveRemoteDataSource(apiClient, appSession);
+    final archiveRepository = ArchiveRepositoryImpl(archiveDataSource);
 
     final notificationsDataSource = NotificationsRemoteDataSource(
       apiClient,
@@ -82,6 +90,7 @@ class AppDependencies {
 
     return AppDependencies(
       authRepository: authRepository,
+      archiveRepository: archiveRepository,
       notificationsRepository: notificationsRepository,
       profileRepository: profileRepository,
       requestsRepository: requestsRepository,
