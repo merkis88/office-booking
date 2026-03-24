@@ -48,11 +48,13 @@ async function handleDeletePlace(placeId) {
 }
 
 async function handleRestorePlace(placeId) {
-    // TODO: Реализовать восстановление помещения
-    console.log('Восстановить помещение:', placeId);
-    // Вызов API для восстановления
-    // После успеха - перезагрузить список
-    await loadArchivedPlaces();
+    const result = await placesStore.restorePlace(placeId);
+
+    if (result.success) {
+        await loadArchivedPlaces();
+    } else {
+        alert(result.error);
+    }
 }
 
 onMounted(async () => {

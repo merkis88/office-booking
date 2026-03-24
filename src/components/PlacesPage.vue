@@ -107,6 +107,16 @@
     loadPlaces();
   }
 
+  async function handleArchivePlace(placeId) {
+      const result = await placesStore.archivePlace(placeId);
+
+      if (result.success) {
+          await loadPlaces();
+      } else {
+          alert(result.error);
+      }
+  }
+
   watch(
     () => props.type,
     () => {
@@ -208,6 +218,7 @@
           :key="place.id"
           :place="place"
           @select-slot="openBookingModal"
+          @archive-place="handleArchivePlace"
         />
       </div>
 

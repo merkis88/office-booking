@@ -11,7 +11,7 @@
     },
   });
 
-  const emit = defineEmits(['select-slot']);
+  const emit = defineEmits(['select-slot', 'delete-place', 'archive-place']);
 
   const slotsPerPage = 2;
   const slotPage = ref(0);
@@ -73,8 +73,6 @@
     });
   }
 
-
-
   const placeTypeLabel = computed(() => {
     const types = {
       office: 'Аренда офиса',
@@ -85,6 +83,9 @@
 
   });
 
+  function handleArchive() {
+    emit('archive-place', props.place.id);
+  }
 
 </script>
 
@@ -113,7 +114,9 @@
           </button>
           <button
               v-if="authStore.isAdmin"
-              class="place-card__delete"
+              class="place-card__archive"
+              @click="handleArchive"
+              aria-label="Отправить в архив"
           >
               <img src="@/assets/images/icons/archive.svg" alt="Удалить" />
           </button>
@@ -208,6 +211,34 @@
       color: $color-text;
       margin: 0;
     }
+
+      &__archive {
+          position: absolute;
+          bottom: 0.75rem;
+          right: 0.75rem;
+          width: 2.5rem;
+          height: 2.5rem;
+          border: none;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:hover {
+              transform: scale(1.1);
+          }
+
+          &:active {
+              transform: scale(0.95);
+          }
+
+          img {
+              width: 1.5rem;
+              height: 1.5rem;
+          }
+      }
 
     &__number {
       font-size: $text-lg;

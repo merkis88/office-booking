@@ -231,5 +231,51 @@ export const usePlacesStore = defineStore('places', {
                 this.isLoading = false;
             }
         },
+
+        async archivePlace(placeId) {
+            this.isLoading = true;
+            this.error = null;
+
+            try {
+                const { data } = await axios.post(`/api/admin/places/${placeId}/archive`);
+
+                const index = this.places.findIndex((p) => p.id === placeId);
+                if (index !== -1) {
+                    this.places.splice(index, 1);
+                }
+
+                return { success: true, data };
+            } catch (error) {
+                console.error('Ошибка архивирования помещения:', error);
+                const message = error.response?.data?.message || 'Не удалось архивировать помещение';
+                this.error = message;
+                return { success: false, error: message };
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
+        async restorePlace(placeId) {
+            this.isLoading = true;
+            this.error = null;
+
+            try {
+                const { data } = await axios.post(`/api/admin/places/${placeId}/restore`);
+
+                const index = this.places.findIndex((p) => p.id === placeId);
+                if (index !== -1) {
+                    this.places.splice(index, 1);
+                }
+
+                return { success: true, data };
+            } catch (error) {
+                console.error('Ошибка восстановления помещения:', error);
+                const message = error.response?.data?.message || 'Не удалось восстановить помещение';
+                this.error = message;
+                return { success: false, error: message };
+            } finally {
+                this.isLoading = false;
+            }
+        },
     },
 });

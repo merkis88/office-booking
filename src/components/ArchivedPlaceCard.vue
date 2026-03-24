@@ -20,9 +20,7 @@ function handleDelete() {
 }
 
 function handleRestore() {
-    if (confirm(`Восстановить помещение "${props.place.name}"?`)) {
-        emit('restore-place', props.place.id);
-    }
+    emit('restore-place', props.place.id);
 }
 
 const placeTypeLabel = computed(() => {
