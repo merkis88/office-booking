@@ -105,7 +105,7 @@
       <div class="admin-places__controls">
         <div class="admin-places__control">
           <button class="admin-places__btn" @click="showFilterDropdown = !showFilterDropdown">
-            <img src="/filter.svg" alt="Фильтрация" />
+            <img src="@/assets/images/icons/filter.svg" alt="Фильтрация" />
             <span>{{ getFilterLabel() }}</span>
           </button>
 
@@ -127,7 +127,7 @@
 
         <div class="admin-places__control">
           <div class="admin-places__search">
-            <img src="/search.svg" alt="Поиск" class="admin-places__search-icon" />
+            <img src="@/assets/images/icons/search.svg" alt="Поиск" class="admin-places__search-icon" />
             <input
               :value="searchQuery"
               @input="placesStore.setSearchQuery($event.target.value)"
@@ -140,14 +140,14 @@
 
         <router-link to="/admin/create-place" class="admin-places__control">
           <button class="admin-places__btn">
-            <img src="/plus.svg" alt="Создать" />
+            <img src="@/assets/images/icons/plus.svg" alt="Создать" />
             <span>Создать</span>
           </button>
         </router-link>
 
         <div class="admin-places__control">
           <button class="admin-places__btn" @click="viewHistory">
-            <img src="/history.svg" alt="История" />
+            <img src="@/assets/images/icons/history.svg" alt="История" />
             <span>История аренды</span>
           </button>
         </div>
@@ -203,14 +203,14 @@
                 @click="deletePlace(place.id)"
                 aria-label="Удалить"
               >
-                <img src="/delete-themes.svg" alt="Удалить" />
+                <img src="@/assets/images/icons/delete-themes.svg" alt="Удалить" />
               </button>
               <button
                 class="admin-places__action-btn admin-places__action-btn--edit"
                 @click="editPlace(place.id)"
                 aria-label="Редактировать"
               >
-                <img src="/edit.svg" alt="Редактировать" />
+                <img src="@/assets/images/icons/edit.svg" alt="Редактировать" />
               </button>
             </div>
           </div>
@@ -223,7 +223,7 @@
           :disabled="currentPage === 1"
           @click="goToPage(currentPage - 1)"
         >
-          <img src="/arrow-left.svg" alt="Назад" />
+          <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
         </button>
 
         <button
@@ -241,7 +241,7 @@
           :disabled="currentPage === totalPages"
           @click="goToPage(currentPage + 1)"
         >
-          <img src="/arrow-right.svg" alt="Вперед" />
+          <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
         </button>
       </div>
     </div>

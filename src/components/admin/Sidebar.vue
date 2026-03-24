@@ -20,22 +20,22 @@
 
     <nav class="sidebar__nav">
       <router-link to="/admin/users" class="sidebar__btn">
-        <img src="/admin-user.svg " alt="" />
+        <img src="@/assets/images/icons/admin-user.svg " alt="" />
         Пользователи
       </router-link>
 
       <router-link to="/admin/places" class="sidebar__btn">
-        <img src="/handbag.svg" alt="" />
+        <img src="@/assets/images/icons/handbag.svg" alt="" />
         Помещения
       </router-link>
 
       <router-link to="/admin/requests" class="sidebar__btn">
-        <img src="/menu-board.svg" alt="" />
+        <img src="@/assets/images/icons/menu-board.svg" alt="" />
         Заявки
       </router-link>
 
       <router-link to="/admin/notifications" class="sidebar__btn">
-        <img src="/notification-admin.svg" alt="" />
+        <img src="@/assets/images/icons/notification-admin.svg" alt="" />
         Уведомления
       </router-link>
 

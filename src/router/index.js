@@ -39,6 +39,7 @@ const routes = [
       { path: 'coworking', component: Coworking },
       { path: 'meeting-rooms', component: MeetingRooms },
       { path: '/requests', component: Requests },
+      {path: '/archived-places', component: () => import('@/pages/ArchivedPlaces.vue'), meta: { requiresAuth: true, requiresAdmin: true },}
     ],
   },
   {

@@ -191,7 +191,7 @@
     <div class="auth__card">
       <div class="auth__image">
         <div class="auth__gradient"></div>
-        <img src="/people-login.png" alt="people" />
+        <img src="@/assets/images/photos/people-login.png" alt="people" />
       </div>
 
       <div class="auth__content">
@@ -274,8 +274,8 @@
                 class="auth__toggle-password"
                 :disabled="isLoading"
               >
-                <img v-if="showPassword" src="/eye.svg" alt="Скрыть" />
-                <img v-else src="/eye-off.svg" alt="Показать" />
+                <img v-if="showPassword" src="@/assets/images/icons/eye.svg" alt="Скрыть" />
+                <img v-else src="@/assets/images/icons/eye-off.svg" alt="Показать" />
               </button>
             </div>
             <span v-if="errors.password" class="auth__error-text">
@@ -300,8 +300,8 @@
                 class="auth__toggle-password"
                 :disabled="isLoading"
               >
-                <img v-if="showRepeatPassword" src="/eye.svg" alt="Скрыть" />
-                <img v-else src="/eye-off.svg" alt="Показать" />
+                <img v-if="showRepeatPassword" src="@/assets/images/icons/eye.svg" alt="Скрыть" />
+                <img v-else src="@/assets/images/icons/eye-off.svg" alt="Показать" />
               </button>
             </div>
             <span v-if="errors.repeatPassword" class="auth__error-text">

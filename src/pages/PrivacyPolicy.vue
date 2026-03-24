@@ -1,9 +1,10 @@
-<script setup></script>
+<script setup>
+</script>
 
 <template>
   <div class="privacy-policy">
     <router-link to="/registration" class="modal-back" aria-label="Назад">
-      <img src="/arrow.svg" alt="" />
+      <img src="@/assets/images/icons/arrow.svg" alt="" />
     </router-link>
     <h1 class="privacy-policy__title">
       Политика обработки персональных данных Бизнес-Центра «Рабочая точка.»

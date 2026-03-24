@@ -277,7 +277,7 @@
                   @click="showTypeDropdown = !showTypeDropdown"
                 >
                   <span>{{ getTypeLabel() }}</span>
-                  <img src="/arrow-square-down.svg" alt="" class="edit-place__arrow" />
+                  <img src="@/assets/images/icons/arrow-square-down.svg" alt="" class="edit-place__arrow" />
                 </button>
 
                 <transition name="dropdown">
@@ -361,7 +361,7 @@
                 />
                 <div class="edit-place__file-display">
                   <span>{{ form.photoName || 'Выберите файл' }}</span>
-                  <img src="/folder-cloud.svg" alt="" class="edit-place__file-icon" />
+                  <img src="@/assets/images/icons/folder-cloud.svg" alt="" class="edit-place__file-icon" />
                 </div>
               </div>
             </div>
@@ -389,7 +389,7 @@
       </div>
 
       <div class="edit-place__illustration">
-        <img src="/man-edit_place.png" alt="Иллюстрация" />
+        <img src="@/assets/images/photos/man-edit_place.png" alt="Иллюстрация" />
       </div>
     </div>
   </div>
@@ -536,9 +536,7 @@
       transition: border-color 0.2s;
       text-align: left;
 
-      &:hover {
-        border-color: darken($color-text, 20%);
-      }
+
 
       &--error {
         border-color: #dc3545;

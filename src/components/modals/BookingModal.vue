@@ -181,7 +181,7 @@
     <div class="booking-modal__box">
       <template v-if="screen === 'slots'">
         <button class="booking-modal__back" @click="emit('update:modelValue', false)">
-          <img src="/arrow-left.svg" alt="" />
+          <img src="@/assets/images/icons/arrow-left.svg" alt="" />
         </button>
 
         <div class="booking-modal__slots">

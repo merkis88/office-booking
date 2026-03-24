@@ -149,7 +149,7 @@
     <div v-if="user" class="profile__container">
       <div class="profile__photo-section">
         <div class="profile__photo-wrapper">
-          <img src="/avatar.png" alt="Фото профиля" class="profile__photo" />
+          <img src="@/assets/images/photos/avatar.png" alt="Фото профиля" class="profile__photo" />
         </div>
       </div>
 
@@ -347,7 +347,7 @@
                 :disabled="currentPage === 1"
                 @click="goToPage(currentPage - 1)"
               >
-                <img src="/arrow-left.svg" alt="Назад" />
+                <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
               </button>
 
               <button
@@ -365,7 +365,7 @@
                 :disabled="currentPage === totalPages"
                 @click="goToPage(currentPage + 1)"
               >
-                <img src="/arrow-right.svg" alt="Вперед" />
+                <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
               </button>
             </div>
           </div>

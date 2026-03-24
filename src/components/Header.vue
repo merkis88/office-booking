@@ -32,7 +32,7 @@
     <div class="header__container">
       <router-link to="/">
         <div class="header__logo">
-          <img src="/logo.svg" alt="logo" />
+          <img src="@/assets/images/logo.svg" alt="logo" />
           <span>LOGOTYPE</span>
         </div>
       </router-link>
@@ -77,6 +77,14 @@
         >
           <li>Регистрация</li>
         </router-link>
+
+          <router-link
+              to="/archived-places"
+              v-if="authStore.isAdmin"
+              :class="{ 'header__link--active': isActive('/archived-places') }"
+          >
+              <li>Архив</li>
+          </router-link>
 
         <div v-if="authStore.isAdmin" class="header__admin-menu">
           <button

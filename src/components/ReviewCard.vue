@@ -3,6 +3,8 @@
   import { useAuthStore } from '@/store/auth';
   import { useReviewsStore } from '@/store/reviews';
   import { storeToRefs } from 'pinia';
+  import starFilled from '@/assets/images/icons/star-icon.svg'
+  import starEmpty from '@/assets/images/icons/star-empty.svg'
 
   const authStore = useAuthStore();
   const reviewsStore = useReviewsStore();
@@ -84,27 +86,27 @@
         </div>
       </div>
 
-      <div class="review-card__rating">
-        <img
-          v-for="(filled, index) in stars"
-          :key="index"
-          :src="filled ? '/star-icon.svg' : '/star-empty.svg'"
-          alt="star"
-          class="review-card__star"
-        />
-      </div>
+        <div class="review-card__rating">
+            <img
+                v-for="(filled, index) in stars"
+                :key="index"
+                :src="filled ? starFilled : starEmpty"
+                alt="star"
+                class="review-card__star"
+            />
+        </div>
 
       <p class="review-card__text">{{ review.text }}</p>
     </div>
 
     <div class="review-card__avatar-wrapper">
-      <img src="/avatar.png" class="review-card__avatar" alt="Аватар" />
+      <img src="@/assets/images/photos/avatar.png" class="review-card__avatar" alt="Аватар" />
       <div v-if="isCurrentUserReview" class="review-card__actions">
         <button class="review-card__action-btn" @click="handleEdit" aria-label="Редактировать">
-          <img src="/edit-icon.svg" alt="Редактировать" />
+          <img src="@/assets/images/icons/edit-icon.svg" alt="Редактировать" />
         </button>
         <button class="review-card__action-btn" @click="handleDelete" aria-label="Удалить">
-          <img src="/delete-icon.svg" alt="Удалить" />
+          <img src="@/assets/images/icons/delete-icon.svg" alt="Удалить" />
         </button>
       </div>
     </div>

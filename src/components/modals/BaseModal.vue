@@ -64,7 +64,7 @@
               @click="closeModal"
               aria-label="Назад"
             >
-              <img src="/arrow.svg" alt="" />
+              <img src="@/assets/images/icons/arrow.svg" alt="" />
             </button>
             <h3 v-if="title" class="modal-title">{{ title }}</h3>
           </div>

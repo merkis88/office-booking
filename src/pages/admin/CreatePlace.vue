@@ -304,7 +304,7 @@
                 <span class="create-place__file-text">
                   {{ photoName || 'Загрузите изображение' }}
                 </span>
-                <img src="/folder-cloud.svg" alt="upload" class="create-place__file-icon" />
+                <img src="@/assets/images/icons/folder-cloud.svg" alt="upload" class="create-place__file-icon" />
               </div>
             </div>
             <span v-if="errors.photo" class="create-place__error">{{ errors.photo }}</span>
@@ -318,7 +318,7 @@
       </div>
 
       <div class="create-place__image-section">
-        <img src="/man-create_place.png" alt="Иллюстрация" class="create-place__illustration" />
+        <img src="@/assets/images/photos/man-create_place.png" alt="Иллюстрация" class="create-place__illustration" />
       </div>
     </div>
   </div>
@@ -432,9 +432,6 @@
         color: rgba(0, 0, 0, 0.5);
       }
 
-      &:focus {
-        border-color: darken($color-input-bg, 25%);
-      }
 
       &--error {
         border-color: #dc3545;

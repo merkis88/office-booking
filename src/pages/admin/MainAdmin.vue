@@ -102,7 +102,7 @@
           <p class="admin__welcome-footer">Команда и система рассчитывают на вас!</p>
         </div>
         <div class="admin__welcome-image">
-          <img src="/admin-welcome.png" alt="Добро пожаловать" />
+          <img src="@/assets/images/photos/admin-welcome.png" alt="Добро пожаловать" />
         </div>
       </div>
 
@@ -148,14 +148,14 @@
                 @click="deletePlace(place.id)"
                 aria-label="Удалить"
               >
-                <img src="/delete-themes.svg" alt="Удалить" />
+                <img src="@/assets/images/icons/delete-themes.svg" alt="Удалить" />
               </button>
               <button
                 class="admin__action-btn admin__action-btn--edit"
                 @click="editPlace(place.id)"
                 aria-label="Редактировать"
               >
-                <img src="/edit.svg" alt="Редактировать" />
+                <img src="@/assets/images/icons/edit.svg" alt="Редактировать" />
               </button>
             </div>
           </div>

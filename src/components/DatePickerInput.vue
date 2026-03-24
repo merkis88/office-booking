@@ -77,7 +77,7 @@
     <div class="date-picker-custom__display" @click="openCalendar">
       <span v-if="!formattedDate" class="date-picker-custom__value-placeholder">Выберите дату</span>
       <span v-if="formattedDate" class="date-picker-custom__value">{{ formattedDate }}</span>
-      <img src="/calendar.svg" alt="" class="date-picker-custom__icon" />
+      <img src="@/assets/images/icons/calendar.svg" alt="" class="date-picker-custom__icon" />
     </div>
   </div>
 </template>

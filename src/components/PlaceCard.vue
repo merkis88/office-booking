@@ -1,5 +1,8 @@
 <script setup>
   import { computed, ref } from 'vue';
+  import { useAuthStore } from '@/store/auth';
+
+  const authStore = useAuthStore();
 
   const props = defineProps({
     place: {
@@ -93,7 +96,7 @@
           :src="place.photo_url"
           :alt="place.name"
           class="place-card__image"
-          @error="$event.target.src = '/placeholder.jpg'"
+          @error="$event.target.src = '@/assets/images/photo/placeholder.jpg'"
         />
       </div>
 
@@ -104,9 +107,17 @@
         <p class="place-card__capacity">Вместимость: {{ place.capacity }} человек</p>
       </div>
 
-      <button class="place-card__favorite" aria-label="Добавить в избранное">
-        <img src="/heart-empty.svg" alt="" />
-      </button>
+      <div class="place-card__actions">
+          <button class="place-card__favorite" aria-label="Добавить в избранное">
+              <img src="@/assets/images/icons/heart-empty.svg" alt="" />
+          </button>
+          <button
+              v-if="authStore.isAdmin"
+              class="place-card__delete"
+          >
+              <img src="@/assets/images/icons/archive.svg" alt="Удалить" />
+          </button>
+      </div>
     </div>
 
     <div class="place-card__slots">
@@ -116,7 +127,7 @@
         @click="prevSlots"
         :disabled="slotPage === 0"
       >
-        <img src="/arrow-left.svg" alt="&lt;" />
+        <img src="@/assets/images/icons/arrow-left.svg" alt="&lt;" />
       </button>
 
       <div class="place-card__slot-list">
@@ -140,7 +151,7 @@
         @click="nextSlots"
         :disabled="slotPage >= totalPages - 1"
       >
-        <img src="/arrow-right.svg" alt="&gt;" />
+        <img src="@/assets/images/icons/arrow-right.svg" alt="&gt;" />
       </button>
     </div>
   </div>
@@ -216,6 +227,18 @@
       margin: 0;
     }
 
+      &__actions {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          align-items: center;
+
+          img {
+              width: 2rem;
+              height: 2rem;
+          }
+      }
+
     &__favorite {
       top: 2rem;
       right: 2rem;
@@ -229,10 +252,10 @@
       transition: all 0.2s;
       color: $color-text;
 
-      img {
-        width: 2.5rem;
-        height: 2.5rem;
-      }
+        img {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
     }
 
     &__time {

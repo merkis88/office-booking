@@ -45,7 +45,7 @@
   <div class="booking-card">
     <div class="booking-card__left">
       <img
-        :src="booking.place?.photo_url || '/placeholder.jpg'"
+        :src="booking.place?.photo_url || '@/assets/images/photos/placeholder.jpg'"
         :alt="booking.place?.name"
         class="booking-card__image"
       />

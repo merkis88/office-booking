@@ -224,7 +224,7 @@
           :disabled="currentPage === 1"
           @click="goToPage(currentPage - 1)"
         >
-          <img src="/arrow-left.svg" alt="Назад" />
+          <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
         </button>
 
         <button
@@ -242,7 +242,7 @@
           :disabled="currentPage === totalPages"
           @click="goToPage(currentPage + 1)"
         >
-          <img src="/arrow-right.svg" alt="Вперед" />
+          <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
         </button>
       </div>
     </div>
