@@ -32,9 +32,9 @@
 
   const placeTypeLabel = computed(() => {
     const types = {
-      office: 'Аренда офиса',
-      coworking: 'Аренда коворкинга',
-      meeting: 'Аренда переговорной',
+      office: 'Офис',
+      coworking: 'Коворкинг',
+      meeting: 'Переговорная',
     };
 
     return types[props.booking.place?.type] || props.booking.place?.type;
@@ -58,7 +58,7 @@
 
       <div class="booking-card__info">
         <p class="booking-card__type">{{ placeTypeLabel }} "{{ booking.place?.name }}"</p>
-        <p class="booking-card__place">Кабинет No{{ booking.place?.number_place }}</p>
+      <p class="booking-card__place">Кабинет №{{ booking.place?.number_place }}</p>
         <p class="booking-card__time">
           {{ formatBookingTime(booking.start_time) }} - {{ formatBookingTime(booking.end_time) }}
         </p>
@@ -77,9 +77,7 @@
       </button>
 
       <div class="booking-card__actions">
-        <button class="booking-card__btn" @click="$emit('invite', booking)">
-          Пригласить сотрудника
-        </button>
+        <button class="booking-card__btn" @click="$emit('invite', booking)">Пригласить сотрудников</button>
         <button class="booking-card__btn" @click="$emit('reschedule', booking)">
           Перенести бронь
         </button>
@@ -99,9 +97,9 @@
     align-items: center;
     gap: 2rem;
     padding: 1.5rem;
-    background: $color-card-bg;
-    border: 1px solid $color-border;
-    border-radius: $radius-lg;
+    background: rgba(230, 242, 250, 0.7);
+    border: 2px solid $color-footer-bg;
+    border-radius: 0.625rem; // 10px
 
     &__left {
       display: flex;
@@ -113,7 +111,8 @@
       width: 120px;
       height: 100px;
       object-fit: cover;
-      border-radius: $radius-sm;
+      border-radius: 0.625rem; // 10px
+      border: 2px solid $color-footer-bg;
     }
 
     &__info {
@@ -175,14 +174,14 @@
 
     &__btn {
       padding: 0.4rem 1rem;
-      border-radius: $radius-sm;
+      border-radius: 0.625rem; // 10px
       border: 1px solid $color-border;
-      background: $color-input-bg;
+      background: rgba(230, 242, 250, 0.7);
       font-size: $text-sm;
       cursor: pointer;
 
       &:hover {
-        background: $color-input-bg-dark;
+        background: rgba(209, 223, 232, 0.95);
       }
     }
   }
