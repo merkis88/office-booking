@@ -21,6 +21,7 @@ import MainAdmin from '@/pages/admin/MainAdmin.vue';
 import Places from '@/pages/admin/Places.vue';
 import CreatePlace from '@/pages/admin/CreatePlace.vue';
 import EditPlace from '@/pages/admin/EditPlace.vue';
+import AdminRequestTypes from "@/pages/admin/AdminRequestTypes.vue";
 
 const routes = [
   {
@@ -52,6 +53,7 @@ const routes = [
       { path: 'places', component: Places },
       { path: 'create-place', component: CreatePlace },
       { path: 'places/:id/edit', component: EditPlace },
+      {path:'requests-types', component: AdminRequestTypes },
     ],
   },
 ];
