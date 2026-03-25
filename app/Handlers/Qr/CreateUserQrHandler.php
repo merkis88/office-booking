@@ -23,7 +23,6 @@ final class CreateUserQrHandler
     public function createForSelf(Booking $booking, User $user): Qr
     {
         $this->assertCanUseBooking($booking, $user);
-        $this->qrAccessValidator->assertCanIssue($booking);
 
         return $this->createOrGet($booking, $user->id);
     }
