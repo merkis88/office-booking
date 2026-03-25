@@ -240,8 +240,8 @@
               class="profile__avatar"
             />
           </div>
-          <button class="profile__upload-btn" disabled>
-            <img src="@/assets/images/icons/edit.svg" alt="" />
+          <button class="profile__upload-btn" type="button">
+            <img src="@/assets/images/icons/edit.svg" alt="Иконка загрузки фото" />
             Загрузить фото
           </button>
         </div>
@@ -555,13 +555,27 @@
     }
 
     &__upload-btn {
-      padding: 0.7rem 1.5rem;
-      border-radius: 0.625rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 0.55rem 1.2rem;
+      border-radius: 0.625rem; // 10px
       border: 1px solid $color-border;
       background: rgba(230, 242, 250, 0.7);
       font-size: $text-base;
-      cursor: not-allowed;
-      opacity: 0.9;
+      cursor: pointer;
+      opacity: 1;
+      transition: all 0.2s ease;
+
+      img {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      &:hover {
+        background: rgba(209, 223, 232, 0.95);
+      }
     }
 
     &__form-col {
