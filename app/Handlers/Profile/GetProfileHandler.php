@@ -57,7 +57,7 @@ final class GetProfileHandler
                     ->first();
 
                 if (!$qr) {
-                    $qr = $this->createUserQrHandler->handle($booking,  $user, $currentWindow);
+                    $qr = $this->createUserQrHandler->createOrGetForProfile($booking, $user);
                 }
 
                 $qrHash = $qr->hash;

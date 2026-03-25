@@ -3,6 +3,7 @@
 namespace App\Services\Qr;
 
 use App\Models\Booking;
+use Carbon\CarbonImmutable;
 
 final class QrAvailabilityService
 {
@@ -13,10 +14,15 @@ final class QrAvailabilityService
     {
         $tz = (string) config('booking.timezone', 'UTC');
 
-        $now =  now($tz);
+        $now = now($tz);
 
-        $start = $booking->start_time->copy()->setTimezone($tz);
-        $end = $booking->end_time->copy()->setTimezone($tz);
+        $start = CarbonImmutable::createFromFormat(
+            'Y-m-d H:i:s',
+            $booking->start_time->format('Y-m-d H:i:s'), $tz);
+
+        $end = CarbonImmutable::createFromFormat(
+            'Y-m-d H:i:s',
+            $booking->end_time->format('Y-m-d H:i:s'), $tz);
 
         $availableFrom = $start->copy()->subMinutes($this->beforeMinutes);
         $availableUntil = $end->copy()->addMinutes($this->afterMinutes);

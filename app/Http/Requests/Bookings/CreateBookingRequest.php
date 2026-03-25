@@ -24,8 +24,8 @@ final class CreateBookingRequest extends FormRequest
     {
         return new CreateBookingDTO(
             placeId: (int) $this->input('place_id'),
-            startTime: CarbonImmutable::parse($this->input('start_time')),
-            endTime: CarbonImmutable::parse($this->input('end_time')),
+            startTime: CarbonImmutable::parse($this->input('start_time'))->utc(),
+            endTime: CarbonImmutable::parse($this->input('end_time'))->utc(),
             passType: (string) ($this->input('pass_type') ?? 'qr'),
         );
     }
