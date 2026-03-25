@@ -11,9 +11,9 @@ final class AdminBookingsDTO
         public readonly ?int $placeId,
         public readonly ?int $userId,
         public readonly ?int $createdBy,
-        public readonly ?CarbonImmutable $from, // start_time >= from
-        public readonly ?CarbonImmutable $to,   // start_time <= to
-        public readonly string $sortDirection,  // asc|desc
+        public readonly ?CarbonImmutable $from,
+        public readonly ?CarbonImmutable $to,
+        public readonly string $sortDirection,
         public readonly int $perPage,
     ) {}
 

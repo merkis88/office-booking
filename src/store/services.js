@@ -5,7 +5,7 @@ export const useServicesStore = defineStore('services', {
     state: () => ({
         bookings: [],
         services: [],
-        serviceTypes: [], // ✅ ДОБАВЛЕНО
+        serviceTypes: [],
         isLoading: false,
         error: null,
         successMessage: null,
@@ -76,7 +76,6 @@ export const useServicesStore = defineStore('services', {
             }
         },
 
-        // ✅ НОВЫЙ метод - загрузка типов заявок
         async fetchServiceTypes() {
             this.isLoading = true;
             this.error = null;
@@ -103,7 +102,6 @@ export const useServicesStore = defineStore('services', {
             }
         },
 
-        // ✅ НОВЫЙ метод - создание типа заявки
         async createServiceType(typeData) {
             this.isLoading = true;
             this.error = null;
@@ -127,7 +125,6 @@ export const useServicesStore = defineStore('services', {
             }
         },
 
-        // ✅ НОВЫЙ метод - обновление типа заявки
         async updateServiceType(typeId, typeData) {
             this.isLoading = true;
             this.error = null;
@@ -154,7 +151,6 @@ export const useServicesStore = defineStore('services', {
             }
         },
 
-        // ✅ НОВЫЙ метод - удаление типа заявки
         async deleteServiceType(typeId) {
             this.isLoading = true;
             this.error = null;
@@ -178,6 +174,33 @@ export const useServicesStore = defineStore('services', {
             }
         },
 
+        // ✅ НОВЫЙ метод - изменение статуса заявки
+        async updateServiceStatus(serviceId, status) {
+            this.isLoading = true;
+            this.error = null;
+
+            try {
+                const { data } = await axios.put(`/api/admin/services/${serviceId}/status`, {
+                    status,
+                });
+
+                // Обновляем в локальном массиве
+                const index = this.services.findIndex((s) => s.id === serviceId);
+                if (index !== -1) {
+                    this.services[index] = data.data || data;
+                }
+
+                return { success: true, data: data.data || data };
+            } catch (error) {
+                console.error('Ошибка изменения статуса:', error);
+                const message = error.response?.data?.message || 'Не удалось изменить статус';
+                this.error = message;
+                return { success: false, error: message };
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
         async createServiceRequest(requestData) {
             this.isLoading = true;
             this.error = null;
@@ -193,7 +216,7 @@ export const useServicesStore = defineStore('services', {
                     comment: requestData.comment || null,
                 };
 
-                const { data } = await axios.post('/api/service-types', payload);
+                const { data } = await axios.post('/api/services', payload);
 
                 if (data.data) {
                     this.services.unshift(data.data);
@@ -229,27 +252,5 @@ export const useServicesStore = defineStore('services', {
             this.successMessage = null;
             this.validationErrors = null;
         },
-    },
-    async deleteServiceType(typeId) {
-        this.isLoading = true;
-        this.error = null;
-
-        try {
-            await axios.delete(`/api/admin/service-types/${typeId}`);
-
-            const index = this.serviceTypes.findIndex((t) => t.id === typeId);
-            if (index !== -1) {
-                this.serviceTypes.splice(index, 1);
-            }
-
-            return { success: true };
-        } catch (error) {
-            console.error('Ошибка удаления типа заявки:', error);
-            const message = error.response?.data?.message || 'Не удалось удалить тип заявки';
-            this.error = message;
-            return { success: false, error: message };
-        } finally {
-            this.isLoading = false;
-        }
     },
 });

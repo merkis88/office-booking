@@ -140,10 +140,10 @@ onMounted(async () => {
                     <span>Создать</span>
                 </button>
 
-                <button class="admin-request-types__control-btn">
+                <router-link to="/admin/user-requests" class="admin-request-types__control-btn">
                     <img src="@/assets/images/icons/history-user.svg" alt="" />
                     <span>Заявки пользователей</span>
-                </button>
+                </router-link>
             </div>
 
             <!-- Основной контент -->
