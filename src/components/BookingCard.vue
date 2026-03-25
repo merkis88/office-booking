@@ -4,6 +4,7 @@
   import { formatBookingTime } from '@/utils/dateFormat';
   import heartFilledUrl from '@/assets/images/icons/heart-filled.svg';
   import heartEmptyUrl from '@/assets/images/icons/heart-empty.svg';
+  import placeholder from '@/assets/images/photos/placeholder.jpg';
 
   const props = defineProps({
     booking: {
@@ -38,29 +39,30 @@
 
     return types[props.booking.place?.type] || props.booking.place?.type;
   });
-
 </script>
 
 <template>
   <div class="booking-card">
     <div class="booking-card__left">
       <img
-        :src="booking.place?.photo_url || '@/assets/images/photos/placeholder.jpg'"
+        :src="booking.place?.photo_url"
         :alt="booking.place?.name"
         class="booking-card__image"
+        @error="
+          (e) => {
+            e.target.onerror = null;
+            e.target.src = placeholder;
+          }
+        "
       />
 
       <div class="booking-card__info">
-        <p class="booking-card__type">
-          {{ placeTypeLabel }} "{{ booking.place?.name }}"
-        </p>
+        <p class="booking-card__type">{{ placeTypeLabel }} "{{ booking.place?.name }}"</p>
         <p class="booking-card__place">Кабинет No{{ booking.place?.number_place }}</p>
         <p class="booking-card__time">
           {{ formatBookingTime(booking.start_time) }} - {{ formatBookingTime(booking.end_time) }}
         </p>
-        <p class="booking-card__capacity">
-          Вместимость: {{ booking.place?.capacity }} человек
-        </p>
+        <p class="booking-card__capacity">Вместимость: {{ booking.place?.capacity }} человек</p>
       </div>
     </div>
 
@@ -81,9 +83,7 @@
         <button class="booking-card__btn" @click="$emit('reschedule', booking)">
           Перенести бронь
         </button>
-        <button class="booking-card__btn" @click="$emit('cancel', booking)">
-          Отменить бронь
-        </button>
+        <button class="booking-card__btn" @click="$emit('cancel', booking)">Отменить бронь</button>
       </div>
     </div>
   </div>

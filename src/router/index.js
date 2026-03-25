@@ -16,6 +16,7 @@ import BookingHistory from '@/pages/admin/BookingHistory.vue';
 import Offices from '@/pages/Offices.vue';
 import Coworking from '@/pages/Coworking.vue';
 import Requests from '@/pages/Requests.vue';
+import Passes from '@/pages/Passes.vue';
 import Notifications from '@/pages/admin/Notifications.vue';
 import MainAdmin from '@/pages/admin/MainAdmin.vue';
 import Places from '@/pages/admin/Places.vue';
@@ -39,6 +40,7 @@ const routes = [
       { path: 'coworking', component: Coworking },
       { path: 'meeting-rooms', component: MeetingRooms },
       { path: '/requests', component: Requests },
+      { path: 'passes', component: Passes },
       {path: '/archived-places', component: () => import('@/pages/ArchivedPlaces.vue'), meta: { requiresAuth: true, requiresAdmin: true },}
     ],
   },

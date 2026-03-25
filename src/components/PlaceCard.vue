@@ -1,6 +1,7 @@
 <script setup>
   import { computed, ref } from 'vue';
   import { useAuthStore } from '@/store/auth';
+  import placeholder from '@/assets/images/photos/placeholder.jpg';
 
   const authStore = useAuthStore();
 
@@ -69,7 +70,6 @@
       place: props.place,
       range,
       availableSlots: props.place.available_slots,
-
     });
   }
 
@@ -80,13 +80,11 @@
       meeting: 'Аренда переговорной',
     };
     return types[props.place.type] || props.place.type;
-
   });
 
   function handleArchive() {
     emit('archive-place', props.place.id);
   }
-
 </script>
 
 <template>
@@ -97,7 +95,12 @@
           :src="place.photo_url"
           :alt="place.name"
           class="place-card__image"
-          @error="$event.target.src = '@/assets/images/photo/placeholder.jpg'"
+          @error="
+            (e) => {
+              e.target.onerror = null;
+              e.target.src = placeholder;
+            }
+          "
         />
       </div>
 
@@ -109,17 +112,17 @@
       </div>
 
       <div class="place-card__actions">
-          <button class="place-card__favorite" aria-label="Добавить в избранное">
-              <img src="@/assets/images/icons/heart-empty.svg" alt="" />
-          </button>
-          <button
-              v-if="authStore.isAdmin"
-              class="place-card__archive"
-              @click="handleArchive"
-              aria-label="Отправить в архив"
-          >
-              <img src="@/assets/images/icons/archive.svg" alt="Удалить" />
-          </button>
+        <button class="place-card__favorite" aria-label="Добавить в избранное">
+          <img src="@/assets/images/icons/heart-empty.svg" alt="" />
+        </button>
+        <button
+          v-if="authStore.isAdmin"
+          class="place-card__archive"
+          @click="handleArchive"
+          aria-label="Отправить в архив"
+        >
+          <img src="@/assets/images/icons/archive.svg" alt="Удалить" />
+        </button>
       </div>
     </div>
 
@@ -212,33 +215,33 @@
       margin: 0;
     }
 
-      &__archive {
-          position: absolute;
-          bottom: 0.75rem;
-          right: 0.75rem;
-          width: 2.5rem;
-          height: 2.5rem;
-          border: none;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.2s;
+    &__archive {
+      position: absolute;
+      bottom: 0.75rem;
+      right: 0.75rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
 
-          &:hover {
-              transform: scale(1.1);
-          }
-
-          &:active {
-              transform: scale(0.95);
-          }
-
-          img {
-              width: 1.5rem;
-              height: 1.5rem;
-          }
+      &:hover {
+        transform: scale(1.1);
       }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      img {
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+    }
 
     &__number {
       font-size: $text-lg;
@@ -258,17 +261,17 @@
       margin: 0;
     }
 
-      &__actions {
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          align-items: center;
+    &__actions {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
 
-          img {
-              width: 2rem;
-              height: 2rem;
-          }
+      img {
+        width: 2rem;
+        height: 2rem;
       }
+    }
 
     &__favorite {
       top: 2rem;
@@ -283,10 +286,10 @@
       transition: all 0.2s;
       color: $color-text;
 
-        img {
-            width: 2.5rem;
-            height: 2.5rem;
-        }
+      img {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
     }
 
     &__time {
