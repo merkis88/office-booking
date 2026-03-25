@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Qr\QrAccessValidator;
 use App\Services\Qr\QrHashService;
 use App\Services\Qr\QrWindowService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -17,7 +18,7 @@ final class CreateUserQrHandler
     public function __construct(
         private readonly QrHashService $hashService,
         private readonly QrWindowService $windowService,
-        private readonly QrAccessValidator $qrAccessValidator
+
     ) {}
 
     public function createForSelf(Booking $booking, User $user): Qr
@@ -30,7 +31,6 @@ final class CreateUserQrHandler
     public function handle(Booking $booking, User $actor, CreateUserQrDTO $dto): Qr
     {
         $this->assertCanUseBooking($booking, $actor);
-        $this->qrAccessValidator->assertCanIssue($booking);
 
         $email = mb_strtolower(trim($dto->email));
 
@@ -43,11 +43,17 @@ final class CreateUserQrHandler
                 'email' => ['Пользователь с таким email не найден'],
             ]);
         }
-
         return $this->createOrGet($booking, $targetUser->id);
     }
 
-    private function createOrGet(Booking $booking, $targetUserId): Qr
+    public function createOrGetForProfile(Booking $booking, User $user): Qr
+    {
+        $this->assertCanAccessProfileQr($booking, $user);
+
+        return $this->createOrGet($booking, $user->id);
+    }
+
+    private function createOrGet(Booking $booking, int $targetUserId): Qr
     {
         $window = $this->windowService->current();
 
@@ -73,7 +79,7 @@ final class CreateUserQrHandler
                 return $existing;
             }
 
-            $hash = $this->hashService->makeForUser(booking: $booking, timeWindow: $window, userId: $targetUserId);
+            $hash = $this->hashService->makeForUser($booking, $window, $targetUserId);
 
             return Qr::query()->create([
                 'booking_id' => $booking->id,
@@ -94,5 +100,26 @@ final class CreateUserQrHandler
         if (!($isOwner || $isCreator)) {
             abort(403, 'Нет доступа к этому бронированию');
         }
+    }
+
+    private function assertCanAccessProfileQr(Booking $booking, User $user): void
+    {
+        $isOwner = $booking->user_id !== null && (int) $booking->user_id === (int) $user->id;
+        $isCreator = (int) $booking->created_by === (int) $user->id;
+
+        if ($isOwner || $isCreator) {
+            return;
+        }
+
+        $wasIssuedForUser = Qr::query()
+            ->where('booking_id', $booking->id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($wasIssuedForUser) {
+            return;
+        }
+
+        throw new AuthorizationException('Нет доступа к этому QR');
     }
 }

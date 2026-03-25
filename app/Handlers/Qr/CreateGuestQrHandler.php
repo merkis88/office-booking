@@ -19,7 +19,6 @@ final class CreateGuestQrHandler
     public function __construct(
         private readonly QrHashService $hashService,
         private readonly QrWindowService $windowService,
-        private readonly QrAccessValidator $qrAccessValidator
     ) {}
 
 
@@ -27,7 +26,6 @@ final class CreateGuestQrHandler
     {
         $this->assertCanUseBooking($booking, $tenant);
 
-        $this->qrAccessValidator->assertCanIssue($booking);
         $this->assertCanUseBooking($booking, $tenant);
 
         $email = mb_strtolower(trim($dto->recipientEmail));
