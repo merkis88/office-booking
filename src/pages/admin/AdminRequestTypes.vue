@@ -130,10 +130,10 @@ onMounted(async () => {
         <div class="admin-request-types__container">
             <!-- Кнопки управления -->
             <div class="admin-request-types__controls">
-                <button class="admin-request-types__control-btn">
+                <router-link to="/admin/requests-history" class="admin-request-types__control-btn">
                     <img src="@/assets/images/icons/history.svg" alt="" />
                     <span>История заявок</span>
-                </button>
+                </router-link>
 
                 <button class="admin-request-types__control-btn" @click="showCreateModal = true">
                     <img src="@/assets/images/icons/plus.svg" alt="" />
