@@ -634,6 +634,8 @@
     }
 
     &__qr-section {
+      width: 80%;
+      margin: 0 auto;
       background: rgba(255, 255, 255, 0.7);
       border-radius: 1.25rem; // 20px
       border: 1px solid $color-text;
@@ -848,13 +850,13 @@
     &__bookings {
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: flex-start;
       width: 100%;
     }
 
     &__booking-group {
-      width: 800px;
-      max-width: 100%;
+      width: 100%;
+      max-width: 1100px;
       margin-bottom: 1.5rem;
     }
 

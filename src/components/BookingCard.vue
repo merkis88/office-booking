@@ -56,7 +56,7 @@
 
       <div class="booking-card__image-wrapper">
         <img
-          :src="booking.place?.photo_url"
+          :src="booking.place?.photo_url || placeholder"
           :alt="booking.place?.name"
           class="booking-card__image"
           @error="
@@ -102,7 +102,7 @@
     gap: 1.5rem;
 
     &__main {
-      width: 800px;
+      width: 600px;
       max-width: 100%;
       min-height: 260px;
       background: rgba(230, 242, 250, 0.7);
@@ -140,6 +140,7 @@
     }
 
     &__title {
+      padding-right: 46px;
       margin: 0;
       font-size: $text-lg;
       font-weight: 500;
