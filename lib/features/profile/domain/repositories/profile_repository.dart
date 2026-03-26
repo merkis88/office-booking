@@ -20,5 +20,6 @@ abstract class ProfileRepository {
   Future<void> cancelBooking(int bookingId);
   Future<String> changePassword(ChangePasswordParams params);
   Future<RegisteredUser> updateProfile(UpdateProfileParams params);
+  Future<RegisteredUser> uploadProfilePhoto(String filePath);
   Future<void> deleteAccount(String password);
 }

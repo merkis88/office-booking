@@ -1,5 +1,6 @@
 import 'package:wordpice/app/app_session.dart';
 import 'package:wordpice/app/app_session_storage.dart';
+import 'package:wordpice/core/network/api_client.dart';
 import 'package:wordpice/features/auth/domain/entities/registered_user.dart';
 import 'package:wordpice/features/profile/data/datasources/profile_data_source.dart';
 import 'package:wordpice/features/profile/domain/entities/change_password_params.dart';
@@ -95,6 +96,23 @@ class ProfileRepositoryImpl implements ProfileRepository {
     return user;
   }
 
+  @override
+  Future<RegisteredUser> uploadProfilePhoto(String filePath) async {
+    final photoUrl = await _dataSource.uploadProfilePhoto(filePath);
+    final currentUser = _appSession.currentUser;
+    if (currentUser == null) {
+      throw const ApiConnectionException('Не удалось определить пользователя.');
+    }
+
+    final updatedUser = currentUser.copyWith(photo: photoUrl);
+    _appSession.updateUser(updatedUser);
+    final token = _appSession.token;
+    if (token != null && token.isNotEmpty) {
+      await _sessionStorage.saveSession(token: token, user: updatedUser);
+    }
+    return updatedUser;
+  }
+
   RegisteredUser _preserveMissingSessionFields(RegisteredUser user) {
     final currentUser = _appSession.currentUser;
     if (currentUser == null) {
@@ -103,12 +121,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
     return user.copyWith(
       roleName: user.roleName ?? currentUser.roleName,
-      qrHash: user.qrHash ?? currentUser.qrHash,
-      qrVisible: user.qrVisible || currentUser.qrVisible,
-      qrMessage: user.qrMessage ?? currentUser.qrMessage,
-      qrAvailableFrom: user.qrAvailableFrom ?? currentUser.qrAvailableFrom,
-      qrAvailableUntil: user.qrAvailableUntil ?? currentUser.qrAvailableUntil,
-      qrTimeWindow: user.qrTimeWindow ?? currentUser.qrTimeWindow,
+      qrHash: user.qrHash,
+      qrVisible: user.qrVisible,
+      qrMessage: user.qrMessage,
+      qrAvailableFrom: user.qrAvailableFrom,
+      qrAvailableUntil: user.qrAvailableUntil,
+      qrTimeWindow: user.qrTimeWindow,
     );
   }
 

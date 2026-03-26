@@ -7,16 +7,18 @@ class ProfileIdentityAvatar extends StatelessWidget {
     super.key,
     this.onEditTap,
     this.photoUrl,
+    this.isUploading = false,
     this.size = 60,
-    this.avatarSize = 54,
+    this.avatarSize = 60,
     this.iconSize = 26,
     this.editIconAsset = 'assets/icons/edit-2.svg',
-    this.editIconSize = 20,
+    this.editIconSize = 24,
     this.editButtonSize = 24,
   });
 
   final VoidCallback? onEditTap;
   final String? photoUrl;
+  final bool isUploading;
   final double size;
   final double avatarSize;
   final double iconSize;
@@ -43,9 +45,15 @@ class ProfileIdentityAvatar extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 0,
-            right: 0,
-            child: _isInteractive
+            top: -2,
+            right: -4,
+            child: isUploading
+                ? SizedBox(
+                    width: editButtonSize,
+                    height: editButtonSize,
+                    child: const CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : _isInteractive
                 ? _EditIconButton(
                     size: editButtonSize,
                     onPressed: onEditTap!,

@@ -1,3 +1,4 @@
+import 'package:wordpice/core/config/app_api_config.dart';
 import 'package:wordpice/features/reviews/domain/entities/review_item.dart';
 
 class ReviewsResponseModel {
@@ -69,7 +70,9 @@ class ReviewItemModel {
       dateText: (json['created_at'] as String?)?.trim() ?? '',
       text: (json['text'] as String?)?.trim() ?? '',
       userId: userId,
-      photo: user['photo'] as String?,
+      photo: _buildFileUrl(
+        (user['photo_url'] as String?) ?? (user['photo'] as String?),
+      ),
       isOwnedByCurrentUser: currentUserId != null && currentUserId == userId,
     );
   }
@@ -85,5 +88,28 @@ class ReviewItemModel {
       photo: photo,
       isOwnedByCurrentUser: isOwnedByCurrentUser,
     );
+  }
+
+  static String? _buildFileUrl(String? rawPath) {
+    final trimmed = rawPath?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return null;
+    }
+
+    final uri = Uri.tryParse(trimmed);
+    if (uri != null && uri.hasScheme) {
+      final baseOriginUri = Uri.parse(AppApiConfig.baseOrigin);
+      if (uri.host == 'localhost' || uri.host == '127.0.0.1') {
+        return uri.replace(
+          scheme: baseOriginUri.scheme,
+          host: baseOriginUri.host,
+          port: baseOriginUri.hasPort ? baseOriginUri.port : null,
+        ).toString();
+      }
+      return trimmed;
+    }
+
+    final normalizedPath = trimmed.startsWith('/') ? trimmed : '/storage/$trimmed';
+    return '${AppApiConfig.baseOrigin}$normalizedPath';
   }
 }

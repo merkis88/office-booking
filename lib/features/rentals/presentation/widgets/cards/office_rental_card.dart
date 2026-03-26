@@ -12,6 +12,7 @@ class OfficeRentalCard extends StatefulWidget {
   const OfficeRentalCard({
     super.key,
     required this.item,
+    required this.bookingDate,
     required this.dateText,
     required this.availableTimeSlots,
     required this.onBook,
@@ -23,6 +24,7 @@ class OfficeRentalCard extends StatefulWidget {
   });
 
   final OfficeRentalItem item;
+  final DateTime bookingDate;
   final String dateText;
   final List<String> availableTimeSlots;
   final Future<String?> Function(String timeRange) onBook;
@@ -103,6 +105,7 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
     final picked = await OfficeTimePickerModal.show(
       context,
       availableTime: sourceRange,
+      bookingDate: widget.bookingDate,
     );
     if (picked == null || !mounted) return;
 

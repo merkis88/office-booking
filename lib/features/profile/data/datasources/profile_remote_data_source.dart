@@ -8,6 +8,7 @@ import 'package:wordpice/features/profile/data/datasources/profile_data_source.d
 import 'package:wordpice/features/profile/data/models/change_password_request_model.dart';
 import 'package:wordpice/features/profile/data/models/profile_bookings_response_model.dart';
 import 'package:wordpice/features/profile/data/models/profile_favorite_places_response_model.dart';
+import 'package:wordpice/features/profile/data/models/profile_photo_response_model.dart';
 import 'package:wordpice/features/profile/data/models/profile_response_model.dart';
 import 'package:wordpice/features/profile/data/models/profile_services_response_model.dart';
 import 'package:wordpice/features/profile/data/models/update_profile_request_model.dart';
@@ -35,7 +36,9 @@ class ProfileRemoteDataSource implements ProfileDataSource {
       return ProfileResponseModel.fromJson(response).toEntity();
     }
 
-    throw const ApiConnectionException('Не удалось получить данные профиля.');
+    throw ApiConnectionException(
+      response['message']?.toString() ?? 'Не удалось получить данные профиля.',
+    );
   }
 
   @override
@@ -63,6 +66,34 @@ class ProfileRemoteDataSource implements ProfileDataSource {
 
     throw ApiConnectionException(
       response['message']?.toString() ?? 'Не удалось обновить профиль.',
+    );
+  }
+
+  @override
+  Future<String?> uploadProfilePhoto(String filePath) async {
+    final response = await _apiClient.postMultipart(
+      '/profile/photo',
+      fileField: 'photo',
+      filePath: filePath,
+      headers: _authorizationHeaders(),
+    );
+    final statusCode = response['statusCode'] as int? ?? 500;
+
+    if (statusCode >= 200 && statusCode < 300 && response['data'] is Map) {
+      return ProfilePhotoResponseModel.fromJson(response).photoUrl;
+    }
+
+    final errors = response['errors'];
+    if (errors is Map) {
+      for (final value in errors.values) {
+        if (value is List && value.isNotEmpty) {
+          throw ApiConnectionException(value.first.toString());
+        }
+      }
+    }
+
+    throw ApiConnectionException(
+      response['message']?.toString() ?? 'Не удалось обновить фото профиля.',
     );
   }
 

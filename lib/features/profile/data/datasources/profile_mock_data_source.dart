@@ -105,6 +105,12 @@ class ProfileMockDataSource implements ProfileDataSource {
   }
 
   @override
+  Future<String?> uploadProfilePhoto(String filePath) async {
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    return null;
+  }
+
+  @override
   Future<void> deleteAccount(String password) async {
     await Future<void>.delayed(const Duration(milliseconds: 250));
   }

@@ -9,6 +9,9 @@ class ApiConnectionException implements Exception {
   const ApiConnectionException(this.message);
 
   final String message;
+
+  @override
+  String toString() => message;
 }
 
 class ApiClient {
@@ -92,6 +95,28 @@ class ApiClient {
     final response = await _sendDeleteRequest(
       path,
       body: body,
+      headers: headers,
+      baseUrlOverride: baseUrlOverride,
+      timeoutOverride: timeoutOverride,
+    );
+    return _decodeResponse(response);
+  }
+
+  Future<Map<String, dynamic>> postMultipart(
+    String path, {
+    required String fileField,
+    required String filePath,
+    Map<String, String>? fields,
+    Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
+  }) async {
+    final response = await _sendMultipartRequest(
+      'POST',
+      path,
+      fileField: fileField,
+      filePath: filePath,
+      fields: fields,
       headers: headers,
       baseUrlOverride: baseUrlOverride,
       timeoutOverride: timeoutOverride,
@@ -288,6 +313,48 @@ class ApiClient {
             body: body == null ? null : jsonEncode(body),
           )
           .timeout(timeoutOverride ?? AppApiConfig.requestTimeout);
+    } on SocketException {
+      throw const ApiConnectionException(
+        'Сервер недоступен. Проверьте, что backend запущен и адрес API указан верно.',
+      );
+    } on HttpException {
+      throw const ApiConnectionException(
+        'Не удалось выполнить запрос к серверу.',
+      );
+    } on FormatException {
+      throw const ApiConnectionException('Сервер вернул некорректный ответ.');
+    } on TimeoutException {
+      throw const ApiConnectionException(
+        'Сервер не отвечает. Проверьте backend и повторите попытку.',
+      );
+    }
+  }
+
+  Future<http.Response> _sendMultipartRequest(
+    String method,
+    String path, {
+    required String fileField,
+    required String filePath,
+    Map<String, String>? fields,
+    Map<String, String>? headers,
+    String? baseUrlOverride,
+    Duration? timeoutOverride,
+  }) async {
+    try {
+      final request = http.MultipartRequest(
+        method,
+        Uri.parse(_resolveUrl(path, baseUrlOverride: baseUrlOverride)),
+      );
+      request.headers.addAll(_buildGetHeaders(headers));
+      if (fields != null && fields.isNotEmpty) {
+        request.fields.addAll(fields);
+      }
+      request.files.add(await http.MultipartFile.fromPath(fileField, filePath));
+
+      final streamedResponse = await request.send().timeout(
+        timeoutOverride ?? AppApiConfig.requestTimeout,
+      );
+      return http.Response.fromStream(streamedResponse);
     } on SocketException {
       throw const ApiConnectionException(
         'Сервер недоступен. Проверьте, что backend запущен и адрес API указан верно.',

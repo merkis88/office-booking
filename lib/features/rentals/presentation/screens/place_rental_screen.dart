@@ -9,6 +9,7 @@ import 'package:wordpice/features/rentals/domain/entities/rental_place_details.d
 import 'package:wordpice/features/rentals/presentation/models/office_rental_item.dart';
 import 'package:wordpice/features/rentals/presentation/utils/rental_date_text_helper.dart';
 import 'package:wordpice/features/rentals/presentation/utils/rental_time_slots_helper.dart';
+import 'package:wordpice/features/rentals/presentation/utils/tomsk_time_helper.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/cards/office_rental_card.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/sections/rental_filter_controls_section.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/states/rental_empty_rooms_state.dart';
@@ -50,7 +51,7 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
   }
 
   Future<void> _pickDate() async {
-    final now = DateTime.now();
+    final now = TomskTimeHelper.now();
     final today = DateTime(now.year, now.month, now.day);
     final picked = await showDatePicker(
       context: context,
@@ -73,14 +74,14 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
   String get _dateText => RentalDateTextHelper.formatDayMonth(_selectedDate);
 
   String get _cardDateText {
-    final now = DateTime.now();
+    final now = TomskTimeHelper.now();
     final selectedDate =
         _selectedDate ?? DateTime(now.year, now.month, now.day);
     return RentalDateTextHelper.formatFullDate(selectedDate);
   }
 
   DateTime get _bookingDate {
-    final now = DateTime.now();
+    final now = TomskTimeHelper.now();
     return _selectedDate ?? DateTime(now.year, now.month, now.day);
   }
 
@@ -148,11 +149,16 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
 
       setState(() {
         _items = result.items
-            .map(
-              (item) => item.copyWith(
+            .map((item) {
+              final filteredTimeSlots = _filterPastTimeSlots(
+                item.availableTimeSlots,
+              );
+              return item.copyWith(
                 isFavorite: item.isFavorite || favoritePlaceIds.contains(item.id),
-              ),
-            )
+                availableTimeSlots: filteredTimeSlots,
+              );
+            })
+            .where((item) => item.availableTimeSlots.isNotEmpty)
             .toList();
         _minPrice = minPrice;
         _maxPrice = normalizedMax;
@@ -178,6 +184,47 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  List<String> _filterPastTimeSlots(List<String> slots) {
+    final bookingDate = _bookingDate;
+    final now = TomskTimeHelper.now();
+    final isToday =
+        bookingDate.year == now.year &&
+        bookingDate.month == now.month &&
+        bookingDate.day == now.day;
+
+    if (!isToday) {
+      return slots;
+    }
+
+    final nextAvailableHour =
+        now.minute > 0 || now.second > 0 || now.millisecond > 0
+        ? now.hour + 1
+        : now.hour;
+
+    final filtered = <String>[];
+    for (final slot in slots) {
+      final parsedRange = RentalTimeSlotsHelper.parseRange(slot);
+      if (parsedRange == null) {
+        filtered.add(slot);
+        continue;
+      }
+
+      final startHour = parsedRange.$1;
+      final endHour = parsedRange.$2;
+      final effectiveStart = nextAvailableHour > startHour
+          ? nextAvailableHour
+          : startHour;
+
+      if (effectiveStart >= endHour) {
+        continue;
+      }
+
+      filtered.add(RentalTimeSlotsHelper.formatRange(effectiveStart, endHour));
+    }
+
+    return filtered;
   }
 
   Future<String?> _createBooking(
@@ -210,7 +257,7 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
     );
 
     try {
-      final result = await dependencies.rentalsRepository.createBooking(
+      await dependencies.rentalsRepository.createBooking(
         CreateBookingParams(
           placeId: item.id,
           userId: currentUser.id,
@@ -220,18 +267,8 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
         ),
       );
 
-      final qrHash = await dependencies.rentalsRepository.createUserQr(
-        bookingId: result.id,
-        email: currentUser.email,
-      );
-
-      dependencies.appSession.updateUser(
-        currentUser.copyWith(
-          qrHash: qrHash,
-          qrVisible: qrHash?.trim().isNotEmpty == true,
-          qrAvailableUntil: endTime.toIso8601String(),
-        ),
-      );
+      final refreshedUser = await dependencies.profileRepository.getCurrentProfile();
+      dependencies.appSession.updateUser(refreshedUser);
     } on ApiConnectionException catch (error) {
       return error.message;
     } catch (_) {
@@ -446,6 +483,7 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
                           OfficeRentalCard(
                             key: ValueKey('${item.id}_$_selectedDateKey'),
                             item: item,
+                            bookingDate: _bookingDate,
                             dateText: _cardDateText,
                             availableTimeSlots: item.availableTimeSlots,
                             onBook: (timeRange) => _createBooking(item, timeRange),

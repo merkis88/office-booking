@@ -48,17 +48,6 @@ class RentalsRepositoryImpl implements RentalsRepository {
   }
 
   @override
-  Future<String?> createUserQr({
-    required int bookingId,
-    required String email,
-  }) {
-    return _dataSource.createUserQr(
-      bookingId: bookingId,
-      email: email,
-    );
-  }
-
-  @override
   Future<void> addFavorite({required int placeId}) {
     return _dataSource.addFavorite(placeId: placeId);
   }

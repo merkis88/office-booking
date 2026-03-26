@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
+import 'package:wordpice/features/rentals/presentation/utils/tomsk_time_helper.dart';
 
 class OfficeTimePickerModal extends StatefulWidget {
   const OfficeTimePickerModal({
     super.key,
     required this.availableTime,
+    required this.bookingDate,
     this.submitLabel = 'Забронировать',
   });
 
   final String availableTime;
+  final DateTime bookingDate;
   final String submitLabel;
 
   static Future<String?> show(
     BuildContext context, {
     required String availableTime,
+    required DateTime bookingDate,
     String submitLabel = 'Забронировать',
   }) {
     return showDialog<String>(
       context: context,
       builder: (_) => OfficeTimePickerModal(
         availableTime: availableTime,
+        bookingDate: bookingDate,
         submitLabel: submitLabel,
       ),
     );
@@ -37,10 +42,10 @@ class _OfficeTimePickerModalState extends State<OfficeTimePickerModal> {
   @override
   void initState() {
     super.initState();
-    _hours = _parseHours(widget.availableTime);
+    _hours = _parseHours(widget.availableTime, widget.bookingDate);
   }
 
-  List<int> _parseHours(String text) {
+  List<int> _parseHours(String text, DateTime bookingDate) {
     final parts = text.split('-').map((e) => e.trim()).toList();
     if (parts.length != 2) {
       return List<int>.generate(14, (i) => 9 + i);
@@ -56,7 +61,24 @@ class _OfficeTimePickerModalState extends State<OfficeTimePickerModal> {
     if (end < start) {
       return List<int>.generate(14, (i) => 9 + i);
     }
-    return List<int>.generate(end - start + 1, (i) => start + i);
+
+    final now = TomskTimeHelper.now();
+    final isToday =
+        bookingDate.year == now.year &&
+        bookingDate.month == now.month &&
+        bookingDate.day == now.day;
+    final minHour = isToday
+        ? (now.minute > 0 || now.second > 0 || now.millisecond > 0
+              ? now.hour + 1
+              : now.hour)
+        : start;
+    final effectiveStart = isToday && minHour > start ? minHour : start;
+
+    if (effectiveStart > end) {
+      return const <int>[];
+    }
+
+    return List<int>.generate(end - effectiveStart + 1, (i) => effectiveStart + i);
   }
 
   String _formatHour(int hour) => '${hour.toString().padLeft(2, '0')}:00';

@@ -6,9 +6,10 @@ import 'package:wordpice/features/profile/presentation/widgets/profile_identity_
 class ProfileUserCard extends StatelessWidget {
   const ProfileUserCard({
     super.key,
-    required this.onEditTap,
+    required this.onAvatarEditTap,
     required this.fullName,
     required this.photoUrl,
+    this.isAvatarUploading = false,
   });
 
   static const TextStyle _nameStyle = TextStyle(
@@ -17,9 +18,10 @@ class ProfileUserCard extends StatelessWidget {
     color: AppColors.textPrimary,
   );
 
-  final VoidCallback onEditTap;
+  final VoidCallback onAvatarEditTap;
   final String fullName;
   final String? photoUrl;
+  final bool isAvatarUploading;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +30,11 @@ class ProfileUserCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            ProfileIdentityAvatar(onEditTap: onEditTap, photoUrl: photoUrl),
+            ProfileIdentityAvatar(
+              onEditTap: onAvatarEditTap,
+              photoUrl: photoUrl,
+              isUploading: isAvatarUploading,
+            ),
             const SizedBox(width: 12),
             Expanded(child: Text(fullName, style: _nameStyle)),
           ],

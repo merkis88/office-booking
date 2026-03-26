@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/app/navigation/app_tab_navigator.dart';
 import 'package:wordpice/core/network/api_client.dart';
@@ -51,6 +52,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _carouselIndex = 0;
   bool _isLoading = true;
   bool _hasLoadedOnce = false;
+  bool _isUploadingAvatar = false;
+  String? _profileLoadErrorMessage;
   RegisteredUser? _user;
   ProfileRentalsOverview _rentalsOverview = _emptyOverview;
   List<RentalHistoryItem> _favoriteRentals = const <RentalHistoryItem>[];
@@ -92,7 +95,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       freshUser = await dependencies.profileRepository.getCurrentProfile();
       dependencies.appSession.updateUser(freshUser);
-    } catch (_) {
+      _profileLoadErrorMessage = null;
+    } catch (error) {
+      _profileLoadErrorMessage = error.toString();
       // Keep the cached session user if profile refresh fails.
     }
 
@@ -118,6 +123,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
+    final profileLoadErrorMessage = _profileLoadErrorMessage;
+    if (profileLoadErrorMessage != null && profileLoadErrorMessage.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text('Не удалось обновить профиль: $profileLoadErrorMessage'),
+            ),
+          );
+      });
+    }
+
     final nextFavoriteRentals = favoriteRentals ?? _favoriteRentals;
     final favoritePlaceIds = nextFavoriteRentals
         .map((item) => item.placeId)
@@ -134,6 +155,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _requests = requests ?? _requests;
       _isLoading = false;
     });
+  }
+
+  Future<void> _pickAndUploadAvatar() async {
+    if (_isUploadingAvatar) {
+      return;
+    }
+
+    final dependencies = AppScope.of(context);
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 90,
+    );
+    if (pickedFile == null) {
+      return;
+    }
+
+    setState(() {
+      _isUploadingAvatar = true;
+    });
+
+    try {
+      final updatedUser = await dependencies.profileRepository.uploadProfilePhoto(
+        pickedFile.path,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _user = updatedUser;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      final message = error is ApiConnectionException
+          ? error.message
+          : 'Не удалось обновить аватарку.';
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingAvatar = false;
+        });
+      }
+    }
   }
 
   ProfileRentalsOverview _applyFavoriteFlags(
@@ -169,12 +238,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final repository = AppScope.of(context).profileRepository;
       await repository.cancelBooking(bookingId);
+      final refreshedUser = await repository.getCurrentProfile();
 
       if (!mounted) {
         return;
       }
 
       setState(() {
+        _user = refreshedUser;
         _rentalsOverview = ProfileRentalsOverview(
           activeRentals: _rentalsOverview.activeRentals
               .where((rental) => rental.bookingId != bookingId)
@@ -381,8 +452,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     final qrHash = user.qrHash?.trim();
-    final validUntilText =
-        _buildQrValidUntilText(user) ?? _buildFallbackQrValidUntilText();
+    final validUntilText = _buildQrValidUntilText(user);
     if (validUntilText == null || qrHash == null || qrHash.isEmpty) {
       QrModal.showNoActiveRentals(context);
       return;
@@ -396,20 +466,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String? _buildQrValidUntilText(RegisteredUser user) {
     final availableUntil = user.qrAvailableUntil?.trim();
-    final timeWindow = user.qrTimeWindow?.trim();
-
     if (availableUntil != null && availableUntil.isNotEmpty) {
       return _formatQrDateTime(availableUntil);
-    }
-
-    if (timeWindow != null && timeWindow.isNotEmpty) {
-      return timeWindow;
     }
 
     return null;
   }
 
   String _formatQrDateTime(String value) {
+    final isoMatch = RegExp(
+      r'^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})',
+    ).firstMatch(value.trim());
+    if (isoMatch != null) {
+      final year = isoMatch.group(1)!;
+      final month = isoMatch.group(2)!;
+      final day = isoMatch.group(3)!;
+      final hour = isoMatch.group(4)!;
+      final minute = isoMatch.group(5)!;
+      return '$day.$month.$year $hour:$minute';
+    }
+
     final dateTime = DateTime.tryParse(value);
     if (dateTime == null) {
       return value;
@@ -423,59 +499,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return '$day.$month.$year $hour:$minute';
   }
 
-  String? _buildFallbackQrValidUntilText() {
-    if (_rentalsOverview.activeRentals.isEmpty) {
-      return null;
-    }
-
-    DateTime? latestEnd;
-    for (final rental in _rentalsOverview.activeRentals) {
-      final candidate = _extractRentalEndDateTime(rental);
-      if (candidate == null) {
-        continue;
-      }
-      if (latestEnd == null || candidate.isAfter(latestEnd)) {
-        latestEnd = candidate;
-      }
-    }
-
-    if (latestEnd == null) {
-      return null;
-    }
-
-    return _formatQrDateTime(latestEnd.toIso8601String());
-  }
-
-  DateTime? _extractRentalEndDateTime(RentalHistoryItem rental) {
-    final dateIso = rental.dateIso;
-    if (dateIso == null || rental.timeSlots.isEmpty) {
-      return null;
-    }
-
-    final match = RegExp(
-      r'(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})',
-    ).firstMatch(rental.timeSlots.first);
-    if (match == null) {
-      return null;
-    }
-
-    final endTime = match.group(2);
-    if (endTime == null) {
-      return null;
-    }
-
-    return DateTime.tryParse('${dateIso}T$endTime:00');
-  }
-
   ProfilePassItem _buildProfilePass(RegisteredUser user) {
-    final validUntilText =
-        _buildQrValidUntilText(user) ?? _buildFallbackQrValidUntilText();
+    final validUntilText = _buildQrValidUntilText(user);
     final hasQrHash = user.qrHash?.trim().isNotEmpty == true;
+    final emptyStateText = user.qrMessage?.trim();
     return ProfilePassItem(
       title: 'Qr-код пропуск',
       showButtonLabel: 'Показать',
       hasActivePass: hasQrHash && validUntilText != null,
       validUntilText: validUntilText,
+      emptyStateText: emptyStateText != null && emptyStateText.isNotEmpty
+          ? emptyStateText
+          : null,
     );
   }
 
@@ -493,6 +528,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       user: user,
       profilePass: _buildProfilePass(user),
       onEditTap: () => _openEditScreen(),
+      onAvatarEditTap: _pickAndUploadAvatar,
+      isAvatarUploading: _isUploadingAvatar,
       carouselItems: _carouselItems,
       carouselIndex: _carouselIndex,
       onCarouselChanged: (index) => setState(() => _carouselIndex = index),
@@ -529,6 +566,8 @@ class _ProfileContent extends StatelessWidget {
     required this.user,
     required this.profilePass,
     required this.onEditTap,
+    required this.onAvatarEditTap,
+    required this.isAvatarUploading,
     required this.carouselItems,
     required this.carouselIndex,
     required this.onCarouselChanged,
@@ -548,6 +587,8 @@ class _ProfileContent extends StatelessWidget {
   final RegisteredUser user;
   final ProfilePassItem profilePass;
   final VoidCallback onEditTap;
+  final VoidCallback onAvatarEditTap;
+  final bool isAvatarUploading;
   final List<String> carouselItems;
   final int carouselIndex;
   final ValueChanged<int> onCarouselChanged;
@@ -568,9 +609,10 @@ class _ProfileContent extends StatelessWidget {
     return Column(
       children: [
         ProfileUserCard(
-          onEditTap: onEditTap,
+          onAvatarEditTap: onAvatarEditTap,
           fullName: user.fullName,
           photoUrl: user.photo,
+          isAvatarUploading: isAvatarUploading,
         ),
         const SizedBox(height: 30),
         _NarrowCard(

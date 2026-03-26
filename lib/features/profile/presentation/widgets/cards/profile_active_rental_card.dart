@@ -204,6 +204,7 @@ class _ProfileActiveRentalCardState extends State<ProfileActiveRentalCard> {
     final selectedTime = await OfficeTimePickerModal.show(
       context,
       availableTime: selectedSlot,
+      bookingDate: DateTime.tryParse(dateIso) ?? DateTime.now(),
       submitLabel: 'Перенести бронирование',
     );
 

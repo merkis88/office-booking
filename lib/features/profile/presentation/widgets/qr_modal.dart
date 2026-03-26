@@ -142,6 +142,18 @@ class QrModal {
   }
 
   static String _formatDateTime(String rawValue) {
+    final isoMatch = RegExp(
+      r'^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})',
+    ).firstMatch(rawValue.trim());
+    if (isoMatch != null) {
+      final year = isoMatch.group(1)!;
+      final month = isoMatch.group(2)!;
+      final day = isoMatch.group(3)!;
+      final hour = isoMatch.group(4)!;
+      final minute = isoMatch.group(5)!;
+      return '$day.$month.$year $hour:$minute';
+    }
+
     final parsed = DateTime.tryParse(rawValue);
     if (parsed == null) {
       return rawValue;

@@ -82,13 +82,15 @@ class RegisteredUserModel {
       roleName: role?['role_name'] as String?,
       post: json['post'] as String?,
       company: json['company'] as String?,
-      photo: _buildFileUrl(json['photo'] as String?),
+      photo: _buildFileUrl(
+        (json['photo_url'] as String?) ?? (json['photo'] as String?),
+      ),
       qrHash: json['qr_hash'] as String?,
       qrVisible: json['qr_visible'] == true,
       qrMessage: json['qr_message'] as String?,
       qrAvailableFrom: json['qr_available_from'] as String?,
       qrAvailableUntil: json['qr_available_until'] as String?,
-      qrTimeWindow: json['qr_time_window'] as String?,
+      qrTimeWindow: json['qr_time_window']?.toString(),
     );
   }
 
@@ -161,6 +163,14 @@ class RegisteredUserModel {
 
     final uri = Uri.tryParse(trimmed);
     if (uri != null && uri.hasScheme) {
+      final baseOriginUri = Uri.parse(AppApiConfig.baseOrigin);
+      if (uri.host == 'localhost' || uri.host == '127.0.0.1') {
+        return uri.replace(
+          scheme: baseOriginUri.scheme,
+          host: baseOriginUri.host,
+          port: baseOriginUri.hasPort ? baseOriginUri.port : null,
+        ).toString();
+      }
       return trimmed;
     }
 

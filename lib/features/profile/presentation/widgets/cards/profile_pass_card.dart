@@ -40,10 +40,10 @@ class ProfilePassCard extends StatelessWidget {
                         pass: pass,
                         onShowPressed: onShowPressed,
                       )
-                    : const Align(
+                    : Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          _emptyStateText,
+                          pass.emptyStateText ?? _emptyStateText,
                           style: ProfileCardStyles.title,
                         ),
                       ),

@@ -20,5 +20,6 @@ abstract class ProfileDataSource {
   Future<void> cancelBooking(int bookingId);
   Future<String> changePassword(ChangePasswordParams params);
   Future<RegisteredUser> updateProfile(UpdateProfileParams params);
+  Future<String?> uploadProfilePhoto(String filePath);
   Future<void> deleteAccount(String password);
 }

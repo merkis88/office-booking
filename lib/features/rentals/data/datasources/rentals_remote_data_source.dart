@@ -109,41 +109,6 @@ class RentalsRemoteDataSource implements RentalsDataSource {
   }
 
   @override
-  Future<String?> createUserQr({
-    required int bookingId,
-    required String email,
-  }) async {
-    for (var attempt = 1; attempt <= _maxAttempts; attempt++) {
-      try {
-        final response = await _apiClient.postJson(
-          '/qr/$bookingId/user-qr',
-          body: <String, dynamic>{'email': email},
-          headers: _authorizationHeaders(),
-        );
-
-        final statusCode = response['statusCode'] as int? ?? 500;
-        if (statusCode >= 200 && statusCode < 300) {
-          return _extractQrHash(response);
-        }
-
-        throw ApiConnectionException(
-          _extractErrorMessage(
-            response,
-            fallbackMessage: 'Не удалось создать QR-код для бронирования.',
-          ),
-        );
-      } on ApiConnectionException catch (error) {
-        if (attempt == _maxAttempts || !_shouldRetry(error.message)) rethrow;
-        await Future<void>.delayed(Duration(milliseconds: 400 * attempt));
-      }
-    }
-
-    throw const ApiConnectionException(
-      'Не удалось создать QR-код для бронирования.',
-    );
-  }
-
-  @override
   Future<void> addFavorite({required int placeId}) async {
     await _runFavoriteRequest(
       () => _apiClient.postJson(
@@ -266,32 +231,5 @@ class RentalsRemoteDataSource implements RentalsDataSource {
     }
 
     return fallbackMessage;
-  }
-
-  String? _extractQrHash(Map<String, dynamic> response) {
-    final directHash = response['hash']?.toString().trim();
-    if (directHash != null && directHash.isNotEmpty) {
-      return directHash;
-    }
-
-    final data = response['data'];
-    if (data is Map<String, dynamic>) {
-      final nestedHash = data['hash']?.toString().trim();
-      if (nestedHash != null && nestedHash.isNotEmpty) {
-        return nestedHash;
-      }
-
-      final qrs = data['qrs'];
-      if (qrs is List) {
-        for (final item in qrs.whereType<Map>()) {
-          final hash = item['hash']?.toString().trim();
-          if (hash != null && hash.isNotEmpty) {
-            return hash;
-          }
-        }
-      }
-    }
-
-    return null;
   }
 }
