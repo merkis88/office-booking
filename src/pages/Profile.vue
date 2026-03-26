@@ -853,7 +853,7 @@
     }
 
     &__booking-group {
-      width: 680px;
+      width: 800px;
       max-width: 100%;
       margin-bottom: 1.5rem;
     }

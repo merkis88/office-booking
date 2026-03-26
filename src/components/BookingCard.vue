@@ -43,46 +43,51 @@
 
 <template>
   <div class="booking-card">
-    <div class="booking-card__left">
-      <img
-        :src="booking.place?.photo_url"
-        :alt="booking.place?.name"
-        class="booking-card__image"
-        @error="
-          (e) => {
-            e.target.onerror = null;
-            e.target.src = placeholder;
-          }
-        "
-      />
-
-      <div class="booking-card__info">
-        <p class="booking-card__type">{{ placeTypeLabel }} "{{ booking.place?.name }}"</p>
-      <p class="booking-card__place">Кабинет №{{ booking.place?.number_place }}</p>
-        <p class="booking-card__time">
-          {{ formatBookingTime(booking.start_time) }} - {{ formatBookingTime(booking.end_time) }}
-        </p>
-        <p class="booking-card__capacity">Вместимость: {{ booking.place?.capacity }} человек</p>
-      </div>
-    </div>
-
-    <div class="booking-card__right">
+    <div class="booking-card__main">
       <button
         class="booking-card__fav-btn"
         :class="{ 'booking-card__fav-btn--active': isFav }"
         @click.stop="toggleFavorite"
         :disabled="isTogglingFav"
+        aria-label="Добавить в избранное"
       >
-        <img :src="isFav ? heartFilledUrl : heartEmptyUrl" alt="Избранное" />
+        <img :src="isFav ? heartFilledUrl : heartEmptyUrl" alt="" />
       </button>
 
-      <div class="booking-card__actions">
-        <button class="booking-card__btn" @click="$emit('invite', booking)">Пригласить сотрудников</button>
-        <button class="booking-card__btn" @click="$emit('reschedule', booking)">
-          Перенести бронь
-        </button>
-        <button class="booking-card__btn" @click="$emit('cancel', booking)">Отменить бронь</button>
+      <div class="booking-card__image-wrapper">
+        <img
+          :src="booking.place?.photo_url"
+          :alt="booking.place?.name"
+          class="booking-card__image"
+          @error="
+            (e) => {
+              e.target.onerror = null;
+              e.target.src = placeholder;
+            }
+          "
+        />
       </div>
+
+      <div class="booking-card__content">
+        <p class="booking-card__title">{{ placeTypeLabel }} “{{ booking.place?.name }}”</p>
+        <p class="booking-card__line">Кабинет №{{ booking.place?.number_place }}</p>
+        <p class="booking-card__line">
+          {{ formatBookingTime(booking.start_time) }} - {{ formatBookingTime(booking.end_time) }}
+        </p>
+        <p class="booking-card__line">Вместимость: {{ booking.place?.capacity }} человек</p>
+      </div>
+    </div>
+
+    <div class="booking-card__side">
+      <button class="booking-card__action-btn" @click="$emit('invite', booking)">
+        Пригласить сотрудников
+      </button>
+      <button class="booking-card__action-btn" @click="$emit('reschedule', booking)">
+        Перенести бронь
+      </button>
+      <button class="booking-card__action-btn" @click="$emit('cancel', booking)">
+        Отменить бронь
+      </button>
     </div>
   </div>
 </template>
@@ -93,71 +98,82 @@
   .booking-card {
     width: 100%;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 2rem;
-    padding: 1.5rem;
-    background: rgba(230, 242, 250, 0.7);
-    border: 2px solid $color-footer-bg;
-    border-radius: 0.625rem; // 10px
+    gap: 1.5rem;
 
-    &__left {
+    &__main {
+      width: 800px;
+      max-width: 100%;
+      min-height: 260px;
+      background: rgba(230, 242, 250, 0.7);
+      border: 2px solid $color-footer-bg;
+      border-radius: 1.25rem; // 20px
       display: flex;
-      gap: 1.5rem;
       align-items: center;
+      gap: 1.75rem;
+      padding: 1.25rem;
+      position: relative;
+    }
+
+    &__image-wrapper {
+      width: 190px;
+      height: 190px;
+      flex-shrink: 0;
+      border: 2px solid $color-footer-bg;
+      border-radius: 0.625rem; // 10px
+      overflow: hidden;
+      background: rgba(230, 242, 250, 0.7);
     }
 
     &__image {
-      width: 120px;
-      height: 100px;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
-      border-radius: 0.625rem; // 10px
-      border: 2px solid $color-footer-bg;
     }
 
-    &__info {
+    &__content {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 0.3rem;
+      gap: 0.9rem;
+      min-width: 0;
     }
 
-    &__type {
+    &__title {
+      margin: 0;
+      font-size: $text-lg;
       font-weight: 500;
+      line-height: 1.35;
     }
 
-    &__place {
-      font-size: $text-sm;
-    }
-
-    &__time {
-      font-size: $text-sm;
-    }
-
-    &__capacity {
-      font-size: $text-sm;
-    }
-
-    &__right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.5rem;
+    &__line {
+      margin: 0;
+      font-size: $text-lg;
+      line-height: 1.35;
     }
 
     &__fav-btn {
-      background: none;
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
       border: none;
+      background: transparent;
       cursor: pointer;
-      padding: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: transform 0.2s;
 
       img {
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 2.25rem;
+        height: 2.25rem;
       }
 
-      &:hover {
-        transform: scale(1.1);
+      &:hover:not(:disabled) {
+        transform: scale(1.06);
       }
 
       &:disabled {
@@ -166,22 +182,68 @@
       }
     }
 
-    &__actions {
+    &__side {
+      width: 260px;
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
+      gap: 1rem;
     }
 
-    &__btn {
-      padding: 0.4rem 1rem;
+    &__action-btn {
+      width: 260px;
+      height: 50px;
+      padding: 0;
       border-radius: 0.625rem; // 10px
       border: 1px solid $color-border;
-      background: rgba(230, 242, 250, 0.7);
-      font-size: $text-sm;
+      background: $color-btn-profile;
+      font-size: $text-base;
+      font-weight: 400;
       cursor: pointer;
+      transition: background 0.2s;
 
       &:hover {
         background: rgba(209, 223, 232, 0.95);
+      }
+    }
+
+    @media (max-width: 1024px) {
+      flex-direction: column;
+      align-items: flex-start;
+
+      &__main {
+        width: 100%;
+      }
+
+      &__side {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+      &__action-btn {
+        width: 260px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      &__main {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      &__image-wrapper {
+        width: 100%;
+        height: 200px;
+      }
+
+      &__side {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      &__action-btn {
+        width: 100%;
       }
     }
   }
