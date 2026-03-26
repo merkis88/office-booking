@@ -741,20 +741,20 @@
 
     &__tabs {
       display: flex;
-      justify-content: space-between;
-      gap: 1.25rem;
+      justify-content: flex-start;
+      gap: 0.9rem;
       max-width: 1100px;
-      margin: 0 auto 2rem;
+      margin: 0 auto 1.25rem;
     }
 
     &__tab {
-      width: 260px;
-      height: 50px;
+      width: 210px;
+      height: 42px;
       padding: 0;
       border: 1px solid $color-border;
       background: rgba(230, 242, 250, 0.7);
       border-radius: 0.625rem; // 10px
-      font-size: 1.5rem; // 24px
+      font-size: 1.125rem; // 18px
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
@@ -777,19 +777,19 @@
     &__place-filter {
       display: flex;
       justify-content: center;
-      gap: 1.25rem;
+      gap: 0.9rem;
       flex-wrap: wrap;
       margin-bottom: 2rem;
     }
 
     &__place-filter-btn {
-      width: 260px;
-      height: 50px;
+      width: 200px;
+      height: 42px;
       padding: 0;
       border-radius: 0.625rem; // 10px
       border: 1px solid $color-border;
       background: rgba(230, 242, 250, 0.7);
-      font-size: 1.5rem; // 24px
+      font-size: 1.125rem; // 18px
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
