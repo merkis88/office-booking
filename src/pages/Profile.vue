@@ -252,22 +252,22 @@
 
             <div class="profile__fields">
               <div class="profile__field">
-                <label class="profile__label">Фамилия</label>
+                <label class="profile__label">Фамилия:</label>
                 <input v-model="editableUser.last_name" class="profile__input" />
               </div>
 
               <div class="profile__field">
-                <label class="profile__label">Имя</label>
+                <label class="profile__label">Имя:</label>
                 <input v-model="editableUser.first_name" class="profile__input" />
               </div>
 
               <div class="profile__field">
-                <label class="profile__label">Отчество</label>
+                <label class="profile__label">Отчество:</label>
                 <input v-model="editableUser.patronymic" class="profile__input" />
               </div>
 
               <div class="profile__field">
-                <label class="profile__label">Почта</label>
+                <label class="profile__label">Электронная почта:</label>
                 <input v-model="editableUser.email" class="profile__input" readonly />
               </div>
             </div>
