@@ -1,6 +1,6 @@
 // --- Colors ---
 $color-bg: #b2c1cb;
-$color-bg-request: #C7D1DA;
+$color-bg-request: #c7d1da;
 $color-text: #000000;
 $color-input-bg: #d1dfe8;
 $color-input-bg-dark: #b8c5d5;
@@ -11,8 +11,7 @@ $color-card-bg: #ffffff;
 $color-border: #000000;
 $color-shadow-from: #fed7aa;
 $color-shadow-to: #fca5a5;
-$color-btn-profile: #E6F2FA;
-
+$color-btn-profile: #e6f2fa;
 
 // --- Typography ---
 $font-base: 'Inter', sans-serif;
@@ -62,3 +61,6 @@ $radius-xs: 0.5rem;
 $radius-sm: 0.75rem;
 $radius-md: 1rem;
 $radius-lg: 1.5rem;
+
+// --- Buttons ---
+$button-shadow: 0 3px 3px rgba(0, 0, 0, 0.5);

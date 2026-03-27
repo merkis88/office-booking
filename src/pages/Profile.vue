@@ -770,9 +770,7 @@
       }
 
       &--active {
-        background: rgba(139, 157, 173, 0.5);
-        font-weight: 600;
-        box-shadow: none;
+        box-shadow: $button-shadow;
       }
     }
 
@@ -782,16 +780,17 @@
       gap: 0.9rem;
       flex-wrap: wrap;
       margin-bottom: 2rem;
+      width: 100%;
     }
 
     &__place-filter-btn {
       width: 200px;
       height: 42px;
       padding: 0;
-      border-radius: 0.625rem; // 10px
+      border-radius: 0.625rem;
       border: 1px solid $color-border;
-      background: rgba(230, 242, 250, 0.7);
-      font-size: 1.125rem; // 18px
+      background: none;
+      font-size: 1.125rem;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
@@ -799,13 +798,10 @@
       justify-content: center;
 
       &:hover {
-        background: rgba(209, 223, 232, 0.95);
+        background: rgba(255, 255, 255, 0.7);
       }
-
       &--active {
         background: rgba(255, 255, 255, 0.7);
-        font-weight: 600;
-        box-shadow: none;
       }
     }
 
