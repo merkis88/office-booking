@@ -172,14 +172,25 @@ class _AnimatedLogo extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller,
       builder: (_, _) {
+        final imageProgress = Curves.easeOutCubic.transform(
+          controller.value.clamp(0, 1).toDouble(),
+        );
+        final imageOffsetY = (1 - imageProgress) * 12;
+
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              _SplashScreenState._logoAsset,
-              width: 116,
-              height: 116,
-              fit: BoxFit.contain,
+            Opacity(
+              opacity: imageProgress,
+              child: Transform.translate(
+                offset: Offset(0, imageOffsetY),
+                child: Image.asset(
+                  _SplashScreenState._logoAsset,
+                  width: 116,
+                  height: 116,
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
             const SizedBox(width: 18),
             Row(
