@@ -3,7 +3,6 @@
   import { useAuthStore } from '@/store/auth';
   import { useBookingsStore } from '@/store/bookings';
   import { useServicesStore } from '@/store/services';
-  import { formatBookingDateLong } from '@/utils/dateFormat';
   import { storeToRefs } from 'pinia';
   import { useRouter } from 'vue-router';
   import QRCode from 'qrcode';
@@ -159,17 +158,27 @@
 
   const placeTypeFilters = [
     { label: 'Все аренды', value: null },
-    { label: 'Переговорные', value: 'meeting' },
+    { label: 'Переговорная', value: 'meeting' },
     { label: 'Коворкинг', value: 'coworking' },
     { label: 'Офис', value: 'office' },
   ];
 
+  function formatBookingDateForGroup(isoString) {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    const day = date.toLocaleDateString('ru-RU', { day: 'numeric' });
+    const month = date.toLocaleDateString('ru-RU', { month: 'long' });
+    const year = date.toLocaleDateString('ru-RU', { year: 'numeric' });
+    // Как в макете: "5 февраля, 2026"
+    return `${day} ${month}, ${year}`;
+  }
+
   const filteredBookings = computed(() => {
     // Показываем только активные (cancelled отфильтровываем на фронте,
     // т.к. бэкенд пока не поддерживает фильтр status=active)
-    let bookings = bookingsStore.bookings.filter(b => b.status !== 'cancelled');
+    let bookings = bookingsStore.bookings.filter((b) => b.status !== 'cancelled');
     if (activePlaceType.value) {
-      bookings = bookings.filter(b => b.place?.type === activePlaceType.value);
+      bookings = bookings.filter((b) => b.place?.type === activePlaceType.value);
     }
     return bookings;
   });
@@ -177,7 +186,7 @@
   const groupedBookings = computed(() => {
     const groups = {};
     for (const booking of filteredBookings.value) {
-      const date = formatBookingDateLong(booking.start_time);
+      const date = formatBookingDateForGroup(booking.start_time);
       if (!groups[date]) groups[date] = [];
       groups[date].push(booking);
     }
@@ -217,75 +226,78 @@
     isEditing.value = false;
     saveError.value = '';
   };
-
 </script>
 
 <template>
   <div class="profile">
     <div v-if="user" class="profile__wrapper">
       <div class="profile__header-card">
-        <!-- Левая колонка: аватар -->
         <div class="profile__avatar-col">
           <div class="profile__avatar-wrapper">
-            <img src="@/assets/images/photos/avatar.png" alt="Фото профиля" class="profile__avatar" />
+            <img
+              src="@/assets/images/photos/avatar.png"
+              alt="Фото профиля"
+              class="profile__avatar"
+            />
           </div>
-          <button class="profile__upload-btn" disabled>Загрузить фото</button>
+          <button class="profile__upload-btn" type="button">
+            <img src="@/assets/images/icons/edit.svg" alt="Иконка загрузки фото" />
+            Загрузить фото
+          </button>
         </div>
 
-        <!-- Правая колонка: контактные данные -->
-        <div class="profile__form-col">
-          <h2 class="profile__section-title">Контактные данные</h2>
+        <div class="profile__right-col">
+          <div class="profile__form-col">
+            <h2 class="profile__section-title">Контактные данные</h2>
 
-          <div class="profile__fields">
-            <div class="profile__field">
-              <label class="profile__label">Фамилия</label>
-              <input v-model="editableUser.last_name" class="profile__input" />
-            </div>
+            <div class="profile__fields">
+              <div class="profile__field">
+                <label class="profile__label">Фамилия:</label>
+                <input v-model="editableUser.last_name" class="profile__input" />
+              </div>
 
-            <div class="profile__field">
-              <label class="profile__label">Имя</label>
-              <input v-model="editableUser.first_name" class="profile__input" />
-            </div>
+              <div class="profile__field">
+                <label class="profile__label">Имя:</label>
+                <input v-model="editableUser.first_name" class="profile__input" />
+              </div>
 
-            <div class="profile__field">
-              <label class="profile__label">Отчество</label>
-              <input v-model="editableUser.patronymic" class="profile__input" />
-            </div>
+              <div class="profile__field">
+                <label class="profile__label">Отчество:</label>
+                <input v-model="editableUser.patronymic" class="profile__input" />
+              </div>
 
-            <div class="profile__field">
-              <label class="profile__label">Почта</label>
-              <input v-model="editableUser.email" class="profile__input" readonly />
+              <div class="profile__field">
+                <label class="profile__label">Электронная почта:</label>
+                <input v-model="editableUser.email" class="profile__input" readonly />
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Кнопки — полная ширина -->
-        <div class="profile__actions">
-          <button class="profile__btn" :disabled="isSaving" @click="handleSave">
-            {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
-          </button>
-          <button class="profile__btn" @click="handleCancel">Не сохранять</button>
-          <router-link to="/update-password" class="profile__btn">Сменить пароль</router-link>
-          <button class="profile__btn profile__btn--danger" @click="showDeleteModal = true">
-            Удалить аккаунт
-          </button>
+          <div class="profile__actions">
+            <button class="profile__btn" :disabled="isSaving" @click="handleSave">
+              {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
+            </button>
+            <button class="profile__btn" @click="handleCancel">Не сохранять</button>
+            <router-link to="/update-password" class="profile__btn">Сменить пароль</router-link>
+            <button class="profile__btn profile__btn--danger" @click="showDeleteModal = true">
+              Удалить аккаунт
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- QR-блок — отдельная секция -->
       <div class="profile__qr-section">
-        <!-- Нет активных бронирований -->
         <div v-if="!user.qr_booking" class="profile__qr-section-inner">
-          <p class="profile__qr-section-text">Нет активных бронирований — QR-пропуск не требуется</p>
+          <p class="profile__qr-section-text">
+            Нет активных бронирований — QR-пропуск не требуется
+          </p>
         </div>
 
-        <!-- QR не виден (вне временного окна) -->
         <div v-else-if="!user.qr_visible" class="profile__qr-section-inner">
           <p class="profile__qr-section-text">{{ user.qr_message }}</p>
           <div class="profile__qr-frame profile__qr-frame--empty"></div>
         </div>
 
-        <!-- QR загружается -->
         <div v-else-if="qrLoading" class="profile__qr-section-inner">
           <p class="profile__qr-section-text">Загрузка QR-кода...</p>
           <div class="profile__qr-frame">
@@ -293,11 +305,15 @@
           </div>
         </div>
 
-        <!-- QR-код виден -->
         <div v-else class="profile__qr-section-inner">
           <p class="profile__qr-section-text">{{ user.qr_message }}</p>
           <div class="profile__qr-frame">
-            <img v-if="qrDataUrl" :src="qrDataUrl" alt="QR-код пропуска" class="profile__qr-image" />
+            <img
+              v-if="qrDataUrl"
+              :src="qrDataUrl"
+              alt="QR-код пропуска"
+              class="profile__qr-image"
+            />
           </div>
         </div>
       </div>
@@ -376,6 +392,14 @@
 
           <div class="profile__pagination" v-if="bookingsStore.lastPage > 1">
             <button
+              class="profile__page-btn profile__page-btn--arrow"
+              :disabled="bookingsStore.currentPage === 1"
+              @click="bookingsStore.setPage(bookingsStore.currentPage - 1)"
+            >
+              <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
+            </button>
+
+            <button
               v-for="page in bookingsStore.lastPage"
               :key="page"
               @click="bookingsStore.setPage(page)"
@@ -383,13 +407,19 @@
             >
               {{ page }}
             </button>
+
+            <button
+              class="profile__page-btn profile__page-btn--arrow"
+              :disabled="bookingsStore.currentPage === bookingsStore.lastPage"
+              @click="bookingsStore.setPage(bookingsStore.currentPage + 1)"
+            >
+              <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
+            </button>
           </div>
         </div>
 
         <div v-if="activeTab === 1" class="profile__bottom-content">
-          <div v-if="favoritesStore.isLoading" class="profile__loading">
-            Загрузка...
-          </div>
+          <div v-if="favoritesStore.isLoading" class="profile__loading">Загрузка...</div>
 
           <div v-else-if="!favoritesStore.favorites.length" class="profile__placeholder-card">
             <p>У вас нет избранных помещений</p>
@@ -399,11 +429,7 @@
           </div>
 
           <div v-else class="profile__favorites-grid">
-            <PlaceCard
-              v-for="place in favoritesStore.favorites"
-              :key="place.id"
-              :place="place"
-            />
+            <PlaceCard v-for="place in favoritesStore.favorites" :key="place.id" :place="place" />
           </div>
         </div>
 
@@ -423,11 +449,7 @@
           </div>
 
           <div v-else class="profile__services-grid">
-            <ServiceRequestCard
-              v-for="service in services"
-              :key="service.id"
-              :service="service"
-            />
+            <ServiceRequestCard v-for="service in services" :key="service.id" :service="service" />
           </div>
 
           <div v-if="totalPages > 1 && !isLoading" class="profile__services-pagination">
@@ -483,7 +505,8 @@
 
   .profile {
     min-height: 100vh;
-    padding: 4rem 2rem;
+    padding: 2.5rem 2rem 4rem;
+    background: $color-bg;
 
     &__wrapper {
       @include container;
@@ -497,9 +520,9 @@
       grid-template-columns: 30% 1fr;
       gap: 2rem;
       padding: 2rem 3rem;
-      background: $color-footer-bg;
-      border-radius: $radius-sm;
-      border: 1px solid $color-text;
+      background: $color-header-bg;
+      border-radius: 1.25rem; // 20px
+      border: none;
     }
 
     &__avatar-col {
@@ -509,12 +532,20 @@
       gap: 1rem;
     }
 
+    &__right-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
     &__avatar-wrapper {
-      width: 150px;
-      height: 150px;
+      width: 300px;
+      height: 300px;
       border-radius: 50%;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: none;
     }
 
     &__avatar {
@@ -524,13 +555,27 @@
     }
 
     &__upload-btn {
-      padding: 0.5rem 1rem;
-      border-radius: $radius-sm;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 0.55rem 1.2rem;
+      border-radius: 0.625rem; // 10px
       border: 1px solid $color-border;
-      background: $color-input-bg;
-      font-size: $text-sm;
-      cursor: not-allowed;
-      opacity: 0.6;
+      background: rgba(230, 242, 250, 0.7);
+      font-size: $text-base;
+      cursor: pointer;
+      opacity: 1;
+      transition: all 0.2s ease;
+
+      img {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      &:hover {
+        background: rgba(209, 223, 232, 0.95);
+      }
     }
 
     &__form-col {
@@ -545,6 +590,7 @@
       font-weight: 500;
       margin-bottom: 1rem;
       color: $color-text;
+      text-align: left;
     }
 
     &__fields {
@@ -560,24 +606,25 @@
 
     &__label {
       font-size: $text-sm;
-      color: $color-text;
+      color: rgba($color-text, 0.5);
       margin-bottom: 0.25rem;
       display: block;
     }
 
     &__input {
-      padding: 0.875rem 1.25rem;
-      border: 1px solid $color-border;
-      border-radius: $radius-sm;
-      background: $color-input-bg;
+      padding: 0.25rem 0;
+      border: none;
+      border-bottom: 1px solid rgba($color-border, 0.6);
+      border-radius: 0;
+      background: transparent;
       font-size: $text-base;
-      min-height: 3.5rem;
+      min-height: unset;
       width: 100%;
       outline: none;
       transition: 0.2s;
 
       &:focus {
-        background: $color-input-bg-dark;
+        background: transparent;
       }
 
       &[readonly] {
@@ -587,16 +634,18 @@
     }
 
     &__qr-section {
-      background: $color-footer-bg;
-      border-radius: $radius-sm;
+      width: 80%;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 1.25rem; // 20px
       border: 1px solid $color-text;
-      padding: 1.5rem 3rem;
+      padding: 1.25rem 2.5rem;
     }
 
     &__qr-section-inner {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       gap: 2rem;
     }
 
@@ -611,9 +660,9 @@
     &__qr-frame {
       width: 150px;
       height: 150px;
-      border: 2px solid $color-border;
+      border: 2px solid $color-footer-bg;
       border-radius: $radius-sm;
-      background: white;
+      background: rgba(230, 242, 250, 0.7);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -633,11 +682,10 @@
     }
 
     &__actions {
-      grid-column: 1 / -1;
       display: flex;
-      gap: 1rem;
-      justify-content: center;
-      margin-top: 1rem;
+      gap: 1.25rem;
+      justify-content: flex-start;
+      margin-top: 0.75rem;
     }
 
     &__error {
@@ -648,26 +696,28 @@
     }
 
     &__btn {
-      padding: 0.5rem 4rem;
-      border-radius: $radius-sm;
+      width: 180px;
+      padding: 0.55rem 0;
+      border-radius: 0.625rem; // 10px
       font-size: $text-base;
       font-weight: 500;
       transition: all 0.3s ease;
       border: 1px solid $color-border;
-      background: $color-input-bg;
+      background: rgba(230, 242, 250, 0.7);
       color: $color-text;
       cursor: pointer;
       text-decoration: none;
       text-align: center;
 
       &:hover {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        transform: translateY(-2px);
+        box-shadow: none;
+        transform: none;
+        background: rgba(209, 223, 232, 0.95);
       }
 
       &:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        transform: none;
+        box-shadow: none;
       }
 
       &:disabled {
@@ -693,68 +743,65 @@
 
     &__tabs {
       display: flex;
-      justify-content: center;
-      gap: 0;
-      margin-bottom: 2rem;
+      justify-content: flex-start;
+      gap: 0.9rem;
+      max-width: 1100px;
+      margin: 0 auto 1.25rem;
     }
 
     &__tab {
-      padding: 0.75rem 2.5rem;
+      width: 210px;
+      height: 42px;
+      padding: 0;
       border: 1px solid $color-border;
-      background: $color-input-bg;
-      font-size: $text-base;
+      background: rgba(230, 242, 250, 0.7);
+      border-radius: 0.625rem; // 10px
+      font-size: 1.125rem; // 18px
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
       white-space: nowrap;
-
-      &:first-child {
-        border-radius: $radius-sm 0 0 $radius-sm;
-      }
-
-      &:last-child {
-        border-radius: 0 $radius-sm $radius-sm 0;
-      }
-
-      &:not(:first-child) {
-        border-left: none;
-      }
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       &:hover {
-        background: $color-input-bg-dark;
+        background: rgba(209, 223, 232, 0.95);
       }
 
       &--active {
-        background: $color-header-bg;
-        font-weight: 600;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        box-shadow: $button-shadow;
       }
     }
 
     &__place-filter {
       display: flex;
       justify-content: center;
-      gap: 0.75rem;
+      gap: 0.9rem;
+      flex-wrap: wrap;
       margin-bottom: 2rem;
+      width: 100%;
     }
 
     &__place-filter-btn {
-      padding: 0.4rem 1.5rem;
-      border-radius: $radius-sm;
+      width: 200px;
+      height: 42px;
+      padding: 0;
+      border-radius: 0.625rem;
       border: 1px solid $color-border;
-      background: $color-input-bg;
-      font-size: $text-sm;
+      background: none;
+      font-size: 1.125rem;
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       &:hover {
-        background: $color-input-bg-dark;
+        background: rgba(255, 255, 255, 0.7);
       }
-
       &--active {
-        background: $color-header-bg;
-        font-weight: 600;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        background: rgba(255, 255, 255, 0.7);
       }
     }
 
@@ -766,7 +813,8 @@
     }
 
     &__placeholder-card {
-      width: 60%;
+      width: 100%;
+      max-width: 680px;
       padding: 2rem;
       background: $color-card-bg;
       border-radius: $radius-lg;
@@ -798,18 +846,19 @@
     &__bookings {
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: flex-start;
       width: 100%;
     }
 
     &__booking-group {
-      width: 60%;
+      width: 100%;
+      max-width: 1100px;
       margin-bottom: 1.5rem;
     }
 
     &__booking-date {
-      font-size: $text-base;
-      font-weight: 500;
+      font-size: 1.5rem; // 24px
+      font-weight: 400;
       color: $color-text;
       margin-bottom: 1rem;
     }
@@ -826,13 +875,27 @@
     }
 
     &__page-btn {
-      padding: 0.5rem 1rem;
-      border-radius: $radius-sm;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: 0.625rem; // 10px
       border: 1px solid $color-border;
-      background: $color-input-bg;
+      background: rgba(230, 242, 250, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem; // 20px
+      font-weight: 500;
 
       &.active {
-        background: white;
+        background: rgba(124, 143, 160, 0.5);
+      }
+
+      &--arrow {
+        img {
+          width: 1.6rem;
+          height: 1.6rem;
+        }
       }
     }
 
