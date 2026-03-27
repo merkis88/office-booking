@@ -18,7 +18,8 @@ class _SplashScreenState extends State<SplashScreen>
   static const _interval = Duration(seconds: 2);
   static const _letterInterval = Duration(milliseconds: 300);
   static const _startDelay = Duration(milliseconds: 900);
-  static const _logoText = 'Рабочая Точка.';
+  static const _logoText = 'Рабочая точка.';
+  static const _logoAsset = 'assets/images/logo/app_logo.png';
 
   final List<String> _allPhrases = const [
     'Вы красивы',
@@ -49,15 +50,21 @@ class _SplashScreenState extends State<SplashScreen>
     )..value = 0;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       Future.delayed(_startDelay, () {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         _logoController.forward(from: 0);
       });
     });
 
     _timer = Timer.periodic(_interval, (_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() => _index = (_index + 1) % _selected3.length);
     });
 
@@ -105,13 +112,19 @@ class _SplashScreenState extends State<SplashScreen>
         child: Stack(
           children: [
             Center(
-              child: Hero(
-                tag: 'app_logo',
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: _AnimatedText(
-                    controller: _logoController,
-                    text: _logoText,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Hero(
+                    tag: 'app_logo',
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: _AnimatedLogo(
+                        controller: _logoController,
+                        text: _logoText,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -129,6 +142,7 @@ class _SplashScreenState extends State<SplashScreen>
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
+                      color: Colors.black87,
                     ),
                   ),
                 ),
@@ -141,8 +155,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-class _AnimatedText extends StatelessWidget {
-  const _AnimatedText({
+class _AnimatedLogo extends StatelessWidget {
+  const _AnimatedLogo({
     required this.controller,
     required this.text,
   });
@@ -160,30 +174,43 @@ class _AnimatedText extends StatelessWidget {
       builder: (_, _) {
         return Row(
           mainAxisSize: MainAxisSize.min,
-          children: List.generate(total, (index) {
-            final start = index / total;
-            final end = (index + 1) / total;
-            final t = ((controller.value - start) / (end - start))
-                .clamp(0, 1)
-                .toDouble();
-            final opacity = Curves.easeOut.transform(t);
-            final dy = (1 - opacity) * 6;
+          children: [
+            Image.asset(
+              _SplashScreenState._logoAsset,
+              width: 116,
+              height: 116,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 18),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(total, (index) {
+                final start = index / total;
+                final end = (index + 1) / total;
+                final t = ((controller.value - start) / (end - start))
+                    .clamp(0, 1)
+                    .toDouble();
+                final opacity = Curves.easeOut.transform(t);
+                final dy = (1 - opacity) * 6;
 
-            return Opacity(
-              opacity: opacity,
-              child: Transform.translate(
-                offset: Offset(0, dy),
-                child: Text(
-                  letters[index],
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                return Opacity(
+                  opacity: opacity,
+                  child: Transform.translate(
+                    offset: Offset(0, dy),
+                    child: Text(
+                      letters[index],
+                      style: const TextStyle(
+                        fontFamily: 'SpectralSC',
+                        fontSize: 30,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black87,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            );
-          }),
+                );
+              }),
+            ),
+          ],
         );
       },
     );

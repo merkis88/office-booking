@@ -38,9 +38,7 @@ class RequestBookingsResponseModel {
 
     return RequestBookingOption(
       id: id,
-      placeName: item['place_name']?.toString().trim().isNotEmpty == true
-          ? item['place_name'].toString().trim()
-          : 'Бронирование',
+      placeName: _resolvePlaceName(item),
       dateLabel: _formatDateLabel(rawDate),
       timeLabel: rawTime,
       serviceDate: serviceDate,
@@ -49,8 +47,19 @@ class RequestBookingsResponseModel {
   }
 
   static int? _parseInt(Object? value) {
-    if (value is int) return value;
+    if (value is int) {
+      return value;
+    }
     return int.tryParse(value?.toString() ?? '');
+  }
+
+  static String _resolvePlaceName(Map<String, dynamic> item) {
+    final placeName = item['place_name']?.toString().trim();
+    if (placeName != null && placeName.isNotEmpty) {
+      return placeName;
+    }
+
+    return 'Бронирование';
   }
 
   static String? _formatServiceDate(String rawDate) {

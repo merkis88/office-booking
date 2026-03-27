@@ -64,6 +64,8 @@ flutter:
     - assets/fonts/
     - assets/icons/
     - assets/images/
+    - assets/images/logo/
+    - assets/images/logo/app_logo.png
     - assets/images/passes/
 
   fonts:
@@ -78,6 +80,10 @@ flutter:
     - family: Unbounded
       fonts:
         - asset: assets/fonts/Unbounded-Regular.ttf
+          weight: 400
+    - family: SpectralSC
+      fonts:
+        - asset: assets/fonts/SpectralSC-Regular.ttf
           weight: 400
 
   # The following line ensures that the Material Icons font is

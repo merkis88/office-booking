@@ -10,21 +10,27 @@ class PassConfirmationModal {
   static const String _confirmLabel = 'Подтвердить';
   static const String _cancelLabel = 'Отмена';
 
-  static Future<void> show(
+  static Future<bool> show(
     BuildContext context, {
+    String? booking,
     String? email,
   }) async {
     final lines = <String>[
+      if (booking != null && booking.trim().isNotEmpty) booking.trim(),
       if (email != null && email.trim().isNotEmpty) email.trim(),
     ];
 
-    await AppConfirmationDialog.show<void>(
+    final confirmed = await AppConfirmationDialog.show<bool>(
       context,
       title: _title,
       message: _message,
       details: lines,
       confirmLabel: _confirmLabel,
       cancelLabel: _cancelLabel,
+      confirmResult: true,
+      cancelResult: false,
     );
+
+    return confirmed ?? false;
   }
 }

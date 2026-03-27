@@ -61,4 +61,26 @@ class RentalsRepositoryImpl implements RentalsRepository {
   Future<void> archivePlace({required int placeId}) {
     return _dataSource.archivePlace(placeId: placeId);
   }
+
+  @override
+  Future<void> createGuestQr({
+    required int bookingId,
+    required String recipientEmail,
+  }) {
+    return _dataSource.createGuestQr(
+      bookingId: bookingId,
+      recipientEmail: recipientEmail,
+    );
+  }
+
+  @override
+  Future<void> createUserQr({
+    required int bookingId,
+    required String email,
+  }) {
+    return _dataSource.createUserQr(
+      bookingId: bookingId,
+      email: email,
+    );
+  }
 }

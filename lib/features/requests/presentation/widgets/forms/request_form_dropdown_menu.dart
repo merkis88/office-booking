@@ -51,15 +51,15 @@ class RequestBookingDropdownMenu extends StatelessWidget {
     super.key,
     required this.items,
     required this.onSelect,
-    required this.height,
   });
 
   final List<RequestBookingOption> items;
   final ValueChanged<RequestBookingOption> onSelect;
-  final double height;
 
   @override
   Widget build(BuildContext context) {
+    final height = _menuHeight(items.length);
+
     return Container(
       height: height,
       decoration: const BoxDecoration(
@@ -89,5 +89,18 @@ class RequestBookingDropdownMenu extends StatelessWidget {
         },
       ),
     );
+  }
+
+  double _menuHeight(int itemCount) {
+    if (itemCount <= 0) {
+      return 0;
+    }
+    if (itemCount == 1) {
+      return 56;
+    }
+    if (itemCount == 2) {
+      return 98;
+    }
+    return 132;
   }
 }

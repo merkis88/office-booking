@@ -50,6 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   int _selectedBottomIndex = _tabIndex;
   int _carouselIndex = 0;
+  int _rentalTypeFilterIndex = 0;
   bool _isLoading = true;
   bool _hasLoadedOnce = false;
   bool _isUploadingAvatar = false;
@@ -445,6 +446,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return _activityFilters[_carouselIndex];
   }
 
+  List<RentalHistoryItem> _filterRentalsByType(List<RentalHistoryItem> items) {
+    if (_rentalTypeFilterIndex == 0) {
+      return items;
+    }
+
+    String? expectedType;
+    switch (_rentalTypeFilterIndex) {
+      case 1:
+        expectedType = 'meeting';
+        break;
+      case 2:
+        expectedType = 'coworking';
+        break;
+      case 3:
+        expectedType = 'office';
+        break;
+    }
+
+    if (expectedType == null) {
+      return items;
+    }
+
+    return items.where((item) {
+      final rawType = item.placeType?.trim().toLowerCase();
+      if (rawType == null || rawType.isEmpty) {
+        return false;
+      }
+
+      if (expectedType == 'meeting') {
+        return rawType == 'meeting' || rawType == 'meeting_room';
+      }
+
+      return rawType == expectedType;
+    }).toList();
+  }
+
   void _showPassQr() {
     final user = _user;
     if (user == null) {
@@ -533,9 +570,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       carouselItems: _carouselItems,
       carouselIndex: _carouselIndex,
       onCarouselChanged: (index) => setState(() => _carouselIndex = index),
+      rentalTypeFilterIndex: _rentalTypeFilterIndex,
+      onRentalTypeFilterChanged: (index) =>
+          setState(() => _rentalTypeFilterIndex = index),
       selectedActivityFilter: _selectedActivityFilter,
-      rentalsOverview: _rentalsOverview,
-      favoriteRentals: _favoriteRentals,
+      rentalsOverview: ProfileRentalsOverview(
+        activeRentals: _filterRentalsByType(_rentalsOverview.activeRentals),
+        rentalHistory: _filterRentalsByType(_rentalsOverview.rentalHistory),
+      ),
+      favoriteRentals: _filterRentalsByType(_favoriteRentals),
       requests: _requests,
       onShowPassQr: _showPassQr,
       onCancelRental: _cancelRental,
@@ -571,6 +614,8 @@ class _ProfileContent extends StatelessWidget {
     required this.carouselItems,
     required this.carouselIndex,
     required this.onCarouselChanged,
+    required this.rentalTypeFilterIndex,
+    required this.onRentalTypeFilterChanged,
     required this.selectedActivityFilter,
     required this.rentalsOverview,
     required this.favoriteRentals,
@@ -592,6 +637,8 @@ class _ProfileContent extends StatelessWidget {
   final List<String> carouselItems;
   final int carouselIndex;
   final ValueChanged<int> onCarouselChanged;
+  final int rentalTypeFilterIndex;
+  final ValueChanged<int> onRentalTypeFilterChanged;
   final ProfileActivityFilter selectedActivityFilter;
   final ProfileRentalsOverview rentalsOverview;
   final List<RentalHistoryItem> favoriteRentals;
@@ -633,6 +680,8 @@ class _ProfileContent extends StatelessWidget {
           items: carouselItems,
           carouselIndex: carouselIndex,
           onChanged: onCarouselChanged,
+          rentalTypeFilterIndex: rentalTypeFilterIndex,
+          onRentalTypeFilterChanged: onRentalTypeFilterChanged,
         ),
         const SizedBox(height: 30),
         _NarrowCard(
@@ -660,11 +709,15 @@ class _ProfileActivityControls extends StatelessWidget {
     required this.items,
     required this.carouselIndex,
     required this.onChanged,
+    required this.rentalTypeFilterIndex,
+    required this.onRentalTypeFilterChanged,
   });
 
   final List<String> items;
   final int carouselIndex;
   final ValueChanged<int> onChanged;
+  final int rentalTypeFilterIndex;
+  final ValueChanged<int> onRentalTypeFilterChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -680,7 +733,12 @@ class _ProfileActivityControls extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 26),
-        const _NarrowCard(child: ProfileRentalTypeFilters()),
+        _NarrowCard(
+          child: ProfileRentalTypeFilters(
+            selectedIndex: rentalTypeFilterIndex,
+            onChanged: onRentalTypeFilterChanged,
+          ),
+        ),
       ],
     );
   }

@@ -99,7 +99,6 @@ class _PassesScreenState extends State<PassesScreen> {
                         maxLines: 2,
                         style: TextStyle(
                           fontSize: 14,
-                          
                           color: Colors.black54,
                         ),
                       ),

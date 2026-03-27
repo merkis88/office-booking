@@ -468,7 +468,6 @@ class _RequestBookingSection extends StatelessWidget {
           RequestBookingDropdownMenu(
             items: items,
             onSelect: onSelect,
-            height: 132,
           ),
       ],
     );

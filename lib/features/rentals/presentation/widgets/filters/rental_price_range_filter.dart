@@ -30,7 +30,15 @@ class _RentalPriceRangeFilterState extends State<RentalPriceRangeFilter> {
   late final FocusNode _startFocusNode;
   late final FocusNode _endFocusNode;
 
-  double get _step => 1000;
+  double get _step {
+    final range = widget.max - widget.min;
+    if (range <= 0) {
+      return 0;
+    }
+
+    final percentStep = range * 0.05;
+    return percentStep < 1 ? 1 : percentStep.roundToDouble();
+  }
 
   @override
   void initState() {

@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:wordpice/app/app_session.dart';
 import 'package:wordpice/core/config/app_api_config.dart';
@@ -44,7 +44,9 @@ class RentalsRemoteDataSource implements RentalsDataSource {
           ),
         );
       } on ApiConnectionException catch (error) {
-        if (attempt == _maxAttempts || !_shouldRetry(error.message)) rethrow;
+        if (attempt == _maxAttempts || !_shouldRetry(error.message)) {
+          rethrow;
+        }
         await Future<void>.delayed(Duration(milliseconds: 400 * attempt));
       }
     }
@@ -100,7 +102,9 @@ class RentalsRemoteDataSource implements RentalsDataSource {
           ),
         );
       } on ApiConnectionException catch (error) {
-        if (attempt == _maxAttempts || !_shouldRetry(error.message)) rethrow;
+        if (attempt == _maxAttempts || !_shouldRetry(error.message)) {
+          rethrow;
+        }
         await Future<void>.delayed(Duration(milliseconds: 400 * attempt));
       }
     }
@@ -160,9 +164,81 @@ class RentalsRemoteDataSource implements RentalsDataSource {
       }
     }
 
-    throw const ApiConnectionException(
-      'Не удалось отправить помещение в архив.',
-    );
+    throw const ApiConnectionException('Не удалось отправить помещение в архив.');
+  }
+
+  @override
+  Future<void> createGuestQr({
+    required int bookingId,
+    required String recipientEmail,
+  }) async {
+    for (var attempt = 1; attempt <= _maxAttempts; attempt++) {
+      try {
+        final response = await _apiClient.postJson(
+          '/qr/$bookingId/guest-qr',
+          body: <String, dynamic>{
+            'recipient_email': recipientEmail,
+          },
+          headers: _authorizationHeaders(),
+        );
+
+        final statusCode = response['statusCode'] as int? ?? 500;
+        if (statusCode >= 200 && statusCode < 300) {
+          return;
+        }
+
+        throw ApiConnectionException(
+          _extractErrorMessage(
+            response,
+            fallbackMessage: 'Не удалось выдать гостевой пропуск.',
+          ),
+        );
+      } on ApiConnectionException catch (error) {
+        if (attempt == _maxAttempts || !_shouldRetry(error.message)) {
+          rethrow;
+        }
+        await Future<void>.delayed(Duration(milliseconds: 400 * attempt));
+      }
+    }
+
+    throw const ApiConnectionException('Не удалось выдать гостевой пропуск.');
+  }
+
+  @override
+  Future<void> createUserQr({
+    required int bookingId,
+    required String email,
+  }) async {
+    for (var attempt = 1; attempt <= _maxAttempts; attempt++) {
+      try {
+        final response = await _apiClient.postJson(
+          '/qr/$bookingId/user-qr',
+          body: <String, dynamic>{
+            'email': email,
+          },
+          headers: _authorizationHeaders(),
+        );
+
+        final statusCode = response['statusCode'] as int? ?? 500;
+        if (statusCode >= 200 && statusCode < 300) {
+          return;
+        }
+
+        throw ApiConnectionException(
+          _extractErrorMessage(
+            response,
+            fallbackMessage: 'Не удалось выдать пропуск сотруднику.',
+          ),
+        );
+      } on ApiConnectionException catch (error) {
+        if (attempt == _maxAttempts || !_shouldRetry(error.message)) {
+          rethrow;
+        }
+        await Future<void>.delayed(Duration(milliseconds: 400 * attempt));
+      }
+    }
+
+    throw const ApiConnectionException('Не удалось выдать пропуск сотруднику.');
   }
 
   Future<void> _runFavoriteRequest(
@@ -181,7 +257,9 @@ class RentalsRemoteDataSource implements RentalsDataSource {
           _extractErrorMessage(response, fallbackMessage: fallbackMessage),
         );
       } on ApiConnectionException catch (error) {
-        if (attempt == _maxAttempts || !_shouldRetry(error.message)) rethrow;
+        if (attempt == _maxAttempts || !_shouldRetry(error.message)) {
+          rethrow;
+        }
         await Future<void>.delayed(Duration(milliseconds: 400 * attempt));
       }
     }
@@ -191,7 +269,9 @@ class RentalsRemoteDataSource implements RentalsDataSource {
 
   Map<String, String>? _authorizationHeaders() {
     final token = _appSession.token;
-    if (token == null || token.isEmpty) return null;
+    if (token == null || token.isEmpty) {
+      return null;
+    }
     return <String, String>{'Authorization': 'Bearer $token'};
   }
 

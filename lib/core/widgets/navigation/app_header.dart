@@ -31,9 +31,16 @@ class AppHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const SplashLogo(),
+          const Expanded(
+            child: SplashLogo(
+              imageSize: 60,
+              spacing: 4,
+              fontSize: 20,
+              scaleDown: false,
+            ),
+          ),
           if (showActions) ...[
-            const Spacer(),
+            const SizedBox(width: 12),
             SizedBox(
               height: 34,
               child: OutlinedButton(
@@ -68,17 +75,17 @@ class AppHeader extends StatelessWidget {
                   children: [
                     SvgPicture.asset(
                       'assets/icons/notification.svg',
-                      width: 30,
-                      height: 30,
+                      width: 36,
+                      height: 36,
                       colorFilter: const ColorFilter.mode(AppColors.textPrimary, BlendMode.srcIn),
                     ),
                     if (notificationCount > 0)
                       Positioned(
-                        top: 4,
+                        top: 2,
                         right: 4,
                         child: Container(
-                          width: 18,
-                          height: 18,
+                          width: 20,
+                          height: 20,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: AppColors.controlGrey,
@@ -88,7 +95,7 @@ class AppHeader extends StatelessWidget {
                           child: Text(
                             '$notificationCount',
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textPrimary,
                             ),

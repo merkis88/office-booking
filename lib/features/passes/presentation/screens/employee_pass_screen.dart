@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/app/navigation/app_tab_navigator.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
 import 'package:wordpice/core/widgets/layout/app_shell.dart';
+import 'package:wordpice/features/auth/data/datasources/auth_data_source.dart';
 import 'package:wordpice/features/passes/presentation/widgets/forms/pass_form_widgets.dart';
 import 'package:wordpice/features/passes/presentation/widgets/modals/pass_confirmation_modal.dart';
 import 'package:wordpice/features/passes/presentation/widgets/styles/pass_form_styles.dart';
+import 'package:wordpice/features/requests/domain/entities/request_booking_option.dart';
+import 'package:wordpice/features/requests/presentation/widgets/forms/request_form_dropdown_menu.dart';
 
 class EmployeePassScreen extends StatefulWidget {
   const EmployeePassScreen({super.key});
@@ -19,7 +23,14 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
   final int _selectedBottomIndex = _tabIndex;
   final TextEditingController _emailController = TextEditingController();
 
-  void _onAnyFieldChanged() => setState(() {});
+  RequestBookingOption? _selectedBooking;
+  List<RequestBookingOption> _bookingOptions = const <RequestBookingOption>[];
+  bool _isLoadingBookings = true;
+  bool _hasLoadedBookings = false;
+  bool _isBookingMenuOpen = false;
+  bool _isSubmitting = false;
+  String? _bookingsError;
+  String? _emailError;
 
   @override
   void initState() {
@@ -27,18 +38,174 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
     _emailController.addListener(_onAnyFieldChanged);
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedBookings) {
+      return;
+    }
+    _hasLoadedBookings = true;
+    _loadBookings();
+  }
+
+  void _onAnyFieldChanged() {
+    if (_emailError == null) {
+      setState(() {});
+      return;
+    }
+
+    setState(() {
+      _emailError = null;
+    });
+  }
+
   void _onBottomChanged(int index) {
     AppTabNavigator.goToTab(context, index);
   }
 
-  Future<void> _showPurchaseModal() {
-    return PassConfirmationModal.show(
-      context,
-      email: _emailController.text.trim(),
-    );
+  Future<void> _loadBookings() async {
+    setState(() {
+      _isLoadingBookings = true;
+      _bookingsError = null;
+    });
+
+    try {
+      final bookings = await AppScope.of(context).requestsRepository
+          .getMyBookings();
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _bookingOptions = bookings;
+        _isLoadingBookings = false;
+
+        if (_selectedBooking != null) {
+          final selectedId = _selectedBooking!.id;
+          _selectedBooking = bookings.cast<RequestBookingOption?>().firstWhere(
+                (item) => item?.id == selectedId,
+                orElse: () => null,
+              );
+        }
+      });
+    } on AuthRequestException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isLoadingBookings = false;
+        _bookingsError = error.message;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isLoadingBookings = false;
+        _bookingsError = 'Не удалось загрузить бронирования.';
+      });
+    }
   }
 
-  bool get _canBuyPass => _emailController.text.trim().isNotEmpty;
+  void _toggleBookingMenu() {
+    if (_isLoadingBookings || _bookingOptions.isEmpty) {
+      if (_bookingsError != null) {
+        _loadBookings();
+      }
+      return;
+    }
+
+    setState(() {
+      _isBookingMenuOpen = !_isBookingMenuOpen;
+    });
+  }
+
+  void _selectBooking(RequestBookingOption booking) {
+    setState(() {
+      _selectedBooking = booking;
+      _isBookingMenuOpen = false;
+    });
+  }
+
+  Future<void> _showPurchaseModal() async {
+    final selectedBooking = _selectedBooking;
+    final email = _emailController.text.trim();
+    if (selectedBooking == null || email.isEmpty) {
+      return;
+    }
+
+    final confirmed = await PassConfirmationModal.show(
+      context,
+      booking: selectedBooking.displayText,
+      email: email,
+    );
+    if (!confirmed || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _emailError = null;
+    });
+
+    try {
+      await AppScope.of(context).rentalsRepository.createUserQr(
+        bookingId: selectedBooking.id,
+        email: email,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isSubmitting = false;
+        _selectedBooking = null;
+        _isBookingMenuOpen = false;
+        _emailError = null;
+      });
+      _emailController.clear();
+    } on AuthRequestException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isSubmitting = false;
+        _emailError = error.message;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isSubmitting = false;
+        _emailError = error.toString().trim().isNotEmpty
+            ? error.toString()
+            : 'Не удалось выдать пропуск сотруднику.';
+      });
+    }
+  }
+
+  String get _bookingText {
+    if (_selectedBooking != null) {
+      return _selectedBooking!.displayText;
+    }
+    if (_isLoadingBookings) {
+      return 'Загрузка бронирований...';
+    }
+    if (_bookingsError != null) {
+      return 'Не удалось загрузить бронирования';
+    }
+    if (_bookingOptions.isEmpty) {
+      return 'Нет активных бронирований';
+    }
+    return 'Выберите бронирование';
+  }
+
+  bool get _canBuyPass =>
+      !_isSubmitting &&
+      _selectedBooking != null &&
+      _emailController.text.trim().isNotEmpty;
 
   @override
   void dispose() {
@@ -54,47 +221,60 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
       onBottomChanged: _onBottomChanged,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          return SingleChildScrollView(
+          return Padding(
             padding: const EdgeInsets.fromLTRB(20, 46, 20, 0),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: IntrinsicHeight(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const _EmployeePassHeader(),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-                      decoration: BoxDecoration(
-                        color: AppColors.formBlockBackground,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: _EmployeePassField(
-                        label: 'Эл.почта*',
-                        hint: 'Введите электронную почту',
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                      ),
+            child: SizedBox(
+              height: constraints.maxHeight,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const _EmployeePassHeader(),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+                    decoration: BoxDecoration(
+                      color: AppColors.formBlockBackground,
+                      borderRadius: BorderRadius.circular(18),
                     ),
-                    const SizedBox(height: 30),
-                    PassSubmitButton(
-                      text: 'Купить пропуск',
-                      onPressed: _canBuyPass ? _showPurchaseModal : null,
-                    ),
-                    const Spacer(),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 36),
-                      child: SizedBox(
-                        width: 340,
-                        child: Image.asset(
-                          'assets/images/passes/employerPasses.png',
-                          fit: BoxFit.contain,
+                    child: Column(
+                      children: [
+                        _BookingSelectorSection(
+                          label: 'Список бронирований*',
+                          value: _bookingText,
+                          isOpen: _isBookingMenuOpen,
+                          items: _bookingOptions,
+                          onTap: _toggleBookingMenu,
+                          onSelect: _selectBooking,
+                          errorText: _bookingsError,
+                          onRetry: _loadBookings,
                         ),
+                        const SizedBox(height: 18),
+                        _EmployeePassField(
+                          label: 'Эл.почта*',
+                          hint: 'Введите электронную почту',
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          errorText: _emailError,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  PassSubmitButton(
+                    text: _isSubmitting ? 'Отправка...' : 'Выдать пропуск',
+                    onPressed: _canBuyPass ? _showPurchaseModal : null,
+                  ),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Image.asset(
+                        'assets/images/passes/employerPasses.png',
+                        width: 300,
+                        fit: BoxFit.contain,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           );
@@ -110,7 +290,7 @@ class _EmployeePassHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Padding(
-      padding: EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.only(bottom: 14),
       child: SizedBox(
         width: double.infinity,
         child: Text(
@@ -128,12 +308,14 @@ class _EmployeePassField extends StatelessWidget {
     required this.label,
     required this.hint,
     required this.controller,
+    required this.errorText,
     this.keyboardType,
   });
 
   final String label;
   final String hint;
   final TextEditingController controller;
+  final String? errorText;
   final TextInputType? keyboardType;
 
   @override
@@ -147,6 +329,71 @@ class _EmployeePassField extends StatelessWidget {
           hint: hint,
           keyboardType: keyboardType,
         ),
+        if (errorText != null) ...[
+          const SizedBox(height: 8),
+          PassFieldErrorText(errorText!),
+        ],
+      ],
+    );
+  }
+}
+
+class _BookingSelectorSection extends StatelessWidget {
+  const _BookingSelectorSection({
+    required this.label,
+    required this.value,
+    required this.isOpen,
+    required this.items,
+    required this.onTap,
+    required this.onSelect,
+    required this.errorText,
+    required this.onRetry,
+  });
+
+  final String label;
+  final String value;
+  final bool isOpen;
+  final List<RequestBookingOption> items;
+  final VoidCallback onTap;
+  final ValueChanged<RequestBookingOption> onSelect;
+  final String? errorText;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(width: double.infinity, child: PassFieldLabel(label)),
+        const SizedBox(height: 10),
+        PassInputField(
+          hint: value,
+          trailing: Icon(
+            isOpen
+                ? Icons.keyboard_arrow_up_rounded
+                : Icons.keyboard_arrow_down_rounded,
+            size: 26,
+          ),
+          onTap: onTap,
+          borderRadius: isOpen
+              ? const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                  bottom: Radius.zero,
+                )
+              : null,
+        ),
+        if (errorText != null && !isOpen) ...[
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: onRetry,
+            child: const Text('Повторить загрузку бронирований'),
+          ),
+        ],
+        if (isOpen)
+          RequestBookingDropdownMenu(
+            items: items,
+            onSelect: onSelect,
+          ),
       ],
     );
   }
