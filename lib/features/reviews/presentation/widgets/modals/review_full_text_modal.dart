@@ -25,10 +25,7 @@ class ReviewFullTextModal {
                     Expanded(
                       child: Text(
                         item.authorName,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: ReviewsStyles.cardTitle.copyWith(fontSize: 18),
                       ),
                     ),
                     InkWell(

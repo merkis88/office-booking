@@ -6,8 +6,9 @@ class FavoriteHeartToggle extends StatefulWidget {
     super.key,
     this.initialFilled = false,
     this.filled,
-    this.size = 24,
+    this.size = 27,
     this.filledColor = const Color(0xFFF06292),
+    this.outlinedColor = const Color(0xFF7C8FA0),
     this.onTap,
     this.isBusy = false,
   });
@@ -16,6 +17,7 @@ class FavoriteHeartToggle extends StatefulWidget {
   final bool? filled;
   final double size;
   final Color filledColor;
+  final Color outlinedColor;
   final VoidCallback? onTap;
   final bool isBusy;
 
@@ -71,7 +73,7 @@ class _FavoriteHeartToggleState extends State<FavoriteHeartToggle> {
             : Icon(
                 isFilled ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
                 size: widget.size,
-                color: isFilled ? widget.filledColor : Colors.black87,
+                color: isFilled ? widget.filledColor : widget.outlinedColor,
               ),
       ),
     );

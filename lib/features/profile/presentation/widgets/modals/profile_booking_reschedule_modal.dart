@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
+import 'package:wordpice/features/rentals/presentation/widgets/styles/rental_widget_styles.dart';
 
 class ProfileBookingRescheduleModal extends StatelessWidget {
   const ProfileBookingRescheduleModal({
@@ -53,7 +54,7 @@ class ProfileBookingRescheduleModal extends StatelessWidget {
                       'Перенос брони',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.w400,
                         color: AppColors.textPrimary,
                       ),
@@ -84,18 +85,20 @@ class ProfileBookingRescheduleModal extends StatelessWidget {
                   ),
                 )
               else
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 14,
-                  runSpacing: 12,
-                  children: availableSlots
-                      .map(
-                        (slot) => _SlotButton(
-                          text: slot,
-                          onTap: () => Navigator.of(context).pop(slot),
+                Column(
+                  children: [
+                    for (var i = 0; i < availableSlots.length; i++) ...[
+                      SizedBox(
+                        width: 190,
+                        child: _SlotButton(
+                          text: availableSlots[i],
+                          onTap: () => Navigator.of(context).pop(availableSlots[i]),
                         ),
-                      )
-                      .toList(),
+                      ),
+                      if (i != availableSlots.length - 1)
+                        const SizedBox(height: 10),
+                    ],
+                  ],
                 ),
             ],
           ),
@@ -144,25 +147,23 @@ class _SlotButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        width: 128,
-        height: 44,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: AppColors.formSurface,
-          border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w400,
-            color: AppColors.textPrimary,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          height: 35,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: RentalWidgetStyles.outlinedBox(
+            8,
+            color: AppColors.formSurface,
+          ),
+          child: Text(
+            text,
+            style: RentalWidgetStyles.chipText,
+            textAlign: TextAlign.center,
           ),
         ),
       ),

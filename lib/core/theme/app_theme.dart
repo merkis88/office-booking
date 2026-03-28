@@ -5,7 +5,10 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get light {
-    final base = ThemeData(useMaterial3: true);
+    final base = ThemeData(
+      useMaterial3: true,
+      fontFamily: 'Inter',
+    );
 
     return base.copyWith(
       scaffoldBackgroundColor: AppColors.screenBackground,

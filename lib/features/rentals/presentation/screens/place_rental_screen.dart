@@ -320,9 +320,11 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
     await _loadPlaces();
   }
 
-  Future<String?> _archivePlace(OfficeRentalItem item) async {
+  Future<String?> _archivePlace(OfficeRentalItem item, {bool force = false}) async {
     try {
-      await AppScope.of(context).rentalsRepository.archivePlace(placeId: item.id);
+      await AppScope.of(
+        context,
+      ).rentalsRepository.archivePlace(placeId: item.id, force: force);
       if (!mounted) {
         return null;
       }
@@ -335,12 +337,6 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
           _detailsLoadingPlaceId = null;
         }
       });
-
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('Помещение отправлено в архив.')),
-        );
       return null;
     } on ApiConnectionException catch (error) {
       return error.message;
@@ -415,20 +411,25 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
       selectedBottomIndex: _selectedBottomIndex,
       onBottomChanged: _onBottomChanged,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
+        padding: const EdgeInsets.fromLTRB(4, 20, 4, 28),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            RentalFilterControlsSection(
-              dateText: _dateText,
-              onPickDate: _pickDate,
-              priceRange: _priceRange,
-              minPrice: _minPrice,
-              maxPrice: _maxPrice,
-              onPriceChanged: (values) => setState(() => _priceRange = values),
-              onPriceChangeEnd: _applyPriceFilter,
-              formatPrice: _formatPrice,
-              dateLeftPadding: 10,
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 370),
+                child: RentalFilterControlsSection(
+                  dateText: _dateText,
+                  onPickDate: _pickDate,
+                  priceRange: _priceRange,
+                  minPrice: _minPrice,
+                  maxPrice: _maxPrice,
+                  onPriceChanged: (values) => setState(() => _priceRange = values),
+                  onPriceChangeEnd: _applyPriceFilter,
+                  formatPrice: _formatPrice,
+                  dateLeftPadding: 4,
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             if (_errorMessage != null)
@@ -456,7 +457,7 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
               for (final item in _items) ...[
                 Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 332),
+                    constraints: const BoxConstraints(maxWidth: 370),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -495,7 +496,8 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
                             onDetailsTap: () => _togglePlaceDetails(item),
                             showArchiveIcon: showArchiveIcon,
                             onArchiveTap: showArchiveIcon
-                                ? () => _archivePlace(item)
+                                ? ({bool force = false}) =>
+                                      _archivePlace(item, force: force)
                                 : null,
                           ),
                       ],

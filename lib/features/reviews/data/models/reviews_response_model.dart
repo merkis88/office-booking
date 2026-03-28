@@ -67,7 +67,7 @@ class ReviewItemModel {
       id: (json['id'] as num?)?.toInt() ?? 0,
       authorName: authorName.isEmpty ? 'Пользователь' : authorName,
       rating: (json['rating'] as num?)?.toInt() ?? 0,
-      dateText: (json['created_at'] as String?)?.trim() ?? '',
+      dateText: _extractDateOnly((json['created_at'] as String?)?.trim()),
       text: (json['text'] as String?)?.trim() ?? '',
       userId: userId,
       photo: _buildFileUrl(
@@ -112,4 +112,27 @@ class ReviewItemModel {
     final normalizedPath = trimmed.startsWith('/') ? trimmed : '/storage/$trimmed';
     return '${AppApiConfig.baseOrigin}$normalizedPath';
   }
+
+  static String _extractDateOnly(String? rawValue) {
+    final trimmed = rawValue?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return '';
+    }
+
+    final spacedParts = trimmed.split(' ');
+    if (spacedParts.isNotEmpty && spacedParts.first.contains('.')) {
+      return spacedParts.first;
+    }
+
+    final isoMatch = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(trimmed);
+    if (isoMatch != null) {
+      final year = isoMatch.group(1)!;
+      final month = isoMatch.group(2)!;
+      final day = isoMatch.group(3)!;
+      return '$day.$month.$year';
+    }
+
+    return trimmed;
+  }
 }
+

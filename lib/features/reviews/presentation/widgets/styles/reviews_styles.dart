@@ -4,9 +4,17 @@ import 'package:wordpice/core/theme/app_colors.dart';
 class ReviewsStyles {
   ReviewsStyles._();
 
-  static const cardTitle = TextStyle(fontSize: 20, fontWeight: FontWeight.w400);
+  static const cardTitle = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w400,
+    fontFamily: 'MontserratAlternates',
+  );
   static const cardDate = TextStyle(fontSize: 14, color: Colors.black87);
-  static const cardText = TextStyle(fontSize: 16);
+  static const cardText = TextStyle(
+    fontSize: 16,
+    height: 1.5,
+    fontFamily: 'Inter',
+  );
   static const readMore = TextStyle(
     fontSize: 13,
     color: Colors.black87,

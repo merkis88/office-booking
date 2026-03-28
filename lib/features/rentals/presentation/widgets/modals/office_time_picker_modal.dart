@@ -90,6 +90,11 @@ class _OfficeTimePickerModalState extends State<OfficeTimePickerModal> {
         _toHour = null;
         return;
       }
+      if (hour == _fromHour) {
+        _fromHour = null;
+        _toHour = null;
+        return;
+      }
       if (hour < _fromHour!) {
         _toHour = _fromHour;
         _fromHour = hour;
@@ -111,7 +116,8 @@ class _OfficeTimePickerModalState extends State<OfficeTimePickerModal> {
 
   @override
   Widget build(BuildContext context) {
-    final canSubmit = _fromHour != null && _toHour != null;
+    final canSubmit =
+        _fromHour != null && _toHour != null && _toHour! > _fromHour!;
 
     return Dialog(
       backgroundColor: AppColors.modalBackground,

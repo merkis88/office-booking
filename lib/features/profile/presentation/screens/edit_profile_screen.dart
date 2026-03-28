@@ -112,7 +112,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _fillControllers();
       });
 
-      Navigator.of(context).pop(updatedUser);
+      Navigator.of(context).pop(true);
     } catch (error) {
       if (!mounted) {
         return;

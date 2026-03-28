@@ -58,8 +58,11 @@ class RentalsRepositoryImpl implements RentalsRepository {
   }
 
   @override
-  Future<void> archivePlace({required int placeId}) {
-    return _dataSource.archivePlace(placeId: placeId);
+  Future<void> archivePlace({
+    required int placeId,
+    bool force = false,
+  }) {
+    return _dataSource.archivePlace(placeId: placeId, force: force);
   }
 
   @override

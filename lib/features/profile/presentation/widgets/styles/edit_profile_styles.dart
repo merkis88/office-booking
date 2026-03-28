@@ -24,7 +24,7 @@ class EditProfileStyles {
   );
   static const exitTextStyle = TextStyle(
     fontSize: 17,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w400,
     color: Colors.black87,
   );
   static const sectionTitleStyle = TextStyle(

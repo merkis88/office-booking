@@ -136,12 +136,17 @@ class RentalsRemoteDataSource implements RentalsDataSource {
   }
 
   @override
-  Future<void> archivePlace({required int placeId}) async {
+  Future<void> archivePlace({
+    required int placeId,
+    bool force = false,
+  }) async {
     for (var attempt = 1; attempt <= _maxAttempts; attempt++) {
       try {
         final response = await _apiClient.postJson(
           '/admin/places/$placeId/archive',
-          body: const <String, dynamic>{},
+          body: force
+              ? const <String, dynamic>{'force': 1}
+              : const <String, dynamic>{},
           headers: _authorizationHeaders(),
         );
 

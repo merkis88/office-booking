@@ -114,11 +114,6 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
         }
       });
 
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('Помещение восстановлено из архива.')),
-        );
     } on ApiConnectionException catch (error) {
       if (!mounted) {
         return;
@@ -150,7 +145,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
       selectedBottomIndex: _selectedBottomIndex,
       onBottomChanged: _onBottomChanged,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 24, 16, 28),
+        padding: const EdgeInsets.fromLTRB(8, 24, 8, 28),
         child: Column(
           children: [
             const Center(
@@ -219,7 +214,7 @@ class _InlineArchiveDetailsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 332),
+        constraints: const BoxConstraints(maxWidth: 370),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),

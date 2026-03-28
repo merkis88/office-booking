@@ -13,9 +13,9 @@ class ProfileRentalCardFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 332),
+        constraints: const BoxConstraints(maxWidth: 370),
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(14, 10, 12, 10),
+        padding: const EdgeInsets.fromLTRB(15, 18, 13, 18),
         decoration: BoxDecoration(
           color: AppColors.formSurface,
           border: Border.all(
@@ -114,8 +114,8 @@ class _RentalThumbnail extends StatelessWidget {
     final imageUrl = photoUrl?.trim();
 
     return Container(
-      width: 80,
-      height: 80,
+      width: 88,
+      height: 88,
       decoration: ProfileCardDecorations.outlinedCard(
         color: const Color(0xFFBDBDBD),
       ),

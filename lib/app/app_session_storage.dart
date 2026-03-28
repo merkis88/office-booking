@@ -6,7 +6,11 @@ import 'package:wordpice/features/auth/domain/entities/registered_user.dart';
 
 class AppSessionStorage {
   AppSessionStorage({FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage();
+    : _storage =
+          storage ??
+          const FlutterSecureStorage(
+            aOptions: AndroidOptions(encryptedSharedPreferences: true),
+          );
 
   static const _tokenKey = 'auth_token';
   static const _userKey = 'auth_user';
@@ -25,20 +29,25 @@ class AppSessionStorage {
   }
 
   Future<StoredSession?> readSession() async {
-    final token = await _storage.read(key: _tokenKey);
-    final rawUser = await _storage.read(key: _userKey);
+    try {
+      final token = await _storage.read(key: _tokenKey);
+      final rawUser = await _storage.read(key: _userKey);
 
-    if (token == null || token.isEmpty || rawUser == null || rawUser.isEmpty) {
+      if (token == null || token.isEmpty || rawUser == null || rawUser.isEmpty) {
+        return null;
+      }
+
+      final dynamic decoded = jsonDecode(rawUser);
+      if (decoded is! Map<String, dynamic>) {
+        return null;
+      }
+
+      final user = RegisteredUserModel.fromJson(decoded).toEntity();
+      return StoredSession(token: token, user: user);
+    } catch (_) {
+      await clear();
       return null;
     }
-
-    final dynamic decoded = jsonDecode(rawUser);
-    if (decoded is! Map<String, dynamic>) {
-      return null;
-    }
-
-    final user = RegisteredUserModel.fromJson(decoded).toEntity();
-    return StoredSession(token: token, user: user);
   }
 
   Future<void> clear() async {

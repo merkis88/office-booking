@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
 import 'package:wordpice/core/widgets/buttons/favorite_heart_toggle.dart';
+import 'package:wordpice/core/widgets/dialogs/app_confirmation_dialog.dart';
 import 'package:wordpice/features/rentals/presentation/models/office_rental_item.dart';
+import 'package:wordpice/features/rentals/presentation/utils/rental_time_slots_helper.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/modals/office_booking_confirmation_modal.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/modals/office_time_picker_modal.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/rental_time_slot_chip.dart';
@@ -32,7 +34,7 @@ class OfficeRentalCard extends StatefulWidget {
   final Future<String?> Function(bool nextValue) onFavoriteToggle;
   final Future<void> Function() onDetailsTap;
   final bool showArchiveIcon;
-  final Future<String?> Function()? onArchiveTap;
+  final Future<String?> Function({bool force})? onArchiveTap;
 
   @override
   State<OfficeRentalCard> createState() => _OfficeRentalCardState();
@@ -115,7 +117,7 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
       timeRange: picked,
       title: widget.item.title,
       room: widget.item.room,
-      price: widget.item.price,
+      price: _calculateBookingPrice(picked),
     );
     if (!confirmed || !mounted) return;
 
@@ -134,6 +136,20 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
     widget.onBooked(sourceRange, picked);
   }
 
+  int _calculateBookingPrice(String timeRange) {
+    final parsedRange = RentalTimeSlotsHelper.parseRange(timeRange);
+    if (parsedRange == null) {
+      return widget.item.price;
+    }
+
+    final hours = parsedRange.$2 - parsedRange.$1;
+    if (hours <= 0) {
+      return widget.item.price;
+    }
+
+    return (widget.item.price * hours).toInt();
+  }
+
   Future<void> _archivePlace() async {
     final onArchiveTap = widget.onArchiveTap;
     if (onArchiveTap == null || _isArchiveLoading) {
@@ -148,11 +164,52 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
 
     setState(() => _isArchiveLoading = false);
 
-    if (errorMessage != null) {
+    if (errorMessage == null) {
+      return;
+    }
+
+    if (_needsArchiveConfirmation(errorMessage)) {
+      final confirmed = await AppConfirmationDialog.show<bool>(
+        context,
+        title: 'Архивация помещения',
+        message:
+            'У этого помещения есть активные бронирования. Чтобы архивировать помещение, подтвердите действие. Все бронирования этого помещения будут отменены.',
+        confirmLabel: 'Подтвердить',
+        cancelLabel: 'Отменить',
+        confirmResult: true,
+        cancelResult: false,
+      );
+      if (confirmed != true || !mounted) {
+        return;
+      }
+
+      setState(() => _isArchiveLoading = true);
+      final forcedErrorMessage = await onArchiveTap(force: true);
+      if (!mounted) {
+        return;
+      }
+
+      setState(() => _isArchiveLoading = false);
+      if (forcedErrorMessage == null) {
+        return;
+      }
+
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(errorMessage)));
+        ..showSnackBar(SnackBar(content: Text(forcedErrorMessage)));
+      return;
     }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(errorMessage)));
+  }
+
+  bool _needsArchiveConfirmation(String errorMessage) {
+    final normalized = errorMessage.toLowerCase();
+    return normalized.contains('активных бронир') ||
+        normalized.contains('используйте force') ||
+        normalized.contains('force = 1');
   }
 
   void _showPreviousSlots() {
@@ -181,9 +238,9 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
       children: [
         Center(
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 332),
+            constraints: const BoxConstraints(maxWidth: 370),
             width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(14, 10, 12, 10),
+            padding: const EdgeInsets.fromLTRB(15, 18, 13, 18),
             decoration: RentalWidgetStyles.outlinedBox(
               12,
               color: AppColors.formSurface,
@@ -192,8 +249,8 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: 88,
+                  height: 88,
                   decoration: BoxDecoration(
                     color: const Color(0xFFBDBDBD),
                     borderRadius: BorderRadius.circular(8),
@@ -217,47 +274,44 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
                 Expanded(
                   child: Stack(
                     children: [
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            FavoriteHeartToggle(
-                              filled: _isFavorite,
-                              isBusy: _isFavoriteLoading,
-                              onTap: _toggleFavorite,
-                            ),
-                            if (widget.showArchiveIcon) ...[
-                              const SizedBox(height: 6),
-                              GestureDetector(
-                                onTap: _archivePlace,
-                                behavior: HitTestBehavior.opaque,
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: _isArchiveLoading
-                                      ? const Padding(
-                                          padding: EdgeInsets.all(2),
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : SvgPicture.asset(
-                                          'assets/icons/nav_archive.svg',
-                                          width: 22,
-                                          height: 22,
-                                          colorFilter: const ColorFilter.mode(
-                                            Colors.black87,
-                                            BlendMode.srcIn,
-                                          ),
-                                        ),
-                                ),
-                              ),
-                            ],
-                          ],
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: FavoriteHeartToggle(
+                          filled: _isFavorite,
+                          isBusy: _isFavoriteLoading,
+                          onTap: _toggleFavorite,
                         ),
                       ),
+                      if (widget.showArchiveIcon)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: GestureDetector(
+                            onTap: _archivePlace,
+                            behavior: HitTestBehavior.opaque,
+                            child: SizedBox(
+                              width: 28,
+                              height: 28,
+                              child: _isArchiveLoading
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(2),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : SvgPicture.asset(
+                                      'assets/icons/nav_archive.svg',
+                                      width: 25,
+                                      height: 25,
+                                      colorFilter: const ColorFilter.mode(
+                                        AppColors.bottomNavBackground,
+                                        BlendMode.srcIn,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
                       Padding(
                         padding: const EdgeInsets.only(right: 36),
                         child: Column(

@@ -56,6 +56,13 @@ class ReviewCard extends StatelessWidget {
                               color: filled
                                   ? ReviewsStyles.starActive
                                   : ReviewsStyles.starInactive,
+                              shadows: const [
+                                Shadow(
+                                  color: Colors.black26,
+                                  blurRadius: 3,
+                                  offset: Offset(0, 1.5),
+                                ),
+                              ],
                             );
                           }),
                         ),

@@ -183,7 +183,7 @@ class _RequestsScreenState extends State<RequestsScreen> {
     if (_selectedTime != null) return _selectedTime!;
     if (_selectedBooking == null) return 'Сначала выберите бронирование';
     if (_timeSlots.isEmpty) return 'Нет доступного времени';
-    return 'Выберите время из бронирования';
+    return 'Выберите время';
   }
 
   String get _requestTypeText {

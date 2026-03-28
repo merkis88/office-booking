@@ -29,8 +29,10 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   static const int _tabIndex = 3;
-  static const double _contentWidth = 360;
-  static const double _narrowCardWidth = 340;
+  static const double _contentWidth = 382;
+  static const double _topCardWidth = 350;
+  static const double _narrowCardWidth = 330;
+  static const double _activityCardWidth = 370;
   static const List<ProfileActivityFilter> _activityFilters = [
     ProfileActivityFilter.activeRentals,
     ProfileActivityFilter.favorites,
@@ -62,6 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final Set<int> _cancelingBookingIds = <int>{};
   final Set<int> _togglingFavoritePlaceIds = <int>{};
   final Set<int> _downloadingRequestIds = <int>{};
+  final Set<int> _downloadedRequestIds = <int>{};
 
   @override
   void didChangeDependencies() {
@@ -371,19 +374,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     setState(() {
       _downloadingRequestIds.add(item.id);
+      _downloadedRequestIds.remove(item.id);
     });
 
     try {
-      final filePath = await AppScope.of(context).profileRepository
-          .exportRequestPdf(item.id);
+      await AppScope.of(context).profileRepository.exportRequestPdf(item.id);
 
       if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('PDF сохранен: $filePath')));
+      setState(() {
+        _downloadedRequestIds.add(item.id);
+      });
+      Future<void>.delayed(const Duration(seconds: 2), () {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _downloadedRequestIds.remove(item.id);
+        });
+      });
     } catch (error) {
       if (!mounted) {
         return;
@@ -408,25 +419,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return _downloadingRequestIds.contains(item.id);
   }
 
+  bool _isRequestDownloaded(ProfileRequestItem item) {
+    return _downloadedRequestIds.contains(item.id);
+  }
+
   Future<void> _openEditScreen() async {
     final user = _user;
     if (user == null) {
       return;
     }
 
-    final updatedUser = await Navigator.of(
+    final didSave = await Navigator.of(
       context,
-    ).push<RegisteredUser>(
+    ).push<bool>(
       MaterialPageRoute(builder: (_) => EditProfileScreen(user: user)),
     );
 
-    if (!mounted || updatedUser == null) {
+    if (!mounted || didSave != true) {
       return;
     }
 
-    setState(() {
-      _user = updatedUser;
-    });
+    await _loadProfile();
   }
 
   void _onBottomChanged(int index) {
@@ -587,6 +600,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       isFavoriteBusy: _isFavoriteBusy,
       onDownloadRequest: _downloadRequestPdf,
       isRequestDownloading: _isRequestDownloading,
+      isRequestDownloaded: _isRequestDownloaded,
     );
   }
 
@@ -597,7 +611,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onBottomChanged: _onBottomChanged,
       body: AppConstrainedScrollView(
         maxWidth: _contentWidth,
-        padding: const EdgeInsets.fromLTRB(16, 40, 16, 28),
+        padding: const EdgeInsets.fromLTRB(8, 40, 8, 28),
         child: _buildBody(),
       ),
     );
@@ -627,6 +641,7 @@ class _ProfileContent extends StatelessWidget {
     required this.isFavoriteBusy,
     required this.onDownloadRequest,
     required this.isRequestDownloading,
+    required this.isRequestDownloaded,
   });
 
   final RegisteredUser user;
@@ -650,16 +665,20 @@ class _ProfileContent extends StatelessWidget {
   final bool Function(RentalHistoryItem item) isFavoriteBusy;
   final Future<void> Function(ProfileRequestItem item) onDownloadRequest;
   final bool Function(ProfileRequestItem item) isRequestDownloading;
+  final bool Function(ProfileRequestItem item) isRequestDownloaded;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ProfileUserCard(
-          onAvatarEditTap: onAvatarEditTap,
-          fullName: user.fullName,
-          photoUrl: user.photo,
-          isAvatarUploading: isAvatarUploading,
+        SizedBox(
+          width: _ProfileScreenState._topCardWidth,
+          child: ProfileUserCard(
+            onAvatarEditTap: onAvatarEditTap,
+            fullName: user.fullName,
+            photoUrl: user.photo,
+            isAvatarUploading: isAvatarUploading,
+          ),
         ),
         const SizedBox(height: 30),
         _NarrowCard(
@@ -684,7 +703,7 @@ class _ProfileContent extends StatelessWidget {
           onRentalTypeFilterChanged: onRentalTypeFilterChanged,
         ),
         const SizedBox(height: 30),
-        _NarrowCard(
+        _ActivityCard(
           child: ProfileActivitySection(
             filter: selectedActivityFilter,
             activeRentals: rentalsOverview.activeRentals,
@@ -697,6 +716,7 @@ class _ProfileContent extends StatelessWidget {
             isFavoriteBusy: isFavoriteBusy,
             onDownloadRequest: onDownloadRequest,
             isRequestDownloading: isRequestDownloading,
+            isRequestDownloaded: isRequestDownloaded,
           ),
         ),
       ],
@@ -723,7 +743,7 @@ class _ProfileActivityControls extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _NarrowCard(
+        _ActivityCard(
           child: Center(
             child: SegmentCarousel(
               items: items,
@@ -733,7 +753,7 @@ class _ProfileActivityControls extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 26),
-        _NarrowCard(
+        _ActivityCard(
           child: ProfileRentalTypeFilters(
             selectedIndex: rentalTypeFilterIndex,
             onChanged: onRentalTypeFilterChanged,
@@ -741,6 +761,17 @@ class _ProfileActivityControls extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _ActivityCard extends StatelessWidget {
+  const _ActivityCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(width: _ProfileScreenState._activityCardWidth, child: child);
   }
 }
 
@@ -754,3 +785,5 @@ class _NarrowCard extends StatelessWidget {
     return SizedBox(width: _ProfileScreenState._narrowCardWidth, child: child);
   }
 }
+
+

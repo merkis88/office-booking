@@ -22,7 +22,10 @@ abstract class RentalsRepository {
 
   Future<void> removeFavorite({required int placeId});
 
-  Future<void> archivePlace({required int placeId});
+  Future<void> archivePlace({
+    required int placeId,
+    bool force = false,
+  });
 
   Future<void> createGuestQr({
     required int bookingId,

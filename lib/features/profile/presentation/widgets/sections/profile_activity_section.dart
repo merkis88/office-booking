@@ -23,6 +23,7 @@ class ProfileActivitySection extends StatelessWidget {
     required this.isFavoriteBusy,
     required this.onDownloadRequest,
     required this.isRequestDownloading,
+    required this.isRequestDownloaded,
   });
 
   final ProfileActivityFilter filter;
@@ -36,6 +37,7 @@ class ProfileActivitySection extends StatelessWidget {
   final bool Function(RentalHistoryItem item) isFavoriteBusy;
   final Future<void> Function(ProfileRequestItem item) onDownloadRequest;
   final bool Function(ProfileRequestItem item) isRequestDownloading;
+  final bool Function(ProfileRequestItem item) isRequestDownloaded;
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +102,7 @@ class ProfileActivitySection extends StatelessWidget {
                 item: requests[i],
                 onDownloadPressed: onDownloadRequest,
                 isDownloading: isRequestDownloading(requests[i]),
+                isDownloaded: isRequestDownloaded(requests[i]),
               ),
               if (i != requests.length - 1) const SizedBox(height: 22),
             ],

@@ -11,11 +11,13 @@ class ProfileRequestCard extends StatelessWidget {
     required this.item,
     required this.onDownloadPressed,
     required this.isDownloading,
+    required this.isDownloaded,
   });
 
   final ProfileRequestItem item;
   final Future<void> Function(ProfileRequestItem item) onDownloadPressed;
   final bool isDownloading;
+  final bool isDownloaded;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +58,7 @@ class ProfileRequestCard extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 2),
                       child: _RequestAttachmentIcon(
                         isLoading: isDownloading,
+                        isDownloaded: isDownloaded,
                         onTap: () => onDownloadPressed(item),
                       ),
                     ),
@@ -85,10 +88,12 @@ class _RequestAttachmentIcon extends StatelessWidget {
   const _RequestAttachmentIcon({
     required this.onTap,
     required this.isLoading,
+    required this.isDownloaded,
   });
 
   final VoidCallback onTap;
   final bool isLoading;
+  final bool isDownloaded;
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +104,18 @@ class _RequestAttachmentIcon extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(4),
           child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    if (isDownloaded) {
+      return const SizedBox(
+        width: 28,
+        height: 28,
+        child: Icon(
+          Icons.check_circle_rounded,
+          size: 24,
+          color: Color(0xFF5FA36A),
         ),
       );
     }

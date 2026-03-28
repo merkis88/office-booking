@@ -24,10 +24,10 @@ class ArchiveCard extends StatelessWidget {
 
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 332),
+        constraints: const BoxConstraints(maxWidth: 370),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(14, 10, 12, 10),
+          padding: const EdgeInsets.fromLTRB(15, 18, 13, 18),
           decoration: ArchiveStyles.outlinedBox(
             12,
             color: AppColors.formSurface,
@@ -36,8 +36,8 @@ class ArchiveCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: 80,
-                height: 80,
+                width: 88,
+                height: 88,
                 decoration: BoxDecoration(
                   color: const Color(0xFFBDBDBD),
                   borderRadius: BorderRadius.circular(8),
@@ -59,10 +59,11 @@ class ArchiveCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Stack(
-                  children: [
-                    Align(
-                      alignment: Alignment.topRight,
+                  child: Stack(
+                    children: [
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
                       child: _ArchivedBadgeIcon(
                         onTap: onRestoreTap,
                         isLoading: isRestoring,
@@ -126,8 +127,8 @@ class _ArchivedBadgeIcon extends StatelessWidget {
       onTap: isLoading ? null : onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 24,
-        height: 24,
+        width: 28,
+        height: 28,
         child: isLoading
             ? const Padding(
                 padding: EdgeInsets.all(2),
@@ -138,15 +139,15 @@ class _ArchivedBadgeIcon extends StatelessWidget {
                 children: [
                   SvgPicture.asset(
                     'assets/icons/nav_archive.svg',
-                    width: 20,
-                    height: 20,
+                    width: 25,
+                    height: 25,
                     colorFilter: const ColorFilter.mode(
-                      Colors.black87,
+                      AppColors.bottomNavBackground,
                       BlendMode.srcIn,
                     ),
                   ),
                   const CustomPaint(
-                    size: Size(24, 24),
+                    size: Size(28, 28),
                     painter: _ArchiveSlashPainter(),
                   ),
                 ],
@@ -162,7 +163,7 @@ class _ArchiveSlashPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black87
+      ..color = AppColors.bottomNavBackground
       ..strokeWidth = 1;
     canvas.drawLine(Offset(size.width, 0), Offset(0, size.height), paint);
   }

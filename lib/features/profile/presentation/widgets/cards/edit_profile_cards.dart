@@ -35,7 +35,7 @@ class EditProfilePreviewCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          ProfileIdentityAvatar(size: 58, photoUrl: user.photo),
+          ProfileIdentityAvatar(photoUrl: user.photo),
           const SizedBox(width: 12),
           Expanded(
             child: Text(user.fullName, style: EditProfileStyles.previewNameStyle),
@@ -66,7 +66,6 @@ class EditProfileEditorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 458,
       padding: EditProfileStyles.editorCardPadding,
       decoration: const BoxDecoration(
         color: AppColors.profileSurface,
@@ -75,36 +74,35 @@ class EditProfileEditorCard extends StatelessWidget {
         ),
         borderRadius: EditProfileStyles.cardRadius,
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            const Text(
-              _sectionTitle,
-              style: EditProfileStyles.sectionTitleStyle,
-            ),
-            for (final field in fields) ...[
-              const SizedBox(height: 8),
-              _LabeledInput(
-                label: field.label,
-                controller: field.controller,
-                enabled: field.enabled,
-              ),
-            ],
-            const SizedBox(height: 24),
-            Center(
-              child: _ActionButton(
-                label: _changePasswordLabel,
-                onPressed: onChangePasswordTap,
-              ),
-            ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 16),
+          const Text(
+            _sectionTitle,
+            style: EditProfileStyles.sectionTitleStyle,
+          ),
+          for (final field in fields) ...[
             const SizedBox(height: 8),
-            Center(
-              child: _ActionButton(label: _deleteLabel, onPressed: onDeleteTap),
+            _LabeledInput(
+              label: field.label,
+              controller: field.controller,
+              enabled: field.enabled,
             ),
           ],
-        ),
+          const SizedBox(height: 24),
+          Center(
+            child: _ActionButton(
+              label: _changePasswordLabel,
+              onPressed: onChangePasswordTap,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: _ActionButton(label: _deleteLabel, onPressed: onDeleteTap),
+          ),
+        ],
       ),
     );
   }
@@ -155,21 +153,38 @@ class _LabeledInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final labelStyle = enabled
+        ? EditProfileStyles.inputLabelStyle
+        : EditProfileStyles.inputLabelStyle.copyWith(color: Colors.black45);
+    final textStyle = enabled
+        ? EditProfileStyles.inputTextStyle
+        : EditProfileStyles.inputTextStyle.copyWith(color: Colors.black45);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: EditProfileStyles.inputLabelStyle),
+        Text(label, style: labelStyle),
         const SizedBox(height: 3),
         Container(
           height: 28,
+          padding: const EdgeInsets.only(right: 4),
           alignment: Alignment.centerLeft,
-          decoration: const BoxDecoration(border: _inputBorder),
-          child: TextField(
-            controller: controller,
-            enabled: enabled,
-            readOnly: !enabled,
-            style: EditProfileStyles.inputTextStyle,
-            decoration: EditProfileStyles.inputDecoration,
+          decoration: BoxDecoration(
+            border: _inputBorder,
+            color: enabled ? Colors.transparent : const Color(0x147C8FA0),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  enabled: enabled,
+                  readOnly: !enabled,
+                  style: textStyle,
+                  decoration: EditProfileStyles.inputDecoration,
+                ),
+              ),
+            ],
           ),
         ),
       ],
