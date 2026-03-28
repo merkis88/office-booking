@@ -3,9 +3,16 @@ import 'package:wordpice/features/profile/domain/entities/rental_history_item.da
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_rental_card_layout.dart';
 
 class ProfileFavoriteRentalCard extends StatelessWidget {
-  const ProfileFavoriteRentalCard({super.key, required this.item});
+  const ProfileFavoriteRentalCard({
+    super.key,
+    required this.item,
+    required this.onFavoritePressed,
+    this.isFavoriteBusy = false,
+  });
 
   final RentalHistoryItem item;
+  final Future<void> Function(RentalHistoryItem item) onFavoritePressed;
+  final bool isFavoriteBusy;
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +24,8 @@ class ProfileFavoriteRentalCard extends StatelessWidget {
         capacity: item.capacity,
         photoUrl: item.photoUrl,
         favoriteInitiallyFilled: item.isFavorite,
+        onFavoriteTap: () => onFavoritePressed(item),
+        isFavoriteBusy: isFavoriteBusy,
       ),
     );
   }

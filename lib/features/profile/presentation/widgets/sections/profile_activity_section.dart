@@ -70,7 +70,11 @@ class ProfileActivitySection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (var i = 0; i < favoriteRentals.length; i++) ...[
-              ProfileFavoriteRentalCard(item: favoriteRentals[i]),
+              ProfileFavoriteRentalCard(
+                item: favoriteRentals[i],
+                onFavoritePressed: onFavoriteRental,
+                isFavoriteBusy: isFavoriteBusy(favoriteRentals[i]),
+              ),
               if (i != favoriteRentals.length - 1) const SizedBox(height: 30),
             ],
           ],

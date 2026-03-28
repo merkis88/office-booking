@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/app/navigation/app_tab_navigator.dart';
 import 'package:wordpice/core/network/api_client.dart';
@@ -38,6 +39,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   late RegisteredUser _user = widget.user;
   bool _isSaving = false;
+  bool _isAvatarUploading = false;
 
   late final List<EditProfileField> _editorFields = <EditProfileField>[
     EditProfileField(label: 'Имя', controller: _nameController),
@@ -82,6 +84,57 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _showDeleteAccountDialog() => DeleteAccountModal.show(context);
+
+  Future<void> _pickAndUploadAvatar() async {
+    if (_isAvatarUploading) {
+      return;
+    }
+
+    final dependencies = AppScope.of(context);
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 90,
+    );
+    if (pickedFile == null) {
+      return;
+    }
+
+    setState(() {
+      _isAvatarUploading = true;
+    });
+
+    try {
+      final updatedUser = await dependencies.profileRepository
+          .uploadProfilePhoto(pickedFile.path);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _user = updatedUser;
+        _fillControllers();
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      final message = error is ApiConnectionException
+          ? error.message
+          : 'Не удалось обновить аватарку.';
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAvatarUploading = false;
+        });
+      }
+    }
+  }
 
   Future<void> _saveProfile() async {
     if (_isSaving) {
@@ -151,7 +204,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         padding: EditProfileStyles.screenPadding,
         child: Column(
           children: [
-            EditProfilePreviewCard(user: _user),
+            EditProfilePreviewCard(
+              user: _user,
+              onAvatarEditTap: _pickAndUploadAvatar,
+              isAvatarUploading: _isAvatarUploading,
+            ),
             const SizedBox(height: 30),
             SizedBox(
               width: EditProfileStyles.editorWidth,

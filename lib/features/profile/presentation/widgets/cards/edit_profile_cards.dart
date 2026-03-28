@@ -17,9 +17,16 @@ class EditProfileField {
 }
 
 class EditProfilePreviewCard extends StatelessWidget {
-  const EditProfilePreviewCard({super.key, required this.user});
+  const EditProfilePreviewCard({
+    super.key,
+    required this.user,
+    this.onAvatarEditTap,
+    this.isAvatarUploading = false,
+  });
 
   final RegisteredUser user;
+  final VoidCallback? onAvatarEditTap;
+  final bool isAvatarUploading;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +42,11 @@ class EditProfilePreviewCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          ProfileIdentityAvatar(photoUrl: user.photo),
+          ProfileIdentityAvatar(
+            onEditTap: onAvatarEditTap,
+            photoUrl: user.photo,
+            isUploading: isAvatarUploading,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(user.fullName, style: EditProfileStyles.previewNameStyle),
