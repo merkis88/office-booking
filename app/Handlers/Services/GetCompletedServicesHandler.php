@@ -10,7 +10,7 @@ class GetCompletedServicesHandler
 {
     public function handle(?string $status = null, ?int $perPage = 6): LengthAwarePaginator
     {
-        $trash = Carbon::now()->subDays(3);
+        $trash = Carbon::now()->subMinutes(2);
         $deletedCount = Service::where('status', 'completed')->where('completed_at', '<=', $trash)->delete();
         if($deletedCount > 0){
             Log::info("автоматически удалено {$deletedCount} старых заявок");
