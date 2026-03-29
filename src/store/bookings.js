@@ -12,6 +12,7 @@ export const useBookingsStore = defineStore('bookings', {
     total: 0,
     lastPage: 1,
     isLoading: false,
+    searchQuery: '',
     filters: {
       status: null,
       place_id: null,
@@ -32,6 +33,12 @@ export const useBookingsStore = defineStore('bookings', {
         result = result.filter((b) => b.place?.type === state.filters.type);
       }
 
+      if (state.searchQuery.trim()) {
+        const query = state.searchQuery.toLowerCase();
+
+        result = result.filter((b) => b.user?.last_name?.toLowerCase().includes(query));
+      }
+
       return result;
     },
 
@@ -46,6 +53,10 @@ export const useBookingsStore = defineStore('bookings', {
   },
 
   actions: {
+    setSearchQuery(query) {
+      this.searchQuery = query;
+      this.currentPage = 1;
+    },
     async fetchBookings({ admin = false, page = 1 } = {}) {
       const authStore = useAuthStore();
       this.isLoading = true;

@@ -452,7 +452,6 @@
       padding: 1rem 1.5rem;
       background: transparent;
       border-bottom: 2px solid $color-footer-bg;
-      font-weight: 600;
       color: $color-text;
     }
 
