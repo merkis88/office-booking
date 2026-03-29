@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:file_saver/file_saver.dart';
 import 'package:wordpice/app/app_session.dart';
 import 'package:wordpice/core/config/app_api_config.dart';
 import 'package:wordpice/core/network/api_client.dart';
@@ -184,6 +186,15 @@ class ProfileRemoteDataSource implements ProfileDataSource {
     );
 
     final fileName = 'request-$requestId.pdf';
+    final savedWithSystemPicker = await _savePdfWithSystemPicker(
+      fileName: fileName,
+      bytes: bytes,
+    );
+
+    if (savedWithSystemPicker != null && savedWithSystemPicker.isNotEmpty) {
+      return savedWithSystemPicker;
+    }
+
     final preferredDirectory = _preferredDownloadDirectory();
     final savedFile = await _writePdfFile(
       directory: preferredDirectory,
@@ -195,14 +206,16 @@ class ProfileRemoteDataSource implements ProfileDataSource {
       return savedFile.path;
     }
 
-    final fallbackFile = await _writePdfFile(
-      directory: Directory.systemTemp,
-      fileName: fileName,
-      bytes: bytes,
-    );
+    if (!Platform.isAndroid) {
+      final fallbackFile = await _writePdfFile(
+        directory: Directory.systemTemp,
+        fileName: fileName,
+        bytes: bytes,
+      );
 
-    if (fallbackFile != null) {
-      return fallbackFile.path;
+      if (fallbackFile != null) {
+        return fallbackFile.path;
+      }
     }
 
     throw const ApiConnectionException('Не удалось сохранить PDF файл.');
@@ -328,6 +341,22 @@ class ProfileRemoteDataSource implements ProfileDataSource {
       await file.writeAsBytes(bytes, flush: true);
       return file;
     } on FileSystemException {
+      return null;
+    }
+  }
+
+  Future<String?> _savePdfWithSystemPicker({
+    required String fileName,
+    required List<int> bytes,
+  }) async {
+    try {
+      return await FileSaver.instance.saveAs(
+        name: fileName.replaceFirst('.pdf', ''),
+        bytes: Uint8List.fromList(bytes),
+        ext: 'pdf',
+        mimeType: MimeType.pdf,
+      );
+    } catch (_) {
       return null;
     }
   }
