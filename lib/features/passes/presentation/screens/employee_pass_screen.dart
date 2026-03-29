@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/app/navigation/app_tab_navigator.dart';
 import 'package:wordpice/core/theme/app_colors.dart';
@@ -25,6 +25,7 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
 
   RequestBookingOption? _selectedBooking;
   List<RequestBookingOption> _bookingOptions = const <RequestBookingOption>[];
+  final GlobalKey _bookingFieldKey = GlobalKey();
   bool _isLoadingBookings = true;
   bool _hasLoadedBookings = false;
   bool _isBookingMenuOpen = false;
@@ -107,7 +108,7 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
     }
   }
 
-  void _toggleBookingMenu() {
+  Future<void> _toggleBookingMenu() async {
     if (_isLoadingBookings || _bookingOptions.isEmpty) {
       if (_bookingsError != null) {
         _loadBookings();
@@ -118,6 +119,27 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
     setState(() {
       _isBookingMenuOpen = !_isBookingMenuOpen;
     });
+
+    if (!_isBookingMenuOpen) {
+      return;
+    }
+
+    final selected = await showRequestBookingDropdownMenu(
+      context: context,
+      anchorKey: _bookingFieldKey,
+      items: _bookingOptions,
+    );
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isBookingMenuOpen = false;
+    });
+
+    if (selected != null) {
+      _selectBooking(selected);
+    }
   }
 
   void _selectBooking(RequestBookingOption booking) {
@@ -239,6 +261,7 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
                     child: Column(
                       children: [
                         _BookingSelectorSection(
+                          fieldKey: _bookingFieldKey,
                           label: 'Список бронирований*',
                           value: _bookingText,
                           isOpen: _isBookingMenuOpen,
@@ -340,6 +363,7 @@ class _EmployeePassField extends StatelessWidget {
 
 class _BookingSelectorSection extends StatelessWidget {
   const _BookingSelectorSection({
+    required this.fieldKey,
     required this.label,
     required this.value,
     required this.isOpen,
@@ -350,6 +374,7 @@ class _BookingSelectorSection extends StatelessWidget {
     required this.onRetry,
   });
 
+  final GlobalKey fieldKey;
   final String label;
   final String value;
   final bool isOpen;
@@ -367,7 +392,9 @@ class _BookingSelectorSection extends StatelessWidget {
         SizedBox(width: double.infinity, child: PassFieldLabel(label)),
         const SizedBox(height: 10),
         PassInputField(
+          key: fieldKey,
           hint: value,
+          hasTrailingBox: true,
           trailing: Icon(
             isOpen
                 ? Icons.keyboard_arrow_up_rounded
@@ -389,12 +416,9 @@ class _BookingSelectorSection extends StatelessWidget {
             child: const Text('Повторить загрузку бронирований'),
           ),
         ],
-        if (isOpen)
-          RequestBookingDropdownMenu(
-            items: items,
-            onSelect: onSelect,
-          ),
       ],
     );
   }
 }
+
+

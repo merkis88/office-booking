@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wordpice/app/app_scope.dart';
 import 'package:wordpice/app/navigation/app_tab_navigator.dart';
@@ -51,6 +51,9 @@ class _RequestsScreenState extends State<RequestsScreen> {
   List<RequestBookingOption> _bookingOptions = const <RequestBookingOption>[];
   List<RequestServiceType> _serviceTypes = const <RequestServiceType>[];
   final TextEditingController _commentController = TextEditingController();
+  final GlobalKey _bookingFieldKey = GlobalKey();
+  final GlobalKey _timeFieldKey = GlobalKey();
+  final GlobalKey _requestTypeFieldKey = GlobalKey();
 
   @override
   void didChangeDependencies() {
@@ -198,7 +201,7 @@ class _RequestsScreenState extends State<RequestsScreen> {
   bool get _isTimeMenuOpen => _openMenu == _RequestMenu.time;
   bool get _isRequestTypeMenuOpen => _openMenu == _RequestMenu.requestType;
 
-  void _toggleMenu(_RequestMenu menu) {
+  Future<void> _toggleMenu(_RequestMenu menu) async {
     if (menu == _RequestMenu.booking &&
         (_isLoadingBookings || _bookingOptions.isEmpty)) {
       if (_bookingsError != null) {
@@ -220,9 +223,53 @@ class _RequestsScreenState extends State<RequestsScreen> {
       return;
     }
 
+    final nextMenu = _openMenu == menu ? null : menu;
     setState(() {
-      _openMenu = _openMenu == menu ? null : menu;
+      _openMenu = nextMenu;
     });
+
+    if (nextMenu == null) {
+      return;
+    }
+
+    if (menu == _RequestMenu.booking) {
+      final selected = await showRequestBookingDropdownMenu(
+        context: context,
+        anchorKey: _bookingFieldKey,
+        items: _bookingOptions,
+      );
+      if (!mounted) return;
+      setState(() => _openMenu = null);
+      if (selected != null) {
+        _selectBooking(selected);
+      }
+      return;
+    }
+
+    if (menu == _RequestMenu.time) {
+      final selected = await showRequestFormDropdownMenu(
+        context: context,
+        anchorKey: _timeFieldKey,
+        items: _timeSlots,
+      );
+      if (!mounted) return;
+      setState(() => _openMenu = null);
+      if (selected != null) {
+        _selectTime(selected);
+      }
+      return;
+    }
+
+    final selected = await showRequestFormDropdownMenu(
+      context: context,
+      anchorKey: _requestTypeFieldKey,
+      items: _serviceTypes.map((item) => item.name).toList(),
+    );
+    if (!mounted) return;
+    setState(() => _openMenu = null);
+    if (selected != null) {
+      _selectRequestType(selected);
+    }
   }
 
   void _selectBooking(RequestBookingOption booking) {
@@ -362,6 +409,7 @@ class _RequestsScreenState extends State<RequestsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _RequestBookingSection(
+                    fieldKey: _bookingFieldKey,
                     value: _bookingText,
                     isOpen: _isBookingMenuOpen,
                     onTap: () => _toggleMenu(_RequestMenu.booking),
@@ -372,22 +420,22 @@ class _RequestsScreenState extends State<RequestsScreen> {
                   ),
                   _RequestDateSection(dateText: _dateText),
                   _RequestDropdownSection(
+                    fieldKey: _timeFieldKey,
                     label: 'Время*',
                     value: _timeText,
                     isOpen: _isTimeMenuOpen,
                     onTap: () => _toggleMenu(_RequestMenu.time),
                     items: _timeSlots,
                     onSelect: _selectTime,
-                    menuHeight: 86,
                   ),
                   _RequestDropdownSection(
+                    fieldKey: _requestTypeFieldKey,
                     label: 'Тип заявки*',
                     value: _requestTypeText,
                     isOpen: _isRequestTypeMenuOpen,
                     onTap: () => _toggleMenu(_RequestMenu.requestType),
                     items: _serviceTypes.map((item) => item.name).toList(),
                     onSelect: _selectRequestType,
-                    menuHeight: 74,
                   ),
                   _RequestCommentSection(controller: _commentController),
                 ],
@@ -406,7 +454,7 @@ class _RequestsScreenState extends State<RequestsScreen> {
             const SizedBox(height: 20),
             Center(
               child: RequestFormSubmitButton(
-                text: _isSubmitting ? 'Создание...' : 'Создать заявку',
+                    text: _isSubmitting ? 'Создание...' : 'Создать заявку',
                 onPressed: _canCreateRequest ? _createRequest : null,
               ),
             ),
@@ -419,6 +467,7 @@ class _RequestsScreenState extends State<RequestsScreen> {
 
 class _RequestBookingSection extends StatelessWidget {
   const _RequestBookingSection({
+    required this.fieldKey,
     required this.value,
     required this.isOpen,
     required this.onTap,
@@ -428,6 +477,7 @@ class _RequestBookingSection extends StatelessWidget {
     required this.onRetry,
   });
 
+  final GlobalKey fieldKey;
   final String value;
   final bool isOpen;
   final VoidCallback onTap;
@@ -445,6 +495,7 @@ class _RequestBookingSection extends StatelessWidget {
         const RequestFormFieldLabel('Список бронирований*'),
         _kLabelGap,
         RequestFormInputField(
+          key: fieldKey,
           hint: value,
           trailing: Icon(
             isOpen
@@ -464,11 +515,6 @@ class _RequestBookingSection extends StatelessWidget {
             child: const Text('Повторить загрузку бронирований'),
           ),
         ],
-        if (isOpen)
-          RequestBookingDropdownMenu(
-            items: items,
-            onSelect: onSelect,
-          ),
       ],
     );
   }
@@ -507,22 +553,22 @@ class _RequestDateSection extends StatelessWidget {
 
 class _RequestDropdownSection extends StatelessWidget {
   const _RequestDropdownSection({
+    required this.fieldKey,
     required this.label,
     required this.value,
     required this.isOpen,
     required this.onTap,
     required this.items,
     required this.onSelect,
-    required this.menuHeight,
   });
 
+  final GlobalKey fieldKey;
   final String label;
   final String value;
   final bool isOpen;
   final VoidCallback onTap;
   final List<String> items;
   final ValueChanged<String> onSelect;
-  final double menuHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -533,6 +579,7 @@ class _RequestDropdownSection extends StatelessWidget {
         RequestFormFieldLabel(label),
         _kLabelGap,
         RequestFormInputField(
+          key: fieldKey,
           hint: value,
           trailing: Icon(
             isOpen
@@ -545,12 +592,6 @@ class _RequestDropdownSection extends StatelessWidget {
               ? RequestFormStyles.dropdownOpenRadius
               : RequestFormStyles.fieldBorderRadius,
         ),
-        if (isOpen)
-          RequestFormDropdownMenu(
-            items: items,
-            onSelect: onSelect,
-            height: menuHeight,
-          ),
       ],
     );
   }
@@ -574,3 +615,4 @@ class _RequestCommentSection extends StatelessWidget {
     );
   }
 }
+
