@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->foreignId('booking_id')->constrained('bookings')->cascadeOnDelete();
             $table->unsignedBigInteger('time_window');
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->string('recipient_email')->nullable();
             $table->string('hash')->unique();
             $table->dateTime('used_at')->nullable();
