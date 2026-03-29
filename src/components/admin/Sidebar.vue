@@ -29,7 +29,7 @@
         Помещения
       </router-link>
 
-      <router-link to="/admin/requests" class="sidebar__btn">
+      <router-link to="/admin/requests-types" class="sidebar__btn">
         <img src="@/assets/images/icons/menu-board.svg" alt="" />
         Заявки
       </router-link>

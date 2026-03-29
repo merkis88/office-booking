@@ -67,7 +67,6 @@
       filterParams.date = selectedDate.value;
     }
 
-
     await placesStore.fetchPlaces(filterParams);
 
     if (isInitialLoad.value && filters.value?.price_range) {
@@ -108,13 +107,13 @@
   }
 
   async function handleArchivePlace(placeId) {
-      const result = await placesStore.archivePlace(placeId);
+    const result = await placesStore.archivePlace(placeId);
 
-      if (result.success) {
-          await loadPlaces();
-      } else {
-          alert(result.error);
-      }
+    if (result.success) {
+      await loadPlaces();
+    } else {
+      alert(result.error);
+    }
   }
 
   watch(
@@ -349,6 +348,13 @@
       grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
       gap: 2rem;
       margin-bottom: 3rem;
+      align-items: start;
+    }
+
+    &__grid > * {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
     }
 
     &__loading,
