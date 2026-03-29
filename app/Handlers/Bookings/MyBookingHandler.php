@@ -6,11 +6,16 @@ use App\DTO\Bookings\MyBookingsDTO;
 use App\Models\Booking;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use App\Services\Bookings\BookingStatusService;
 
 final class MyBookingHandler
 {
+    public function __construct(private readonly BookingStatusService $statusService) {}
     public function handle(User $user, MyBookingsDTO $dto): LengthAwarePaginator
     {
+
+        $this->statusService->syncUserExpiredBookings($user);
+
         $query = Booking::query()
             ->with('place')
             ->where('user_id', $user->id);

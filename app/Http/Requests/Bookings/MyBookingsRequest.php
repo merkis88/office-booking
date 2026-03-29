@@ -12,7 +12,7 @@ final class MyBookingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['nullable', Rule::in(['pending', 'approved', 'rejected'])],
+            'status' => ['nullable', Rule::in(['active', 'cancelled', 'over'])],
             'place_id' => ['nullable', 'integer', 'exists:places,id'],
             'from' => ['nullable', 'date'],
             'to'   => ['nullable', 'date'],
