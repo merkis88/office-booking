@@ -4284,3 +4284,30 @@ paths:
         "403":
           description: Forbidden
 
+
+  /places/favorites:
+    get:
+      tags: [ "Merk · Places" ]
+      summary: Get favorite places list
+      description: |
+        Owner: merk
+
+        Handler: FavoritePlaceListController@getPlace
+        - returns all places added to favorites by the current authorized user
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Favorite places list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+        "401":
+          description: Unauthenticated
+
