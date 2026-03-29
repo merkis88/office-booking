@@ -134,6 +134,25 @@ export const useAuthStore = defineStore('auth', {
       return this.user;
     },
 
+    async uploadProfilePhoto(file) {
+      const formData = new FormData();
+      formData.append('photo', file);
+
+      const response = await axios.post('/api/profile/photo', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${this.token}`,
+        },
+      });
+
+      this.user = {
+        ...this.user,
+        ...response.data.data,
+      };
+
+      return response.data.data;
+    },
+
     async changePassword(currentPassword, newPassword, passwordConfirmation) {
       try {
         const { data } = await axios.put('/api/user/password', {

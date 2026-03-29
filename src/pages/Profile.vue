@@ -13,6 +13,8 @@
   import DeleteAccountModal from '@/components/modals/DeleteAccountModal.vue';
   import PlaceCard from '@/components/PlaceCard.vue';
   import { useFavoritesStore } from '@/store/favorites';
+  import defaultAvatar from '@/assets/images/photos/default-avatar.png';
+  import placeholder from '@/assets/images/photos/placeholder.jpg';
 
   const authStore = useAuthStore();
   const bookingsStore = useBookingsStore();
@@ -42,6 +44,39 @@
     patronymic: '',
     email: '',
   });
+
+  const fileInput = ref(null);
+  const isUploadingPhoto = ref(false);
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Файл больше 5MB');
+      return;
+    }
+
+    await uploadPhoto(file);
+
+    event.target.value = '';
+  };
+
+  const uploadPhoto = async (file) => {
+    isUploadingPhoto.value = true;
+
+    try {
+      await authStore.uploadProfilePhoto(file);
+    } catch (error) {
+      if (error.response?.status === 422) {
+        alert('Некорректный файл');
+      } else {
+        alert('Ошибка загрузки фото');
+      }
+    } finally {
+      isUploadingPhoto.value = false;
+    }
+  };
 
   const saveError = ref('');
   const isSaving = ref(false);
@@ -279,12 +314,26 @@
         <div class="profile__avatar-col">
           <div class="profile__avatar-wrapper">
             <img
-              src="@/assets/images/photos/avatar.png"
+              :src="user.photo_url || defaultAvatar"
               alt="Фото профиля"
               class="profile__avatar"
+              @error="
+                (e) => {
+                  e.target.onerror = null;
+                  e.target.src = defaultAvatar;
+                }
+              "
             />
           </div>
-          <button class="profile__upload-btn" type="button">
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            style="display: none"
+            @change="handleFileChange"
+          />
+
+          <button class="profile__upload-btn" type="button" @click="fileInput.click()">
             <img src="@/assets/images/icons/edit.svg" alt="Иконка загрузки фото" />
             Загрузить фото
           </button>
