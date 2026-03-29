@@ -1,6 +1,6 @@
 <script setup>
   import { ref, computed, watch } from 'vue';
-  import axios from 'axios';
+  import { useBookingsStore } from '@/store/bookings.js';
   import BaseModal from '@/components/modals/BaseModal.vue';
   import { useRouter } from 'vue-router';
 
@@ -11,6 +11,7 @@
     modelValue: Boolean,
   });
 
+  const bookingsStore = useBookingsStore();
   const router = useRouter();
 
   const emit = defineEmits(['close', 'confirm', 'update:modelValue']);
@@ -121,6 +122,7 @@
     if (isLoading.value) return;
 
     isLoading.value = true;
+    errorMessage.value = '';
 
     const min = Math.min(startIndex.value, endIndex.value);
     const max = Math.max(startIndex.value, endIndex.value);
@@ -136,10 +138,13 @@
     };
 
     try {
-      const { data } = await axios.post('/api/bookings', body);
+      await bookingsStore.createBooking(body);
+
+      await bookingsStore.fetchBookings();
+
+      closeModal();
 
       await router.push('/profile');
-      errorMessage.value = '';
     } catch (error) {
       console.error(error);
 
