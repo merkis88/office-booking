@@ -36,6 +36,62 @@ class DatabaseSeeder extends Seeder
             'verification_code_expires_at' => now(),
             'email_verified_at' => now(),
         ]);
+        $user1 = User::create([
+            'role_id' => $roleUser->id,
+            'first_name' => 'Алексей',
+            'last_name' => 'Краснов',
+            'email' => 'user1@user.com',
+            'password' => Hash::make('password'),
+            'post' => 'Backend Developer',
+            'company' => 'My Company',
+            'is_verified' => true,
+            'verification_code' => 111111,
+            'verification_code_expires_at' => now(),
+            'email_verified_at' => now(),
+            'photo' => 'places/женщина_11.jpg'
+        ]);
+        $user2 = User::create([
+            'role_id' => $roleUser->id,
+            'first_name' => 'Марина',
+            'last_name' => 'Цветаева',
+            'email' => 'user2@user.com',
+            'password' => Hash::make('password'),
+            'post' => 'Backend Developer',
+            'company' => 'My Company',
+            'is_verified' => true,
+            'verification_code' => 111111,
+            'verification_code_expires_at' => now(),
+            'email_verified_at' => now(),
+            'photo' => 'places/мужик_1.jpg'
+        ]);
+        $user3 = User::create([
+            'role_id' => $roleUser->id,
+            'first_name' => 'Сергей',
+            'last_name' => 'Петров',
+            'email' => 'user3@user.com',
+            'password' => Hash::make('password'),
+            'post' => 'Backend Developer',
+            'company' => 'My Company',
+            'is_verified' => true,
+            'verification_code' => 111111,
+            'verification_code_expires_at' => now(),
+            'email_verified_at' => now(),
+            'photo' => 'places/мужик_2.jpg'
+        ]);
+        $user4 = User::create([
+            'role_id' => $roleUser->id,
+            'first_name' => 'Екатерина',
+            'last_name' => 'Трошенникова',
+            'email' => 'user4@user.com',
+            'password' => Hash::make('password'),
+            'post' => 'Backend Developer',
+            'company' => 'My Company',
+            'is_verified' => true,
+            'verification_code' => 111111,
+            'verification_code_expires_at' => now(),
+            'email_verified_at' => now(),
+            'photo' => 'places/мужик_3.jpg'
+        ]);
 
         $user = User::create([
             'role_id' => $roleUser->id,
