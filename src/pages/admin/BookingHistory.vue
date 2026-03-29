@@ -1,18 +1,18 @@
 <script setup>
-  import { onMounted } from 'vue';
-  import { useAdminBookingsStore } from '@/store/adminBookings';
+  //import { useAdminBookingsStore } from '@/store/adminBookings';
   import { useAuthStore } from '@/store/auth.js';
+  import { useRouter } from 'vue-router';
+  import { ref, onMounted, computed } from 'vue';
 
+  const router = useRouter();
   const bookingsStore = useAdminBookingsStore();
   const authStore = useAuthStore();
+  const searchQuery = ref('');
+  const selectedFilter = ref('all');
 
   onMounted(() => {
     bookingsStore.fetchBookings();
   });
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('ru-RU');
-  };
 
   const formatTime = (date) => {
     return new Date(date).toLocaleTimeString('ru-RU', {
@@ -36,6 +36,42 @@
     office: 'Офис',
     coworking: 'Коворкинг',
   };
+
+  function goBack() {
+    router.push('/admin/places');
+  }
+
+  function applyFilter(type) {
+    selectedFilter.value = type;
+    showFilterDropdown.value = false;
+  }
+
+  const filteredBookings = computed(() => {
+    const list = bookingsStore.bookings || [];
+
+    return list.filter((b) => {
+      const matchesSearch = b.user?.last_name
+        ?.toLowerCase()
+        .includes(searchQuery.value.toLowerCase());
+
+      const matchesFilter =
+        selectedFilter.value === 'all' ||
+        b.place?.type === selectedFilter.value ||
+        (selectedFilter.value === 'meeting' && b.place?.type === 'meeting_room');
+
+      return matchesSearch && matchesFilter;
+    });
+  });
+
+  function getFilterLabel() {
+    const labels = {
+      all: 'Все помещения',
+      office: 'Офисы',
+      coworking: 'Коворкинги',
+      meeting: 'Переговорные',
+    };
+    return labels[selectedFilter.value];
+  }
 
   const exportBookings = async () => {
     try {
@@ -76,24 +112,47 @@
 <template>
   <div class="admin-bookings">
     <div class="admin-bookings__controls">
-      <button class="admin-bookings__btn admin-bookings__btn--icon">
-        <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
-      </button>
+      <div class="admin-bookings__control">
+        <button class="admin-bookings__btn" @click="goBack">
+          <img src="@/assets/images/icons/arrow-left.svg" alt="&lt;" />
+        </button>
+      </div>
 
-      <button class="admin-bookings__btn">
-        <img src="@/assets/images/icons/menu.svg" alt="" />
-        Фильтрация
-      </button>
+      <div class="admin-bookings__control">
+        <button class="admin-bookings__btn" @click="showFilterDropdown = !showFilterDropdown">
+          <img src="@/assets/images/icons/filter.svg" />
+          <span>{{ getFilterLabel() }}</span>
+        </button>
 
-      <button class="admin-bookings__btn">
-        <img src="@/assets/images/icons/search-normal.svg" alt="" />
-        Поиск
-      </button>
+        <transition name="dropdown">
+          <div v-if="showFilterDropdown" class="admin-bookings__dropdown">
+            <div @click="applyFilter('all')" class="admin-bookings__dropdown-item">
+              Все помещения
+            </div>
+            <div @click="applyFilter('office')" class="admin-bookings__dropdown-item">Офисы</div>
+            <div @click="applyFilter('coworking')" class="admin-bookings__dropdown-item">
+              Коворкинги
+            </div>
+            <div @click="applyFilter('meeting')" class="admin-bookings__dropdown-item">
+              Переговорные
+            </div>
+          </div>
+        </transition>
+      </div>
 
-      <button class="admin-bookings__btn" @click="exportBookings">
-        <img src="@/assets/images/icons/download.svg" alt="" />
-        Сохранить
-      </button>
+      <div class="admin-bookings__control">
+        <div class="admin-bookings__search">
+          <img src="@/assets/images/icons/search.svg" />
+          <input v-model="searchQuery" type="text" placeholder="Поиск по фамилии" />
+        </div>
+      </div>
+
+      <div class="admin-bookings__control">
+        <button class="admin-bookings__btn" @click="exportBookings">
+          <img src="@/assets/images/icons/download.svg" />
+          <span>Сохранить</span>
+        </button>
+      </div>
     </div>
 
     <h1 class="admin-bookings__title">История аренды помещений</h1>
@@ -111,7 +170,7 @@
         <span>Время</span>
       </div>
 
-      <div v-for="booking in bookingsStore.bookings" :key="booking.id" class="admin-bookings__row">
+      <div v-for="booking in filteredBookings" :key="booking.id" class="admin-bookings__row">
         <span>{{ booking.user?.last_name }}</span>
         <span>{{ booking.user?.first_name }}</span>
         <span>{{ booking.user?.patronymic || '-' }}</span>
@@ -249,6 +308,36 @@
         background: transparent;
         opacity: 0.7;
       }
+    }
+  }
+
+  .dropdown-enter-active {
+    animation: dropdown-in 0.2s ease-out;
+  }
+
+  .dropdown-leave-active {
+    animation: dropdown-out 0.2s ease-in;
+  }
+
+  @keyframes dropdown-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes dropdown-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
     }
   }
 </style>

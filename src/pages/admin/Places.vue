@@ -41,7 +41,7 @@
   }
 
   function viewHistory() {
-    router.push('/admin/history');
+    router.push('/admin/booking-history');
   }
 
   function editPlace(placeId) {
@@ -127,7 +127,11 @@
 
         <div class="admin-places__control">
           <div class="admin-places__search">
-            <img src="@/assets/images/icons/search.svg" alt="Поиск" class="admin-places__search-icon" />
+            <img
+              src="@/assets/images/icons/search.svg"
+              alt="Поиск"
+              class="admin-places__search-icon"
+            />
             <input
               :value="searchQuery"
               @input="placesStore.setSearchQuery($event.target.value)"

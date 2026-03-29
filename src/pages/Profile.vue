@@ -19,9 +19,10 @@
   const servicesStore = useServicesStore();
   const favoritesStore = useFavoritesStore();
   const router = useRouter();
+  const BOOKINGS_PER_PAGE = 3;
 
   onMounted(() => {
-    bookingsStore.fetchMyBookings();
+    bookingsStore.fetchBookings();
   });
   const { user } = storeToRefs(authStore);
   const {
@@ -48,6 +49,17 @@
   const qrDataUrl = ref(null);
   const qrLoading = ref(false);
 
+  const bookingsCurrentPage = ref(1);
+
+  const paginatedBookings = computed(() => {
+    const start = (bookingsCurrentPage.value - 1) * BOOKINGS_PER_PAGE;
+    return filteredBookings.value.slice(start, start + BOOKINGS_PER_PAGE);
+  });
+
+  const bookingsTotalPages = computed(() => {
+    return Math.ceil(filteredBookings.value.length / BOOKINGS_PER_PAGE);
+  });
+
   async function generateQrImage(hash) {
     if (!hash) {
       qrDataUrl.value = null;
@@ -65,6 +77,32 @@
       qrLoading.value = false;
     }
   }
+
+  const qrDateTimeText = computed(() => {
+    if (!user.value?.qr_available_from || !user.value?.qr_available_until) {
+      return '';
+    }
+
+    const from = new Date(user.value.qr_available_from);
+    const until = new Date(user.value.qr_available_until);
+
+    const date = from.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+    });
+
+    const fromTime = from.toLocaleTimeString('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const untilTime = until.toLocaleTimeString('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    return `${date}, ${fromTime}–${untilTime}`;
+  });
 
   const totalPages = computed(() => lastPage.value);
 
@@ -138,22 +176,27 @@
 
   function onBookingCancelled() {
     showCancelModal.value = false;
-    bookingsStore.fetchMyBookings();
+    bookingsStore.fetchBookings();
+  }
+
+  function goToBookingsPage(page) {
+    if (page >= 1 && page <= bookingsTotalPages.value) {
+      bookingsCurrentPage.value = page;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   const rescheduleBookingData = ref(null);
-  const showRescheduleModal = ref(false);
 
+  const showRescheduleModal = ref(false);
   function handleBookingReschedule(booking) {
     rescheduleBookingData.value = booking;
     showRescheduleModal.value = true;
   }
-
   function onBookingRescheduled() {
     showRescheduleModal.value = false;
-    bookingsStore.fetchMyBookings();
+    bookingsStore.fetchBookings();
   }
-
   const activePlaceType = ref(null);
 
   const placeTypeFilters = [
@@ -163,19 +206,20 @@
     { label: 'Офис', value: 'office' },
   ];
 
+  watch(activePlaceType, () => {
+    bookingsCurrentPage.value = 1;
+  });
+
   function formatBookingDateForGroup(isoString) {
     if (!isoString) return '';
     const date = new Date(isoString);
     const day = date.toLocaleDateString('ru-RU', { day: 'numeric' });
     const month = date.toLocaleDateString('ru-RU', { month: 'long' });
     const year = date.toLocaleDateString('ru-RU', { year: 'numeric' });
-    // Как в макете: "5 февраля, 2026"
     return `${day} ${month}, ${year}`;
   }
 
   const filteredBookings = computed(() => {
-    // Показываем только активные (cancelled отфильтровываем на фронте,
-    // т.к. бэкенд пока не поддерживает фильтр status=active)
     let bookings = bookingsStore.bookings.filter((b) => b.status !== 'cancelled');
     if (activePlaceType.value) {
       bookings = bookings.filter((b) => b.place?.type === activePlaceType.value);
@@ -185,7 +229,7 @@
 
   const groupedBookings = computed(() => {
     const groups = {};
-    for (const booking of filteredBookings.value) {
+    for (const booking of paginatedBookings.value) {
       const date = formatBookingDateForGroup(booking.start_time);
       if (!groups[date]) groups[date] = [];
       groups[date].push(booking);
@@ -306,7 +350,12 @@
         </div>
 
         <div v-else class="profile__qr-section-inner">
-          <p class="profile__qr-section-text">{{ user.qr_message }}</p>
+          <p class="profile__qr-section-text">
+            Благодарим за выбор нашего бизнес-центра. Ваш qr-код активен и готов к работе! Вы можете
+            пользоваться им 30 минут до начала аренды и 15 минут после окончания
+            <span v-if="qrDateTimeText">({{ qrDateTimeText }})</span>
+            .
+          </p>
           <div class="profile__qr-frame">
             <img
               v-if="qrDataUrl"
@@ -390,28 +439,29 @@
             </div>
           </template>
 
-          <div class="profile__pagination" v-if="bookingsStore.lastPage > 1">
+          <div v-if="bookingsTotalPages > 1" class="profile__services-pagination">
             <button
-              class="profile__page-btn profile__page-btn--arrow"
-              :disabled="bookingsStore.currentPage === 1"
-              @click="bookingsStore.setPage(bookingsStore.currentPage - 1)"
+              class="profile__pagination-btn"
+              :disabled="bookingsCurrentPage === 1"
+              @click="goToBookingsPage(bookingsCurrentPage - 1)"
             >
               <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
             </button>
 
             <button
-              v-for="page in bookingsStore.lastPage"
+              v-for="page in bookingsTotalPages"
               :key="page"
-              @click="bookingsStore.setPage(page)"
-              :class="['profile__page-btn', { active: page === bookingsStore.currentPage }]"
+              class="profile__pagination-number"
+              :class="{ 'profile__pagination-number--active': bookingsCurrentPage === page }"
+              @click="goToBookingsPage(page)"
             >
               {{ page }}
             </button>
 
             <button
-              class="profile__page-btn profile__page-btn--arrow"
-              :disabled="bookingsStore.currentPage === bookingsStore.lastPage"
-              @click="bookingsStore.setPage(bookingsStore.currentPage + 1)"
+              class="profile__pagination-btn"
+              :disabled="bookingsCurrentPage === bookingsTotalPages"
+              @click="goToBookingsPage(bookingsCurrentPage + 1)"
             >
               <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
             </button>
@@ -929,6 +979,7 @@
       align-items: center;
       gap: 0.5rem;
       margin-top: 2rem;
+      width: 100%;
     }
 
     &__pagination-number {

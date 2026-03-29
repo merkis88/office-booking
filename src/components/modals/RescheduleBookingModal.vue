@@ -25,14 +25,12 @@
   const isSubmitting = ref(false);
   const errorMessage = ref('');
 
-  // Данные слотов
-  const availableSlots = ref([]);     // из API (свободные)
-  const mergedIntervals = ref([]);    // мерженные интервалы для экрана 1
-  const selectedInterval = ref(null); // выбранный интервал { start, end }
+  const availableSlots = ref([]);
+  const mergedIntervals = ref([]);
+  const selectedInterval = ref(null);
 
-  // Данные для экрана 2 (выбор часа начала)
-  const timePoints = ref([]);        // доступные часы начала
-  const selectedStartIndex = ref(null); // выбранный час начала
+  const timePoints = ref([]);
+  const selectedStartIndex = ref(null);
 
   const screenTitle = computed(() => {
     if (screen.value === 'intervals') return 'Перенос брони';
@@ -40,7 +38,6 @@
     return 'Подтверждение';
   });
 
-  // Длительность текущей брони в часах (фиксирована, менять нельзя)
   const bookingDurationHours = computed(() => {
     if (!props.booking) return 1;
     const start = new Date(props.booking.start_time);
@@ -74,11 +71,16 @@
       const placeData = data.data ?? data;
       const freeSlots = placeData.available_slots || [];
 
-      // Добавить время текущей брони к свободным слотам
-      const bookingStart = new Date(props.booking.start_time)
-        .toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
-      const bookingEnd = new Date(props.booking.end_time)
-        .toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const bookingStart = new Date(props.booking.start_time).toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+      const bookingEnd = new Date(props.booking.end_time).toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
 
       const allSlots = [...freeSlots, { start: bookingStart, end: bookingEnd }];
 
@@ -111,7 +113,7 @@
     }
     result.push({ ...current });
 
-    return result.map(s => ({
+    return result.map((s) => ({
       ...s,
       label: `${s.start} - ${s.end}`,
     }));
@@ -136,10 +138,7 @@
     screen.value = 'slots';
   }
 
-  // Можно ли кликнуть на эту точку как начало?
   function canSelectHour(index) {
-    // От этой точки должно помещаться duration слотов
-    // т.е. index + duration <= timePoints.length - 1
     return index + bookingDurationHours.value <= timePoints.value.length - 1;
   }
 
@@ -150,10 +149,10 @@
 
   function isSelected(index) {
     if (selectedStartIndex.value === null) return false;
-    // Подсветить точки от start до start + duration (включительно)
-    // duration слотов = duration + 1 точек
-    return index >= selectedStartIndex.value
-      && index <= selectedStartIndex.value + bookingDurationHours.value;
+    return (
+      index >= selectedStartIndex.value &&
+      index <= selectedStartIndex.value + bookingDurationHours.value
+    );
   }
 
   const isValidSelection = computed(() => {
@@ -307,21 +306,13 @@
 
     <template #footer>
       <div v-if="screen === 'slots'">
-        <button
-          class="reschedule__btn"
-          :disabled="!isValidSelection"
-          @click="goToConfirm"
-        >
+        <button class="reschedule__btn" :disabled="!isValidSelection" @click="goToConfirm">
           Далее
         </button>
       </div>
 
       <div v-else-if="screen === 'confirm'">
-        <button
-          class="reschedule__btn"
-          :disabled="isSubmitting"
-          @click="confirmReschedule"
-        >
+        <button class="reschedule__btn" :disabled="isSubmitting" @click="confirmReschedule">
           {{ isSubmitting ? 'Перенос...' : 'Перенести' }}
         </button>
       </div>
