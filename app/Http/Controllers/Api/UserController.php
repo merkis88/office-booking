@@ -36,9 +36,14 @@ class UserController extends Controller
     {
 
     }
-    public function index()
+    public function index() // merk
     {
-        return UserResource::collection(User::all());
+        return UserResource::collection(
+            User::query()
+                ->with('role')
+                ->latest('id')
+                ->get()
+        );
     }
 
     /**

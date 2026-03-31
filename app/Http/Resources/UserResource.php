@@ -26,6 +26,7 @@ class UserResource extends JsonResource
             'photo_url' => $this->photo ? asset('storage/' . $this->photo) : null,
             'post' => $this->post,
             'company' => $this->company,
+            'is_blocked' => (bool) $this->is_blocked,
             'role' => new UserRoleResource($this->role),
         ];
     }

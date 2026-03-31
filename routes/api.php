@@ -103,13 +103,14 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
 
    // Admin
     Route::middleware('is_admin')->prefix('admin')->group(function () {
+        Route::get('/users/list', [AdminUserController::class, 'getUser']); // merk
         Route::apiResource('users', UserController::class);
         Route::get('/bookings', [AdminBookingController::class, 'index']); // merk
         Route::get('/bookings/export', [AdminBookingController::class, 'export']); // merk
         Route::post('/users/{user}/delete', [UserController::class, 'destroy']); // merk
         Route::post('/users/block', [UserController::class, 'block']);     // merk
         Route::post('/users/unblock', [UserController::class, 'unBlock']); // merk
-        Route::get('/admin/users', [AdminUserController::class, 'getUser']); // merk
+        Route::get('/users/list', [AdminUserController::class, 'getUser']); // merk
 
         //Places admin
         Route::get('/places', [AdminPlaceController::class, 'index']);// Osip
