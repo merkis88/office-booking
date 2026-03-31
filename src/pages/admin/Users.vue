@@ -1,0 +1,240 @@
+<script setup>
+  import { ref, onMounted } from 'vue';
+  import { useAuthStore } from '@/store/auth';
+  import { useUsersStore } from '@/store/users';
+  import { useRouter } from 'vue-router';
+  import { storeToRefs } from 'pinia';
+  import UsersTable from '@/components/UsersTable.vue';
+  import UserStatusModal from '@/components/modals/UserStatusModal.vue';
+
+  const authStore = useAuthStore();
+  const usersStore = useUsersStore();
+  const router = useRouter();
+
+  const isModalOpen = ref(false);
+  const selectedUser = ref(null);
+  const modalError = ref('');
+
+  const { loading, currentPage, totalPages, paginatedUsers, searchQuery } = storeToRefs(usersStore);
+
+  const isStatusChanging = ref(false);
+
+  onMounted(async () => {
+    if (!authStore.isAdmin) {
+      await router.push('/');
+      return;
+    }
+
+    await usersStore.fetchUsers();
+  });
+
+  function goToPage(page) {
+    usersStore.setPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function toggleUserStatus(user) {
+    selectedUser.value = user;
+    modalError.value = '';
+    isModalOpen.value = true;
+  }
+
+  async function handleConfirm({ user, reason, done, fail }) {
+    modalError.value = '';
+
+    try {
+      await usersStore.updateUserStatus(user, reason);
+      done();
+    } catch (error) {
+      modalError.value = error.message || 'Ошибка';
+      fail();
+    }
+  }
+</script>
+
+<template>
+  <div class="admin-users">
+    <div class="admin-users__container">
+      <div class="admin-users__controls">
+        <div class="admin-users__control">
+          <div class="admin-users__search">
+            <img
+              src="@/assets/images/icons/search.svg"
+              alt="Поиск"
+              class="admin-users__search-icon"
+            />
+            <input
+              :value="searchQuery"
+              @input="usersStore.setSearchQuery($event.target.value)"
+              type="text"
+              class="admin-users__search-input"
+              placeholder="Поиск по фамилии"
+            />
+          </div>
+        </div>
+      </div>
+
+      <h1 class="admin-users__title">Пользователи</h1>
+
+      <div class="admin-users__table-wrapper">
+        <UsersTable
+          :users="paginatedUsers"
+          :is-loading="loading"
+          @toggle-status="toggleUserStatus"
+        />
+      </div>
+
+      <div v-if="totalPages > 1 && !loading" class="admin-users__pagination">
+        <button
+          class="admin-users__pagination-btn"
+          :disabled="currentPage === 1"
+          @click="goToPage(currentPage - 1)"
+        >
+          <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
+        </button>
+
+        <button
+          v-for="page in totalPages"
+          :key="page"
+          class="admin-users__pagination-number"
+          :class="{ 'admin-users__pagination-number--active': currentPage === page }"
+          @click="goToPage(page)"
+        >
+          {{ page }}
+        </button>
+
+        <button
+          class="admin-users__pagination-btn"
+          :disabled="currentPage === totalPages"
+          @click="goToPage(currentPage + 1)"
+        >
+          <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <UserStatusModal
+    v-model="isModalOpen"
+    :user="selectedUser"
+    :error="modalError"
+    @confirm="handleConfirm"
+  />
+</template>
+
+<style lang="scss" scoped>
+  @use '@/assets/styles/variables' as *;
+  @use '@/assets/styles/mixins' as *;
+
+  .admin-users {
+    min-height: 100vh;
+
+    &__container {
+      @include container;
+      max-width: 1200px;
+    }
+
+    &__controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    &__control {
+      position: relative;
+    }
+
+    &__search {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      width: 13rem;
+      background: $color-btn-profile;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      transition: all 0.2s;
+
+      &:focus-within {
+        border-color: $color-text;
+        box-shadow: 0 0 0 3px rgba($color-text, 0.1);
+      }
+    }
+
+    &__search-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    &__search-input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: $text-base;
+      color: $color-text;
+      font-family: $font-base;
+      min-width: 150px;
+
+      &::placeholder {
+        color: rgba($color-text, 1);
+      }
+    }
+
+    &__title {
+      font-family: $font-title;
+      font-size: $text-2xl;
+      font-weight: 500;
+      color: $color-text;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    &__table-wrapper {
+      margin-bottom: 2rem;
+    }
+
+    &__pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    &__pagination-btn {
+      img {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    &__pagination-number {
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: $radius-xs;
+      background: $color-btn-profile;
+      color: $color-text;
+      font-size: $text-base;
+      cursor: pointer;
+
+      &--active {
+        background: $color-footer-bg;
+      }
+    }
+
+    @media (max-width: 768px) {
+      &__controls {
+        flex-direction: column;
+      }
+    }
+  }
+</style>
