@@ -1,5 +1,13 @@
 <script setup>
   import Sidebar from '@/components/admin/Sidebar.vue';
+  import { useAuthStore } from '@/store/auth.js';
+  import { onMounted } from 'vue';
+
+  onMounted(async () => {
+    if (!useAuthStore().isAdmin) {
+      await router.push('/');
+    }
+  });
 </script>
 
 <template>
