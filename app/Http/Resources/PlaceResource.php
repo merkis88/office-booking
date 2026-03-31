@@ -32,6 +32,7 @@ class PlaceResource extends JsonResource
             'price' => $this->price,
             'description' => $this->description,
             'is_active' => $this->is_active,
+            'is_favorite' => (bool) ($this->is_favorite ?? false),
             'created_at' => $this->created_at?->format('d.m.Y H:i'),
             'updated_at' => $this->updated_at?->format('d.m.Y H:i'),
         ];

@@ -17,8 +17,16 @@ final class MyBookingHandler
         $this->statusService->syncUserExpiredBookings($user);
 
         $query = Booking::query()
-            ->with('place')
+            ->with(['place' => function ($query) use ($user) {
+                $query->withCount([
+                    'favoredByUsers as is_favorite' => function ($query) use ($user) {
+                        $query->where('users.id', $user->id);
+                    },
+                ]);
+                },
+            ])
             ->where('user_id', $user->id);
+
 
         if ($dto->status !== null) {
             $query->where('status', $dto->status);
