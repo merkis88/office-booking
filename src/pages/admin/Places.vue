@@ -41,7 +41,7 @@
   }
 
   function viewHistory() {
-    router.push('/admin/booking-history');
+    router.push('/admin/places/booking-history');
   }
 
   function editPlace(placeId) {
@@ -142,7 +142,7 @@
           </div>
         </div>
 
-        <router-link to="/admin/create-place" class="admin-places__control">
+        <router-link to="/admin/places/create" class="admin-places__control">
           <button class="admin-places__btn">
             <img src="@/assets/images/icons/plus.svg" alt="Создать" />
             <span>Создать</span>
