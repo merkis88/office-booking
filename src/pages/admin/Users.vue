@@ -15,9 +15,25 @@
   const selectedUser = ref(null);
   const modalError = ref('');
 
-  const { loading, currentPage, totalPages, paginatedUsers, searchQuery } = storeToRefs(usersStore);
+  const { loading, currentPage, totalPages, paginatedUsers, searchQuery, filters } =
+    storeToRefs(usersStore);
 
-  const isStatusChanging = ref(false);
+  const showFilterDropdown = ref(false);
+
+  function applyFilter(status) {
+    usersStore.setFilter('status', status);
+    showFilterDropdown.value = false;
+  }
+
+  function getFilterLabel() {
+    const labels = {
+      all: 'Все пользователи',
+      active: 'Белый список',
+      blocked: 'Чёрный список',
+    };
+
+    return labels[filters.value.status] || 'Фильтр';
+  }
 
   onMounted(async () => {
     if (!authStore.isAdmin) {
@@ -56,6 +72,27 @@
   <div class="admin-users">
     <div class="admin-users__container">
       <div class="admin-users__controls">
+        <div class="admin-users__control">
+          <button class="admin-users__btn" @click="showFilterDropdown = !showFilterDropdown">
+            <img src="@/assets/images/icons/filter.svg" alt="Фильтр" />
+            <span>{{ getFilterLabel() }}</span>
+          </button>
+
+          <transition name="dropdown">
+            <div v-if="showFilterDropdown" class="admin-users__dropdown">
+              <div class="admin-users__dropdown-item" @click="applyFilter('all')">
+                Все пользователи
+              </div>
+              <div class="admin-users__dropdown-item" @click="applyFilter('active')">
+                Белый список
+              </div>
+              <div class="admin-users__dropdown-item" @click="applyFilter('blocked')">
+                Чёрный список
+              </div>
+            </div>
+          </transition>
+        </div>
+
         <div class="admin-users__control">
           <div class="admin-users__search">
             <img
@@ -228,6 +265,50 @@
 
       &--active {
         background: $color-footer-bg;
+      }
+    }
+
+    &__btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      width: 13rem;
+      background: $color-btn-profile;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      cursor: pointer;
+      font-size: $text-base;
+      color: $color-text;
+
+      img {
+        width: 20px;
+        height: 20px;
+      }
+
+      &:hover {
+        background: $color-input-bg;
+      }
+    }
+
+    &__dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      margin-top: 0.5rem;
+      background: $color-btn-profile;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      min-width: 200px;
+      z-index: 10;
+    }
+
+    &__dropdown-item {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+
+      &:hover {
+        background: rgba($color-text, 0.05);
       }
     }
 
