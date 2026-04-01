@@ -55,6 +55,12 @@
   function isAdmin(user) {
     return user?.role?.role_name === 'admin';
   }
+
+  function getActionIcon(isBlocked) {
+    return isBlocked
+      ? new URL('@/assets/images/icons/unblock-user.svg', import.meta.url).href
+      : new URL('@/assets/images/icons/block-user.svg', import.meta.url).href;
+  }
 </script>
 
 <template>
@@ -118,7 +124,7 @@
                       : getToggleLabel(user.is_blocked)
                   "
                 >
-                  <img src="@/assets/images/icons/edit.svg" alt="Сменить статус" />
+                  <img :src="getActionIcon(user.is_blocked)" alt="Сменить статус" />
                 </button>
               </td>
             </tr>

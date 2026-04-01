@@ -17,11 +17,23 @@ export const useUsersStore = defineStore('users', {
 
   getters: {
     filteredUsers(state) {
-      if (!state.searchQuery) return state.users;
+      let users = state.users;
 
-      return state.users.filter((user) =>
-        (user.last_name || '').toLowerCase().includes(state.searchQuery.toLowerCase()),
-      );
+      if (state.searchQuery) {
+        users = users.filter((user) =>
+          (user.last_name || '').toLowerCase().includes(state.searchQuery.toLowerCase()),
+        );
+      }
+
+      if (state.filters.status === 'blocked') {
+        users = users.filter((u) => u.is_blocked === true);
+      }
+
+      if (state.filters.status === 'active') {
+        users = users.filter((u) => u.is_blocked === false);
+      }
+
+      return users;
     },
 
     paginatedUsers(state) {
@@ -59,8 +71,8 @@ export const useUsersStore = defineStore('users', {
       this.currentPage = 1;
     },
 
-    setFilter(type, value) {
-      this.filters[type] = value;
+    setFilter(key, value) {
+      this.filters[key] = value;
       this.currentPage = 1;
     },
 

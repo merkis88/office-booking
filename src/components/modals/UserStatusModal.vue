@@ -45,7 +45,6 @@
 
     isLoading.value = true;
 
-    // ⛔ НЕ закрываем модалку тут
     emit('confirm', {
       user: props.user,
       reason: reason.value,
@@ -63,20 +62,22 @@
 <template>
   <BaseModal
     :model-value="modelValue"
-    :title="isBlocked ? 'Разблокировка пользователя' : 'Блокировка пользователя'"
+    :title="isBlocked ? 'Разблокировать' : 'Заблокировать'"
     max-width="480px"
     :close-on-backdrop="true"
     @update:model-value="emit('update:modelValue', $event)"
   >
     <div class="user-status-modal">
-      <!-- Разблок -->
       <template v-if="isBlocked">
-        <p class="user-status-modal__text">Разблокировать пользователя?</p>
+        <p class="user-status-modal__text">
+          Вы действительно хотите добавить пользователя в белый список?
+        </p>
       </template>
 
-      <!-- Блок -->
       <template v-else>
-        <p class="user-status-modal__text">Заблокировать пользователя? Опишите причину:</p>
+        <p class="user-status-modal__text">
+          Вы действительно хотите добавить пользователя в чёрный список? Укажите причину:
+        </p>
 
         <input
           v-model="reason"
@@ -87,7 +88,6 @@
         />
       </template>
 
-      <!-- Ошибка -->
       <p v-if="error" class="user-status-modal__error">
         {{ error }}
       </p>
