@@ -117,8 +117,7 @@ async function loadRequests() {
         } else if (Array.isArray(data)) {
             requests.value = data;
         }
-    } catch (error) {
-        console.error('Ошибка загрузки заявок:', error);
+    } catch {
         requests.value = [];
     } finally {
         isLoading.value = false;

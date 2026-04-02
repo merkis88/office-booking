@@ -7,6 +7,7 @@ export const useAuthStore = defineStore('auth', {
     token: localStorage.getItem('token') || null,
     pendingVerificationEmail: null,
     roleID: JSON.parse(localStorage.getItem('role_id')) || null,
+    error: null,
   }),
 
   getters: {

@@ -70,7 +70,7 @@ export const useBookingsStore = defineStore('bookings', {
         const url = admin ? '/api/admin/bookings' : '/api/bookings/my';
         const { data } = await axios.get(url, { params });
 
-        this.bookings = data.data || [];
+        this.bookings = data.data ?? [];
         this.currentPage = data.current_page || 1;
         this.total = data.total || 0;
         this.lastPage = Math.ceil(this.total / this.perPage);

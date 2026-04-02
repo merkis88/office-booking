@@ -105,7 +105,7 @@ export const usePlacesStore = defineStore('places', {
         if (filters.date) params.date = filters.date;
 
         const { data } = await axios.get('/api/places', { params });
-        let placesData = data.data || data;
+        let placesData = data.data ?? data;
 
         if (filters.date) {
           placesData = this.filterSlotsByCurrentTime(placesData, filters.date);
@@ -192,7 +192,7 @@ export const usePlacesStore = defineStore('places', {
 
       try {
         const { data } = await axios.get('/api/admin/places', { params: { archived: 1 } });
-        this.places = data.data || data;
+        this.places = data.data ?? data;
       } catch (error) {
         this.error = error.response?.data?.message || 'Не удалось загрузить архивные помещения';
         this.places = [];
