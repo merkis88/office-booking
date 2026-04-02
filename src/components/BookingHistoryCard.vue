@@ -1,6 +1,7 @@
 <script setup>
   import { computed } from 'vue';
   import { formatBookingTime } from '@/utils/dateFormat';
+  import FavoriteButton from '@/components/FavoriteButton.vue';
   import placeholder from '@/assets/images/photos/placeholder.jpg';
 
   const props = defineProps({
@@ -35,6 +36,10 @@
         "
       />
     </div>
+    <FavoriteButton
+      :place-id="booking.place?.id"
+      class="booking-history-card__fav-btn"
+    />
     <div class="booking-history-card__content">
       <p class="booking-history-card__title">{{ placeTypeLabel }} “{{ booking.place?.name }}”</p>
       <p class="booking-history-card__line">Кабинет №{{ booking.place?.number_place }}</p>
@@ -54,6 +59,7 @@
   @use '@/assets/styles/variables' as *;
 
   .booking-history-card {
+    position: relative;
     display: flex;
     background: rgba(230, 242, 250, 0.7);
     border: 2px solid $color-footer-bg;
@@ -106,6 +112,12 @@
       margin: 0;
       font-size: $text-base;
       line-height: 1.4;
+    }
+
+    &__fav-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
     }
 
     &__status {

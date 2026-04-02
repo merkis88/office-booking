@@ -1,6 +1,7 @@
 <script setup>
   import { ref, computed } from 'vue';
   import { useAuthStore } from '@/store/auth';
+  import FavoriteButton from '@/components/FavoriteButton.vue';
   import placeholder from '@/assets/images/photos/placeholder.jpg';
 
   const authStore = useAuthStore();
@@ -103,9 +104,10 @@
         <span class="place-card__details-text" @click="toggleDetails">Подробнее</span>
       </div>
       <div class="place-card__actions">
-        <button class="place-card__favorite" aria-label="Добавить в избранное">
-          <img src="@/assets/images/icons/heart-empty.svg" alt="" />
-        </button>
+        <FavoriteButton
+          :place-id="place.id"
+          class="place-card__favorite"
+        />
         <button
           v-if="authStore.isAdmin"
           class="place-card__archive"

@@ -10,6 +10,10 @@ class Place extends Model
 {
     use HasFactory;
     protected $table = 'places';
+    protected $casts = [
+        'is_favorite' => 'boolean',
+    ];
+
     protected $fillable = [
         'name',
         'type',

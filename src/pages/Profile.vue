@@ -11,7 +11,7 @@
   import CancelBookingModal from '@/components/modals/CancelBookingModal.vue';
   import RescheduleBookingModal from '@/components/modals/RescheduleBookingModal.vue';
   import DeleteAccountModal from '@/components/modals/DeleteAccountModal.vue';
-  import PlaceCard from '@/components/PlaceCard.vue';
+  import FavoriteCard from '@/components/FavoriteCard.vue';
   import BookingHistoryCard from '@/components/BookingHistoryCard.vue';
   import { useFavoritesStore } from '@/store/favorites';
   import defaultAvatar from '@/assets/images/photos/default-avatar.png';
@@ -26,6 +26,7 @@
 
   onMounted(() => {
     bookingsStore.fetchBookings();
+    favoritesStore.fetchFavorites();
   });
   const { user } = storeToRefs(authStore);
   const {
@@ -548,7 +549,7 @@
           </div>
 
           <div v-else class="profile__favorites-grid">
-            <PlaceCard v-for="place in favoritesStore.favorites" :key="place.id" :place="place" />
+            <FavoriteCard v-for="place in favoritesStore.favorites" :key="place.id" :place="place" />
           </div>
         </div>
 

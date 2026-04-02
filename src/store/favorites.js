@@ -15,16 +15,36 @@ export const useFavoritesStore = defineStore('favorites', {
 
   actions: {
     async addFavorite(placeId) {
-      await axios.post(`/api/places/${placeId}/store-favorite`);
+      // Оптимистично добавляем
       if (!this.favoriteIds.includes(placeId)) {
         this.favoriteIds.push(placeId);
+      }
+      try {
+        await axios.post(`/api/places/${placeId}/store-favorite`);
+      } catch (error) {
+        // Откат при ошибке
+        this.favoriteIds = this.favoriteIds.filter((id) => id !== placeId);
+        throw error;
       }
     },
 
     async removeFavorite(placeId) {
-      await axios.delete(`/api/places/${placeId}/remove-favorite`);
+      // Сохраняем для отката
+      const prevIds = [...this.favoriteIds];
+      const prevFavorites = [...this.favorites];
+
+      // Оптимистично убираем
       this.favoriteIds = this.favoriteIds.filter((id) => id !== placeId);
       this.favorites = this.favorites.filter((p) => p.id !== placeId);
+
+      try {
+        await axios.delete(`/api/places/${placeId}/remove-favorite`);
+      } catch (error) {
+        // Откат при ошибке
+        this.favoriteIds = prevIds;
+        this.favorites = prevFavorites;
+        throw error;
+      }
     },
 
     async toggleFavorite(placeId) {
