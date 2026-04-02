@@ -58,6 +58,15 @@
     error.value = '';
     emit('update:modelValue', false);
   }
+
+  const placeTypeLabel = computed(() => {
+    const types = {
+      office: 'Офис',
+      coworking: 'Коворкинга',
+      meeting: 'Переговорная',
+    };
+    return types[props.booking.place.type];
+  });
 </script>
 
 <template>
@@ -72,12 +81,12 @@
   >
     <div class="cancel-modal">
       <template v-if="booking">
+        <p class="cancel-modal__warning">Вы действительно хотите отменить бронь?</p>
+
         <div class="cancel-modal__info">
-          <p class="cancel-modal__place">{{ booking.place?.name }}</p>
+          <p class="cancel-modal__place">{{ placeTypeLabel }} "{{ booking.place?.name }}"</p>
           <p class="cancel-modal__time">{{ formattedDate }}, {{ formattedTime }}</p>
         </div>
-
-        <p class="cancel-modal__warning">Вы действительно хотите отменить бронь?</p>
 
         <p v-if="error" class="cancel-modal__error">{{ error }}</p>
 
@@ -110,7 +119,6 @@
 
     &__place {
       font-size: $text-lg;
-      font-weight: 600;
       color: $color-text;
       margin-bottom: 0.25rem;
     }
@@ -121,14 +129,14 @@
     }
 
     &__warning {
-      font-size: $text-sm;
-      color: #991b1b;
-      margin-bottom: 1.5rem;
+      font-size: $text-base;
+      color: $color-danger;
+      margin-bottom: 1rem;
     }
 
     &__error {
       font-size: $text-sm;
-      color: #991b1b;
+      color: $color-danger;
       background: #fee2e2;
       padding: 0.5rem 1rem;
       border-radius: $radius-sm;
@@ -169,11 +177,17 @@
       }
 
       &--danger {
-        color: #991b1b;
-        border-color: #991b1b;
+        background: $color-danger;
+        color: #ffffff;
+        border: 1px solid $color-danger;
 
-        &:hover {
-          background: #fee2e2;
+        &:hover:not(:disabled) {
+          background: $color-danger-dark;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
       }
     }

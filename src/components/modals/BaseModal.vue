@@ -142,13 +142,13 @@
   .modal-title {
     font-size: $text-2xl;
     font-family: $font-title;
-    font-weight: 500;
+    font-weight: normal;
     color: $color-text;
     margin: 0;
   }
 
   .modal-body {
-    padding: 1.5rem;
+    padding: 0 1.5rem 1.5rem;
   }
 
   .modal-footer {
