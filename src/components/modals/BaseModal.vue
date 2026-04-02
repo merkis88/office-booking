@@ -142,7 +142,7 @@
   .modal-title {
     font-size: $text-2xl;
     font-family: $font-title;
-    font-weight: 500;
+    font-weight: normal;
     color: $color-text;
     margin: 0;
   }

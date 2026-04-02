@@ -58,6 +58,15 @@
     error.value = '';
     emit('update:modelValue', false);
   }
+
+  const placeTypeLabel = computed(() => {
+    const types = {
+      office: 'Офис',
+      coworking: 'Коворкинга',
+      meeting: 'Переговорная',
+    };
+    return types[props.booking.place.type];
+  });
 </script>
 
 <template>
@@ -75,7 +84,7 @@
         <p class="cancel-modal__warning">Вы действительно хотите отменить бронь?</p>
 
         <div class="cancel-modal__info">
-          <p class="cancel-modal__place">{{ booking.place?.name }}</p>
+          <p class="cancel-modal__place">{{ placeTypeLabel }} "{{ booking.place?.name }}"</p>
           <p class="cancel-modal__time">{{ formattedDate }}, {{ formattedTime }}</p>
         </div>
 
@@ -120,9 +129,9 @@
     }
 
     &__warning {
-      font-size: $text-sm;
+      font-size: $text-base;
       color: #991b1b;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
 
     &__error {
