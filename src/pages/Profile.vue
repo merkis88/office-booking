@@ -14,7 +14,7 @@
   import PlaceCard from '@/components/PlaceCard.vue';
   import { useFavoritesStore } from '@/store/favorites';
   import defaultAvatar from '@/assets/images/photos/default-avatar.png';
-  import placeholder from '@/assets/images/photos/placeholder.jpg';
+  import qrPlaceholder from '@/assets/images/photos/qr-placeholder.png';
 
   const authStore = useAuthStore();
   const bookingsStore = useBookingsStore();
@@ -388,7 +388,9 @@
 
         <div v-else-if="!user.qr_visible" class="profile__qr-section-inner">
           <p class="profile__qr-section-text">{{ user.qr_message }}</p>
-          <div class="profile__qr-frame profile__qr-frame--empty"></div>
+          <div class="profile__qr-frame profile__qr-frame--empty">
+            <img :src="qrPlaceholder" class="profile__qr-image" alt="QR" />
+          </div>
         </div>
 
         <div v-else-if="qrLoading" class="profile__qr-section-inner">
@@ -778,6 +780,7 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
+      border-radius: $radius-xxs;
     }
 
     &__actions {
