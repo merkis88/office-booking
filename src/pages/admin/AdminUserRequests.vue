@@ -252,43 +252,29 @@ onMounted(async () => {
         }
 
         &:hover {
-            background: rgba(255, 255, 255, 0.8);
+            background: $color-input-bg;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
     }
 
     &__dropdown-menu {
-        position: absolute;
-        top: calc(100% + 0.5rem);
-        left: 0;
-        background: $color-btn-profile;
-        border: 1px solid $color-text;
-        border-radius: $radius-sm;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        @include admin-dropdown;
         min-width: 200px;
-        z-index: 100;
-        overflow: hidden;
     }
 
     &__dropdown-item {
+        @include admin-dropdown-item;
         width: 100%;
-        padding: 0.875rem 1.5rem;
         text-align: left;
         background: transparent;
         border: none;
         font-size: $text-base;
         color: $color-text;
-        cursor: pointer;
-        transition: all 0.2s;
         font-family: $font-base;
         border-bottom: 1px solid rgba($color-text, 0.1);
 
         &:last-child {
             border-bottom: none;
-        }
-
-        &:hover {
-            background: rgba(255, 255, 255, 0.5);
         }
 
         &--active {

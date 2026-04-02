@@ -95,6 +95,56 @@
   margin: 0 auto;
 }
 
+// --- Кнопка-иконка (action в таблицах) ---
+@mixin icon-btn {
+  background: transparent;
+  border: none;
+  border-radius: $radius-xs;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+
+  &:hover {
+    background: rgba($color-text, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// --- Дропдаун (админка) ---
+@mixin admin-dropdown {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  background: $color-btn-profile;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  z-index: 10;
+  min-width: 100%;
+}
+
+@mixin admin-dropdown-item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+
+  &:hover {
+    background: $color-input-bg-dark;
+  }
+}
+
 // --- Таблица (админка) ---
 @mixin admin-table {
   width: max-content;
