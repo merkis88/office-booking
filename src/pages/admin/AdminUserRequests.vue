@@ -1,14 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/store/auth';
 import { useServicesStore } from '@/store/services';
 import ChangeStatusModal from '@/components/modals/ChangeStatusModal.vue';
 import RequestsTable from '@/components/RequestsTable.vue';
 import axios from 'axios';
 
 const router = useRouter();
-const authStore = useAuthStore();
 const servicesStore = useServicesStore();
 
 const requests = ref([]);
@@ -133,11 +131,6 @@ async function loadRequests() {
 }
 
 onMounted(async () => {
-    if (!authStore.isAdmin) {
-        router.push('/');
-        return;
-    }
-
     await loadRequests();
 });
 </script>

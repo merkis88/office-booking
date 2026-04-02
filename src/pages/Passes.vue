@@ -1,12 +1,10 @@
 <script setup>
   import { ref, onMounted } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
-  import { useAuthStore } from '@/store/auth';
   import { useQrStore } from '@/store/qr';
 
   const route = useRoute();
   const router = useRouter();
-  const authStore = useAuthStore();
   const qrStore = useQrStore();
 
   const activeTab = ref('employee');
@@ -19,11 +17,6 @@
   const bookingId = ref(null);
 
   onMounted(async () => {
-    if (!authStore.isAuthenticated) {
-      await router.push('/authorization');
-      return;
-    }
-
     bookingId.value = Number(route.query.booking);
     if (!bookingId.value) {
       await router.push('/profile');
