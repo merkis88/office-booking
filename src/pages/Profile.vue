@@ -467,7 +467,7 @@
 
           <div v-if="bookingsStore.isLoading" class="profile__loading">Загрузка...</div>
 
-          <div v-else-if="!filteredBookings.length" class="profile__placeholder-card">
+          <div v-else-if="!filteredBookings.length" class="profile__empty">
             <p>У вас нет активных бронирований</p>
           </div>
 
@@ -522,7 +522,7 @@
         <div v-if="activeTab === 1" class="profile__bottom-content">
           <div v-if="favoritesStore.isLoading" class="profile__loading">Загрузка...</div>
 
-          <div v-else-if="!favoritesStore.favorites.length" class="profile__placeholder-card">
+          <div v-else-if="!favoritesStore.favorites.length" class="profile__empty">
             <p>У вас нет избранных помещений</p>
             <p class="profile__empty-hint">
               Добавляйте помещения в избранное, нажимая на сердечко на карточке
@@ -535,7 +535,7 @@
         </div>
 
         <div v-if="activeTab === 2" class="profile__bottom-content">
-          <div class="profile__placeholder-card">
+          <div class="profile__empty">
             <p>История аренды</p>
           </div>
         </div>
@@ -614,6 +614,20 @@
       display: flex;
       flex-direction: column;
       gap: 2rem;
+    }
+
+    &__empty {
+      padding: 3rem 1rem;
+      text-align: center;
+      color: rgba($color-text, 0.6);
+      font-size: $text-lg;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      width: 100%;
     }
 
     &__header-card {
@@ -948,7 +962,7 @@
     &__bookings {
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      align-items: center;
       width: 100%;
     }
 
