@@ -46,19 +46,19 @@
 
     try {
       if (activeTab.value === 'guest') {
-        await qrStore.createGuestQr(bookingId.value, {
-          recipient_email: email.value.trim(),
+        await qrStore.sendGuestQr(bookingId.value, {
+          email: email.value.trim(),
         });
         successMessage.value = 'Гостевой пропуск отправлен на ' + email.value.trim();
       } else {
-        await qrStore.issueQr(bookingId.value, {
-          recipient_email: email.value.trim(),
+        await qrStore.sendUserQr(bookingId.value, {
+          email: email.value.trim(),
         });
         successMessage.value = 'Пропуск для сотрудника отправлен на ' + email.value.trim();
       }
       email.value = '';
     } catch (error) {
-      apiError.value = error.message || 'Не удалось выдать пропуск. Попробуйте позже.';
+      apiError.value = error.response?.data?.message || 'Не удалось выдать пропуск. Попробуйте позже.';
     } finally {
       isSubmitting.value = false;
     }
