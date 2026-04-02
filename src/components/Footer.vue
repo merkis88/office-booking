@@ -1,4 +1,26 @@
 <script setup>
+    function openRoute() {
+        const lat = 56.4586;
+        const lon = 84.94734;
+        const url = `https://yandex.ru/maps/?ll=${lon},${lat}&z=18&mode=routes&rtext=~${lat},${lon}&rtt=auto`;
+        window.open(url, '_blank');
+    }
+
+    const contacts = {
+        phone: '+79304545404',
+        phoneDisplay: '+7 930 454 54 04',
+        telegram: 'operatingPoint',
+        email: 'info@rtochka.ru',
+        address: 'г. Томск, ул. Учебная, д. 15',
+    };
+
+    function openTelegram() {
+        window.open(`https://t.me/${contacts.telegram}`, '_blank');
+    }
+
+    function openEmail() {
+        window.location.href = `mailto:${contacts.email}`;
+    }
 </script>
 
 <template>
@@ -6,8 +28,8 @@
     <div class="footer__inner">
       <section class="footer__brand">
         <div class="footer__logo">
-          <img src="@/assets/images/logo.svg" alt="logo" />
-          <span>LOGOTYPE</span>
+            <img src="@/assets/images/logo.png" alt="logo" />
+            <span>Рабочая точка.</span>
         </div>
         <div class="footer__description">
           <p>Здесь работают люди, которые создают, растут и вдохновляют друг друга.</p>
@@ -20,49 +42,52 @@
       </section>
 
       <section class="footer__nav">
-        <div class="footer__link">
+        <router-link to="/profile" class="footer__link">
           <img src="@/assets/images/icons/user-footer.svg" alt="" />
           <a href="">Личный кабинет</a>
-        </div>
-        <div class="footer__link">
+        </router-link>
+        <router-link to="/service" class="footer__link">
           <img src="@/assets/images/icons/handbag-footer.svg" alt="" />
-          <a href="">Услуги</a>
-        </div>
-        <div class="footer__link">
-          <img src="@/assets/images/icons/bank-transfer-footer.svg" alt="" />
-          <a href="">Пропуск</a>
-        </div>
-        <div class="footer__link">
+          <a href="">Аренда помещений</a>
+        </router-link>
+        <router-link to="/reviews" class="footer__link">
+          <img src="@/assets/images/icons/message-text.svg " alt="" />
+          <a href="">Отзывы</a>
+        </router-link>
+        <button class="footer__link" @click="openRoute">
           <img src="@/assets/images/icons/routing-footer.svg" alt="" />
           <a href="">Как добраться</a>
-        </div>
+        </button>
       </section>
 
-      <section class="footer__contacts">
-        <div class="footer__link">
-          <img src="@/assets/images/icons/call-calling-footer.svg" alt="" />
-          <a href="">+7 930 454 54 04</a>
-        </div>
-        <div class="footer__link">
-          <img src="@/assets/images/icons/send-2-footer.svg" alt="" />
-          <a href="">@operatingPoint.</a>
-        </div>
-        <div class="footer__link">
-          <img src="@/assets/images/icons/sms-edit-footer.svg" alt="" />
-          <a href="">operatingPoint.@mail.ru</a>
-        </div>
-        <div class="footer__link">
-          <img src="@/assets/images/icons/location-marker-footer.svg" alt="" />
-          <a href="">Говорова 35</a>
-        </div>
-      </section>
+        <section class="footer__contacts">
+            <div class="footer__link">
+                <img src="@/assets/images/icons/call-calling-footer.svg" alt="Телефон" />
+                <a :href="`tel:${contacts.phone}`">{{ contacts.phoneDisplay }}</a>
+            </div>
+
+            <div class="footer__link" @click="openTelegram">
+                <img src="@/assets/images/icons/send-2-footer.svg" alt="Telegram" />
+                <a href="javascript:void(0)">@{{ contacts.telegram }}</a>
+            </div>
+
+            <div class="footer__link" @click="openEmail" style="cursor: pointer;">
+                <img src="@/assets/images/icons/sms-edit-footer.svg" alt="Email" />
+                <span>{{ contacts.email }}</span>
+            </div>
+
+            <div class="footer__link" @click="openRoute">
+                <img src="@/assets/images/icons/location-marker-footer.svg" alt="Адрес" />
+                <a href="javascript:void(0)">{{ contacts.address }}</a>
+            </div>
+        </section>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-  @use '/src/assets/styles/variables' as *;
-  @use '/src/assets/styles/mixins' as *;
+    @use '@/assets/styles/variables' as *;
+    @use '@/assets/styles/mixins' as *;
 
   .footer {
     background-color: $color-footer-bg;
@@ -87,22 +112,21 @@
     }
 
     &__logo {
-      display: flex;
-      align-items: center;
-      gap: $gap-xs;
-      cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: $gap-xs;
+        cursor: pointer;
 
-      img {
-        width: 28px;
-        height: 28px;
-        object-fit: contain;
-      }
+        img {
+            width: 62px;
+            height: 80px;
+            object-fit: contain;
+        }
 
-      span {
-        font-size: $text-lg;
-        font-weight: 600;
-        letter-spacing: 0.05em;
-      }
+        span {
+            font-family: $font-logo;
+            font-size: $text-2xl;
+        }
     }
 
     &__description,
