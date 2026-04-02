@@ -5,25 +5,43 @@
   const mapRef = ref(null);
   let mapInstance = null;
 
+  const businessCenter = {
+      lat: 56.4586,
+      lon: 84.94734,
+      address: 'Рабочая точка, Томск',
+  };
+
   onMounted(async () => {
-    try {
-      const maps = await loadYandexMaps('6d245821-6d7d-4508-94ac-5f3bd1ad64e7');
-      mapInstance = new maps.Map(mapRef.value, {
-        center: [56.47206841422648, 84.96093203201555],
-        zoom: 18,
-      });
-      mapInstance.geoObjects.add(new maps.Placemark([56.47206841422648, 84.96093203201555]));
-    } catch (e) {
-      console.error('Ошибка загрузки Яндекс.Карт:', e);
-    }
+      try {
+          const maps = await loadYandexMaps('6d245821-6d7d-4508-94ac-5f3bd1ad64e7');
+          mapInstance = new maps.Map(mapRef.value, {
+              center: [businessCenter.lat, businessCenter.lon],
+              zoom: 18,
+          });
+          mapInstance.geoObjects.add(
+              new maps.Placemark([businessCenter.lat, businessCenter.lon], {
+                  balloonContent: businessCenter.address,
+              })
+          );
+      } catch (e) {
+          console.error('Ошибка загрузки Яндекс.Карт:', e);
+      }
   });
 
   onBeforeUnmount(() => {
-    if (mapInstance) {
-      mapInstance.destroy();
-      mapInstance = null;
-    }
+      if (mapInstance) {
+          mapInstance.destroy();
+          mapInstance = null;
+      }
   });
+
+  function openRoute() {
+      const { lat, lon } = businessCenter;
+
+      const url = `https://yandex.ru/maps/?ll=${lon},${lat}&z=18&mode=routes&rtext=~${lat},${lon}&rtt=auto`;
+
+      window.open(url, '_blank');
+  }
 </script>
 
 <template>
@@ -141,7 +159,7 @@
               и заходите в гости. Мы всегда рады!
             </p>
           </div>
-          <button class="location__btn">Проложить маршрут</button>
+          <button class="location__btn" @click="openRoute">Проложить маршрут</button>
         </div>
         <div ref="mapRef" class="location__map"></div>
       </div>

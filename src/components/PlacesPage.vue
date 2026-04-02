@@ -18,7 +18,7 @@
   const placesStore = usePlacesStore();
   const { places, isLoading, filters } = storeToRefs(placesStore);
 
-  const priceRange = ref([0, 5000]);
+  const priceRange = ref([0, 6000]);
   const selectedDate = ref(new Date().toISOString().split('T')[0]);
   const isInitialLoad = ref(true);
   const isPriceRangeUpdating = ref(false);
@@ -120,7 +120,7 @@
     () => {
       isInitialLoad.value = true;
       isPriceRangeUpdating.value = false;
-      priceRange.value = [0, 5000];
+      priceRange.value = [0, 6000];
       selectedDate.value = '';
       loadPlaces();
     },
@@ -192,13 +192,13 @@
                 :max="10000"
                 placeholder="От"
               />
-              <RangeSlider v-model="priceRange" :min="0" :max="5000" :step="50" />
+              <RangeSlider v-model="priceRange" :min="0" :max="6000" :step="50" />
               <input
                 v-model.number="priceRange[1]"
                 type="number"
                 class="places-page__price-input"
                 :min="0"
-                :max="5000"
+                :max="6000"
                 placeholder="До"
               />
             </div>
