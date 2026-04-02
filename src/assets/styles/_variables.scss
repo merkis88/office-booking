@@ -52,7 +52,6 @@ $footer-pad-y: 3.75rem;
 
 // --- Cards ---
 $card-size: 20rem;
-$card-radius: 0.75rem;
 $card-offset: 0.875rem;
 
 // --- Map ---
@@ -68,3 +67,46 @@ $radius-lg: 1.5rem;
 
 // --- Buttons ---
 $button-shadow: 0 3px 3px rgba(0, 0, 0, 0.5);
+
+// --- Card ---
+$card-bg: rgba(230, 242, 250, 0.7);
+$card-border: 2px solid $color-footer-bg;
+$card-radius: 1.25rem;
+$card-padding: 1rem;
+$card-image-size: 200px;
+$card-image-radius: 0.625rem;
+
+// --- Buttons (UI system) ---
+$btn-padding: 0.625rem 1.5rem;
+$btn-radius: $radius-sm;
+$btn-font-size: $text-base;
+$btn-font-weight: 500;
+$btn-bg: $color-input-bg;
+$btn-bg-hover: $color-input-bg-dark;
+$btn-bg-active: $color-header-bg;
+$btn-transition: all 0.2s ease;
+$btn-disabled-opacity: 0.6;
+
+// --- Inputs ---
+$input-padding: 0.875rem 1.25rem;
+$input-radius: $radius-sm;
+$input-bg: $color-input-bg;
+$input-bg-focus: $color-input-bg-dark;
+$input-border: 1px solid $color-border;
+$input-font-size: $text-base;
+
+// --- Tables ---
+$table-bg: rgba(255, 255, 255, 0.7);
+$table-radius: $radius-sm;
+$table-cell-padding: 0.75rem 1rem;
+$table-cell-radius: 6px;
+$table-border-color: $color-header-bg;
+$table-spacing: 0.75rem;
+
+// --- Pagination ---
+$pagination-size: 2.5rem;
+$pagination-arrow-size: 2.5rem;
+
+// --- Spinner ---
+$spinner-size: 40px;
+$spinner-border-width: 3px;
