@@ -126,7 +126,7 @@
     gap: 1rem;
 
     &__warning {
-      color: #991b1b;
+      color: $color-danger;
       font-size: $text-base;
       line-height: 1.5;
       text-align: center;
@@ -152,7 +152,7 @@
     }
 
     &__error {
-      color: #991b1b;
+      color: $color-danger;
       font-size: $text-sm;
       text-align: center;
     }
@@ -173,12 +173,12 @@
       transition: all 0.2s;
 
       &--danger {
-        background: #991b1b;
+        background: $color-danger;
         color: #ffffff;
-        border: 1px solid #991b1b;
+        border: 1px solid $color-danger;
 
         &:hover:not(:disabled) {
-          background: #7f1d1d;
+          background: $color-danger-dark;
         }
 
         &:disabled {

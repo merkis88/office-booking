@@ -142,7 +142,7 @@
     }
 
     &__error {
-      color: #991b1b;
+      color: $color-danger;
       font-size: $text-sm;
       text-align: center;
     }
@@ -160,12 +160,12 @@
       cursor: pointer;
 
       &--danger {
-        background: #991b1b;
+        background: $color-danger;
         color: #fff;
       }
 
       &--success {
-        background: #15803d; // ✅ зелёный
+        background: $color-success;
         color: #fff;
       }
 

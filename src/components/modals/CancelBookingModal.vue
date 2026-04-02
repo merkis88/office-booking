@@ -130,13 +130,13 @@
 
     &__warning {
       font-size: $text-base;
-      color: #991b1b;
+      color: $color-danger;
       margin-bottom: 1rem;
     }
 
     &__error {
       font-size: $text-sm;
-      color: #991b1b;
+      color: $color-danger;
       background: #fee2e2;
       padding: 0.5rem 1rem;
       border-radius: $radius-sm;
@@ -177,12 +177,12 @@
       }
 
       &--danger {
-        background: #991b1b;
+        background: $color-danger;
         color: #ffffff;
-        border: 1px solid #991b1b;
+        border: 1px solid $color-danger;
 
         &:hover:not(:disabled) {
-          background: #7f1d1d;
+          background: $color-danger-dark;
         }
 
         &:disabled {
