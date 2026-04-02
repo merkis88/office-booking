@@ -19,6 +19,7 @@
   const password = ref('');
   const errorMessage = ref('');
   const isDeleting = ref(false);
+  const showPassword = ref(false);
 
   watch(
     () => props.modelValue,
@@ -65,24 +66,35 @@
     title="Удаление аккаунта"
     max-width="480px"
     :close-on-backdrop="true"
+    :show-close-button="true"
     @update:model-value="emit('update:modelValue', $event)"
+    @back="close"
   >
     <div class="delete-account">
       <p class="delete-account__warning">
         Это действие необратимо. Все ваши данные, бронирования и пропуска будут удалены.
       </p>
 
-      <label class="delete-account__label">
-        Для подтверждения введите пароль:
-      </label>
+      <label class="delete-account__label">Для подтверждения введите пароль:</label>
 
-      <input
-        v-model="password"
-        type="password"
-        class="delete-account__input"
-        placeholder="Пароль"
-        @keyup.enter="confirmDelete"
-      />
+      <div class="delete-account__input-wrapper">
+        <input
+          v-model="password"
+          :type="showPassword ? 'text' : 'password'"
+          class="delete-account__input"
+          placeholder="Пароль"
+          @keyup.enter="confirmDelete"
+        />
+
+        <button
+          type="button"
+          class="delete-account__toggle-password"
+          @click="showPassword = !showPassword"
+        >
+          <img v-if="showPassword" src="@/assets/images/icons/eye.svg" alt="Скрыть" />
+          <img v-else src="@/assets/images/icons/eye-off.svg" alt="Показать" />
+        </button>
+      </div>
 
       <p v-if="errorMessage" class="delete-account__error">
         {{ errorMessage }}
@@ -97,10 +109,7 @@
           {{ isDeleting ? 'Удаление...' : 'Удалить аккаунт' }}
         </button>
 
-        <button
-          class="delete-account__btn delete-account__btn--cancel"
-          @click="close"
-        >
+        <button class="delete-account__btn delete-account__btn--cancel" @click="close">
           Отмена
         </button>
       </div>
@@ -186,6 +195,38 @@
         &:hover {
           background: $color-input-bg-dark;
         }
+      }
+    }
+
+    &__input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      input {
+        width: 100%;
+        padding-right: 3rem;
+      }
+    }
+
+    &__toggle-password {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem;
+      transition: 0.2s;
+
+      &:hover {
+        opacity: 0.6;
+      }
+
+      img {
+        width: 1.25rem;
+        height: 1.25rem;
       }
     }
   }
