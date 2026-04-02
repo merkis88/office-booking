@@ -276,24 +276,6 @@ function getStatusColor(statusValue) {
     }
 }
 
-.modal-enter-active,
-.modal-leave-active {
-    transition: opacity 0.3s ease;
-
-    .modal-content {
-        transition: transform 0.3s ease;
-    }
-}
-
-.modal-enter-from,
-.modal-leave-to {
-    opacity: 0;
-
-    .modal-content {
-        transform: scale(0.9) translateY(-20px);
-    }
-}
-
 @media (max-width: 768px) {
     .modal-content {
         padding: 2rem 1.5rem;

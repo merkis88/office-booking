@@ -62,11 +62,11 @@
 
     <!-- Таблица -->
     <div class="requests-table__wrapper">
-      <div v-if="isLoading" class="requests-table__loading">
+      <div v-if="isLoading" class="loading">
         <div class="spinner"></div>
       </div>
 
-      <div v-else-if="requests.length === 0" class="requests-table__empty">
+      <div v-else-if="requests.length === 0" class="empty-state">
         <p>Заявок пока нет</p>
       </div>
 
@@ -187,19 +187,6 @@
       background: $table-bg;
       border-radius: $table-radius;
       padding: 1.5rem;
-    }
-
-    &__loading {
-      display: flex;
-      justify-content: center;
-      padding: 3rem;
-    }
-
-    &__empty {
-      text-align: center;
-      padding: 3rem;
-      font-size: $text-lg;
-      color: rgba($color-text, 0.6);
     }
 
     &__scroll-container {

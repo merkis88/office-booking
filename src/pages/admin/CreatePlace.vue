@@ -685,16 +685,4 @@
     }
   }
 
-  .dropdown-enter-active,
-  .dropdown-leave-active {
-    transition:
-      opacity 0.2s ease,
-      transform 0.2s ease;
-  }
-
-  .dropdown-enter-from,
-  .dropdown-leave-to {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
 </style>

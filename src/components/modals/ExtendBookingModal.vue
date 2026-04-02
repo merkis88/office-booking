@@ -247,7 +247,7 @@
       font-size: $text-base;
       outline: none;
       width: 10rem;
-      transition: 0.2s;
+      transition: $transition-fast;
 
       &:focus {
         background: $color-input-bg-dark;

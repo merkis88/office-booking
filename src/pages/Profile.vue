@@ -40,6 +40,7 @@
 
   const isLoading = ref(false);
   const isEditing = ref(false);
+  const photoError = ref('');
 
   const editableUser = ref({
     first_name: '',
@@ -54,9 +55,10 @@
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
+    photoError.value = '';
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Файл больше 5MB');
+      photoError.value = 'Файл больше 5MB';
       return;
     }
 
@@ -67,14 +69,15 @@
 
   const uploadPhoto = async (file) => {
     isUploadingPhoto.value = true;
+    photoError.value = '';
 
     try {
       await authStore.uploadProfilePhoto(file);
     } catch (error) {
       if (error.response?.status === 422) {
-        alert('Некорректный файл');
+        photoError.value = 'Некорректный файл';
       } else {
-        alert('Ошибка загрузки фото');
+        photoError.value = 'Ошибка загрузки фото';
       }
     } finally {
       isUploadingPhoto.value = false;
@@ -357,6 +360,7 @@
             <img src="@/assets/images/icons/edit.svg" alt="Иконка загрузки фото" />
             Загрузить фото
           </button>
+          <p v-if="photoError" class="error-message">{{ photoError }}</p>
         </div>
 
         <div class="profile__right-col">
@@ -438,7 +442,7 @@
         </div>
       </div>
 
-      <p v-if="saveError" class="profile__error">{{ saveError }}</p>
+      <p v-if="saveError" class="error-message">{{ saveError }}</p>
 
       <div class="profile__bottom">
         <div class="profile__tabs">
@@ -485,10 +489,12 @@
             </button>
           </div>
 
-          <div v-if="bookingsStore.isLoading" class="profile__loading">Загрузка...</div>
+          <div v-if="bookingsStore.isLoading" class="loading">
+            <div class="spinner"></div>
+          </div>
 
-          <div v-else-if="!filteredBookings.length" class="profile__empty">
-            <p>У вас нет активных бронирований</p>
+          <div v-else-if="!filteredBookings.length" class="empty-state">
+            <p>Нет активных бронирований</p>
           </div>
 
           <template v-else>
@@ -518,11 +524,13 @@
         </div>
 
         <div v-if="activeTab === 1" class="profile__bottom-content">
-          <div v-if="favoritesStore.isLoading" class="profile__loading">Загрузка...</div>
+          <div v-if="favoritesStore.isLoading" class="loading">
+            <div class="spinner"></div>
+          </div>
 
-          <div v-else-if="!favoritesStore.favorites.length" class="profile__empty">
-            <p>У вас нет избранных помещений</p>
-            <p class="profile__empty-hint">
+          <div v-else-if="!favoritesStore.favorites.length" class="empty-state">
+            <p>Нет избранных помещений</p>
+            <p class="empty-state__hint">
               Добавляйте помещения в избранное, нажимая на сердечко на карточке
             </p>
           </div>
@@ -533,8 +541,8 @@
         </div>
 
         <div v-if="activeTab === 2" class="profile__bookings">
-          <div v-if="!historyBookings.length" class="profile__empty">
-            <p>У вас нет истории бронирований</p>
+          <div v-if="!historyBookings.length" class="empty-state">
+            <p>История аренды пуста</p>
           </div>
 
           <template v-else>
@@ -553,12 +561,12 @@
         </div>
 
         <div v-if="activeTab === 3" class="profile__services">
-          <div v-if="isLoadingServices" class="profile__services-loading">
-            <p>Загрузка заявок...</p>
+          <div v-if="isLoadingServices" class="loading">
+            <div class="spinner"></div>
           </div>
 
-          <div v-else-if="services.length === 0" class="profile__services-empty">
-            <p>У вас пока нет заявок</p>
+          <div v-else-if="services.length === 0" class="empty-state">
+            <p>Заявок пока нет</p>
           </div>
 
           <div v-else class="profile__services-grid">
@@ -605,20 +613,6 @@
       display: flex;
       flex-direction: column;
       gap: 2rem;
-    }
-
-    &__empty {
-      padding: 3rem 1rem;
-      text-align: center;
-      color: rgba($color-text, 0.6);
-      font-size: $text-lg;
-
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-
-      width: 100%;
     }
 
     &__header-card {
@@ -727,7 +721,7 @@
       min-height: unset;
       width: 100%;
       outline: none;
-      transition: 0.2s;
+      transition: $transition-fast;
 
       &:focus {
         background: transparent;
@@ -793,13 +787,6 @@
       gap: 1.25rem;
       justify-content: flex-start;
       margin-top: 0.75rem;
-    }
-
-    &__error {
-      color: $color-danger;
-      font-size: $text-base;
-      text-align: center;
-      margin-top: 0.5rem;
     }
 
     &__action-btn {
@@ -895,19 +882,6 @@
       text-align: center;
     }
 
-    &__empty-hint {
-      margin-top: 0.5rem;
-      color: rgba($color-text, 0.5);
-      font-size: $text-sm;
-    }
-
-    &__loading {
-      padding: 3rem;
-      text-align: center;
-      color: rgba($color-text, 0.6);
-      font-size: $text-lg;
-    }
-
     &__favorites-grid {
       width: 100%;
       max-width: 1200px;
@@ -945,14 +919,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-    }
-
-    &__services-loading,
-    &__services-empty {
-      padding: 3rem;
-      text-align: center;
-      color: rgba($color-text, 0.6);
-      font-size: $text-lg;
     }
 
     &__services-grid {

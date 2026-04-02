@@ -82,7 +82,7 @@ const placeTypeLabel = computed(() => {
         gap: 1rem;
         padding: 1.5rem;
         position: relative;
-        transition: all 0.3s;
+        transition: $transition-fast;
         opacity: 0.8;
     }
 

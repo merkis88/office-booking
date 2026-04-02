@@ -97,3 +97,97 @@ th {
     transform: rotate(360deg);
   }
 }
+
+// --- Состояния UI ---
+
+// Контейнер загрузки
+.loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  gap: 1rem;
+  color: rgba($color-text, 0.6);
+  font-size: $text-lg;
+}
+
+// Пустое состояние
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  text-align: center;
+  color: rgba($color-text, 0.6);
+  font-size: $text-lg;
+
+  &__hint {
+    margin-top: 0.5rem;
+    font-size: $text-sm;
+    color: rgba($color-text, 0.4);
+  }
+}
+
+// Сообщение об ошибке (inline)
+.error-message {
+  font-size: $text-sm;
+  color: $color-danger-text;
+  background: $color-danger-light;
+  padding: 0.5rem 1rem;
+  border-radius: $radius-sm;
+  text-align: center;
+}
+
+// Сообщение об успехе
+.success-message {
+  font-size: $text-sm;
+  color: $color-success-text;
+  background: $color-success-light;
+  padding: 0.5rem 1rem;
+  border-radius: $radius-sm;
+  text-align: center;
+}
+
+// --- Vue transition: fade ---
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// --- Vue transition: dropdown ---
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: $transition-fast;
+}
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-0.5rem);
+}
+
+// --- Vue transition: modal ---
+.modal-enter-active,
+.modal-leave-active {
+  transition: $transition-fast;
+}
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+// --- Vue transition: slide ---
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(100%);
+}

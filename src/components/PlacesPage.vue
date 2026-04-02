@@ -88,6 +88,7 @@
     currentPage.value = 1;
   }
 
+  const errorMessage = ref('');
   const showBookingModal = ref(false);
   const selectedSlots = ref([]);
   const selectedPlace = ref(null);
@@ -108,11 +109,12 @@
   }
 
   async function handleArchivePlace(placeId) {
+    errorMessage.value = '';
     try {
       await placesStore.archivePlace(placeId);
       await loadPlaces();
     } catch (error) {
-      alert(error.response?.data?.message || 'Не удалось архивировать помещение');
+      errorMessage.value = error.response?.data?.message || 'Не удалось архивировать помещение';
     }
   }
 
@@ -207,8 +209,10 @@
         </div>
       </div>
 
-      <div v-if="isLoading" class="places-page__loading">
-        <p>Загрузка...</p>
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+      <div v-if="isLoading" class="loading">
+        <div class="spinner"></div>
       </div>
 
       <div v-else-if="paginatedPlaces.length > 0" class="places-page__grid">
@@ -221,9 +225,9 @@
         />
       </div>
 
-      <div v-else class="places-page__empty">
-        <p>Мест не найдено</p>
-        <p v-if="selectedDate" class="places-page__empty-hint">
+      <div v-else class="empty-state">
+        <p>Помещения не найдены</p>
+        <p v-if="selectedDate" class="empty-state__hint">
           Попробуйте выбрать другую дату или изменить диапазон цен
         </p>
       </div>
@@ -334,23 +338,6 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-    }
-
-    &__loading,
-    &__empty {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 400px;
-      font-size: $text-lg;
-      color: $color-text;
-      gap: 1rem;
-    }
-
-    &__empty-hint {
-      font-size: $text-base;
-      color: rgba($color-text, 0.6);
     }
 
     @media (max-width: 768px) {

@@ -326,7 +326,7 @@
       padding: 0 0.8rem;
 
       a {
-        transition: 0.2s;
+        transition: $transition-fast;
 
         &:hover {
           opacity: 0.6;

@@ -16,7 +16,8 @@
   const currentPage = ref(1);
   const itemsPerPage = 10;
 
-  // ✅ Состояние модальных окон
+  const errorMessage = ref('');
+
   const showDeleteModal = ref(false);
   const showCreateModal = ref(false);
   const showEditModal = ref(false);
@@ -46,6 +47,7 @@
 
   async function confirmDelete() {
     if (!typeToDelete.value) return;
+    errorMessage.value = '';
 
     try {
       await servicesStore.deleteServiceType(typeToDelete.value.id);
@@ -53,7 +55,7 @@
         currentPage.value--;
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Не удалось удалить тип заявки');
+      errorMessage.value = error.response?.data?.message || 'Не удалось удалить тип заявки';
     }
 
     typeToDelete.value = null;
@@ -132,11 +134,13 @@
         <div class="admin-request-types__list-section">
           <h1 class="admin-request-types__title">Виды заявок</h1>
 
-          <div v-if="isLoading" class="admin-request-types__loading">
+          <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+          <div v-if="isLoading" class="loading">
             <div class="spinner"></div>
           </div>
 
-          <div v-else-if="serviceTypes.length === 0" class="admin-request-types__empty">
+          <div v-else-if="serviceTypes.length === 0" class="empty-state">
             <p>Типов заявок пока нет</p>
             <button class="admin-request-types__create-btn" @click="showCreateModal = true">
               Создать первый тип
@@ -252,12 +256,6 @@
       color: $color-text;
       margin-bottom: 2rem;
       text-align: center;
-    }
-
-    &__loading {
-      display: flex;
-      justify-content: center;
-      padding: 3rem;
     }
 
     &__list {

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useAuthStore } from '@/store/auth';
 import { useReviewsStore } from '@/store/reviews';
 import { storeToRefs } from 'pinia';
@@ -18,6 +18,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['edit', 'delete']);
+
+const errorMessage = ref('');
 
 const stars = Array.from({ length: 5 }, (_, i) => i < props.review.rating);
 
@@ -75,11 +77,11 @@ async function handleDelete() {
         const result = await reviewsStore.deleteReview(props.review.id);
 
         if (!result.success) {
-            alert(result.error || 'Не удалось удалить отзыв');
+            errorMessage.value = result?.error || 'Не удалось удалить отзыв';
         }
     } catch (error) {
         console.error('Ошибка удаления отзыва:', error);
-        alert('Произошла ошибка при удалении отзыва');
+        errorMessage.value = 'Произошла ошибка при удалении отзыва';
     }
 }
 </script>
@@ -105,6 +107,8 @@ async function handleDelete() {
         </div>
 
       <p class="review-card__text">{{ review.text }}</p>
+
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
     </div>
 
     <div class="review-card__avatar-wrapper">

@@ -232,7 +232,7 @@
         width: 1.5rem;
         height: 2px;
         background: $color-text;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: $transition-fast;
         border-radius: 2px;
       }
 
@@ -312,13 +312,4 @@
     }
   }
 
-  .fade-enter-active,
-  .fade-leave-active {
-    transition: opacity 0.2s ease;
-  }
-
-  .fade-enter-from,
-  .fade-leave-to {
-    opacity: 0;
-  }
 </style>
