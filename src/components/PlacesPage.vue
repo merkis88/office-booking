@@ -19,7 +19,7 @@
   const { places, isLoading, filters } = storeToRefs(placesStore);
 
   const priceRange = ref([0, 5000]);
-  const selectedDate = ref('');
+  const selectedDate = ref(new Date().toISOString().split('T')[0]);
   const isInitialLoad = ref(true);
   const isPriceRangeUpdating = ref(false);
 
@@ -281,7 +281,7 @@
       font-weight: 500;
       color: $color-text;
       margin-bottom: 2rem;
-      text-align: start;
+      text-align: center;
     }
 
     &__filters {
