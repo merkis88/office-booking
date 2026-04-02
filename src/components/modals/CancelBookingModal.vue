@@ -92,13 +92,13 @@
 
         <div class="cancel-modal__actions">
           <button
-            class="cancel-modal__btn cancel-modal__btn--danger"
+            class="btn btn--danger"
             :disabled="isSubmitting"
             @click="handleConfirm"
           >
             {{ isSubmitting ? 'Отмена...' : 'Отменить бронирование' }}
           </button>
-          <button class="cancel-modal__btn" :disabled="isSubmitting" @click="handleClose">
+          <button class="btn" :disabled="isSubmitting" @click="handleClose">
             Нет
           </button>
         </div>
@@ -137,7 +137,7 @@
     &__error {
       font-size: $text-sm;
       color: $color-danger;
-      background: #fee2e2;
+      background: rgba($color-danger, 0.1);
       padding: 0.5rem 1rem;
       border-radius: $radius-sm;
       margin-bottom: 1rem;
@@ -147,49 +147,6 @@
       display: flex;
       justify-content: center;
       gap: 1rem;
-    }
-
-    &__btn {
-      padding: 0.625rem 1.5rem;
-      border: 1px solid $color-border;
-      border-radius: $radius-sm;
-      background: $color-input-bg;
-      font-size: $text-base;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:hover {
-        background: $color-input-bg-dark;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-      }
-
-      &:active {
-        transform: translateY(0);
-      }
-
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-      }
-
-      &--danger {
-        background: $color-danger;
-        color: #ffffff;
-        border: 1px solid $color-danger;
-
-        &:hover:not(:disabled) {
-          background: $color-danger-dark;
-        }
-
-        &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-      }
     }
   }
 </style>

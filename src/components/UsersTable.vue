@@ -76,7 +76,7 @@
 
     <div class="users-table__wrapper">
       <div v-if="isLoading" class="users-table__loading">
-        <div class="users-table__spinner"></div>
+        <div class="spinner"></div>
       </div>
 
       <div v-else-if="!(users?.length ?? 0)" class="users-table__empty">
@@ -235,16 +235,6 @@
       padding: 2rem;
     }
 
-    &__spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba($color-text, 0.2);
-      border-top-color: $color-text;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto;
-    }
-
     &__status {
       padding: 0.375rem 0.75rem;
       border-radius: $radius-xs;
@@ -290,9 +280,4 @@
     }
   }
 
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
 </style>

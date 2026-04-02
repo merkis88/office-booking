@@ -132,7 +132,7 @@
           <h1 class="admin-request-types__title">Виды заявок</h1>
 
           <div v-if="isLoading" class="admin-request-types__loading">
-            <div class="admin-request-types__spinner"></div>
+            <div class="spinner"></div>
           </div>
 
           <div v-else-if="serviceTypes.length === 0" class="admin-request-types__empty">
@@ -278,15 +278,6 @@
       display: flex;
       justify-content: center;
       padding: 3rem;
-    }
-
-    &__spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba($color-text, 0.2);
-      border-top-color: $color-text;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
     }
 
     &__list {
@@ -474,9 +465,4 @@
     }
   }
 
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
 </style>

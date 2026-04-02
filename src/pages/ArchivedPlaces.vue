@@ -72,7 +72,7 @@ onMounted(async () => {
             </div>
 
             <div v-if="isLoading" class="archived-places__loading">
-                <div class="archived-places__spinner"></div>
+                <div class="spinner"></div>
                 <p>Загрузка...</p>
             </div>
 
@@ -163,15 +163,6 @@ onMounted(async () => {
         gap: 1rem;
     }
 
-    &__spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid rgba($color-text, 0.2);
-        border-top-color: $color-text;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }
-
     &__empty {
         display: flex;
         flex-direction: column;
@@ -251,9 +242,4 @@ onMounted(async () => {
     }
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
 </style>

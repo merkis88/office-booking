@@ -63,7 +63,7 @@
     <!-- Таблица -->
     <div class="requests-table__wrapper">
       <div v-if="isLoading" class="requests-table__loading">
-        <div class="requests-table__spinner"></div>
+        <div class="spinner"></div>
       </div>
 
       <div v-else-if="requests.length === 0" class="requests-table__empty">
@@ -195,15 +195,6 @@
       padding: 3rem;
     }
 
-    &__spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba($color-text, 0.2);
-      border-top-color: $color-text;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
     &__empty {
       text-align: center;
       padding: 3rem;
@@ -327,9 +318,4 @@
     }
   }
 
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
 </style>

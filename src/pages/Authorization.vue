@@ -63,7 +63,7 @@
         <form class="auth__form" @submit.prevent="handleLogin">
           <div class="auth__field">
             <label>Эл. почта*</label>
-            <input v-model="email" type="email" placeholder="Введите электронную почту" required />
+            <input v-model="email" type="email" class="input" placeholder="Введите электронную почту" required />
           </div>
 
           <div class="auth__field">
@@ -72,6 +72,7 @@
               <input
                 v-model="password"
                 :type="showPassword ? 'text' : 'password'"
+                class="input"
                 placeholder="Введите пароль"
                 required
               />
@@ -205,17 +206,9 @@
         font-size: $text-sm;
       }
 
-      input {
+      .input {
         padding: 1.5rem 1.25rem;
-        border-radius: $radius-sm;
-        border: 1px solid $color-border;
-        background: $color-input-bg;
-        outline: none;
         width: 25rem;
-
-        &:focus {
-          border-color: $color-text;
-        }
       }
     }
 
@@ -252,7 +245,7 @@
     }
 
     &__error {
-      color: #e53e3e;
+      color: $color-danger;
       font-size: $text-sm;
       margin: 1px 0;
       text-align: start;
