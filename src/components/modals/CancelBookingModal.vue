@@ -72,12 +72,12 @@
   >
     <div class="cancel-modal">
       <template v-if="booking">
+        <p class="cancel-modal__warning">Вы действительно хотите отменить бронь?</p>
+
         <div class="cancel-modal__info">
           <p class="cancel-modal__place">{{ booking.place?.name }}</p>
           <p class="cancel-modal__time">{{ formattedDate }}, {{ formattedTime }}</p>
         </div>
-
-        <p class="cancel-modal__warning">Вы действительно хотите отменить бронь?</p>
 
         <p v-if="error" class="cancel-modal__error">{{ error }}</p>
 
@@ -110,7 +110,6 @@
 
     &__place {
       font-size: $text-lg;
-      font-weight: 600;
       color: $color-text;
       margin-bottom: 0.25rem;
     }
@@ -169,11 +168,17 @@
       }
 
       &--danger {
-        color: #991b1b;
-        border-color: #991b1b;
+        background: #991b1b;
+        color: #ffffff;
+        border: 1px solid #991b1b;
 
-        &:hover {
-          background: #fee2e2;
+        &:hover:not(:disabled) {
+          background: #7f1d1d;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
       }
     }
