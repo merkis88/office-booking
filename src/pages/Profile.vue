@@ -12,6 +12,7 @@
   import RescheduleBookingModal from '@/components/modals/RescheduleBookingModal.vue';
   import DeleteAccountModal from '@/components/modals/DeleteAccountModal.vue';
   import PlaceCard from '@/components/PlaceCard.vue';
+  import BookingHistoryCard from '@/components/BookingHistoryCard.vue';
   import { useFavoritesStore } from '@/store/favorites';
   import defaultAvatar from '@/assets/images/photos/default-avatar.png';
   import qrPlaceholder from '@/assets/images/photos/qr-placeholder.png';
@@ -265,6 +266,28 @@
   const groupedBookings = computed(() => {
     const groups = {};
     for (const booking of paginatedBookings.value) {
+      const date = formatBookingDateForGroup(booking.start_time);
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(booking);
+    }
+    return groups;
+  });
+
+  const historyBookings = computed(() => {
+    let bookings = bookingsStore.bookings.filter(
+      (b) => b.status === 'cancelled' || b.status === 'over',
+    );
+
+    if (activePlaceType.value) {
+      bookings = bookings.filter((b) => b.place?.type === activePlaceType.value);
+    }
+
+    return bookings;
+  });
+
+  const groupedHistoryBookings = computed(() => {
+    const groups = {};
+    for (const booking of historyBookings.value) {
       const date = formatBookingDateForGroup(booking.start_time);
       if (!groups[date]) groups[date] = [];
       groups[date].push(booking);
@@ -534,10 +557,24 @@
           </div>
         </div>
 
-        <div v-if="activeTab === 2" class="profile__bottom-content">
-          <div class="profile__empty">
-            <p>История аренды</p>
+        <div v-if="activeTab === 2" class="profile__bookings">
+          <div v-if="!historyBookings.length" class="profile__empty">
+            <p>У вас нет истории бронирований</p>
           </div>
+
+          <template v-else>
+            <div
+              v-for="(group, date) in groupedHistoryBookings"
+              :key="date"
+              class="profile__booking-group"
+            >
+              <h3 class="profile__booking-date">{{ date }}</h3>
+
+              <div class="profile__history-grid">
+                <BookingHistoryCard v-for="booking in group" :key="booking.id" :booking="booking" />
+              </div>
+            </div>
+          </template>
         </div>
 
         <div v-if="activeTab === 3" class="profile__services">
@@ -1093,6 +1130,12 @@
       }
     }
 
+    &__history-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
     @media (max-width: 1024px) {
       &__header-card {
         grid-template-columns: 1fr;
@@ -1106,6 +1149,10 @@
 
     @media (max-width: 768px) {
       padding: 2rem 1rem;
+
+      &__history-grid {
+        grid-template-columns: 1fr;
+      }
 
       &__fields {
         grid-template-columns: 1fr;
