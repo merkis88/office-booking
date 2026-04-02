@@ -903,21 +903,24 @@
       width: 200px;
       height: 42px;
       padding: 0;
-      border-radius: 0.625rem;
       border: 1px solid $color-border;
-      background: none;
+      background: rgba(230, 242, 250, 0.7);
+      border-radius: 0.625rem;
       font-size: 1.125rem;
+      font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
       align-items: center;
       justify-content: center;
+      white-space: nowrap;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.7);
+        background: rgba(209, 223, 232, 0.95);
       }
+
       &--active {
-        background: rgba(255, 255, 255, 0.7);
+        box-shadow: $button-shadow;
       }
     }
 
