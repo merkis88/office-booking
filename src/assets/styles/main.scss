@@ -55,7 +55,7 @@ th {
 
   &--danger {
     background: $color-danger;
-    color: #ffffff;
+    color: $color-card-bg;
     border-color: $color-danger;
 
     &:hover:not(:disabled) {
@@ -64,11 +64,11 @@ th {
   }
 
   &--outline-danger {
-    color: $color-danger;
-    border-color: $color-danger;
+    color: $color-danger-text;
+    border-color: $color-danger-text;
 
     &:hover:not(:disabled) {
-      background: rgba($color-danger, 0.1);
+      background: $color-danger-light;
     }
   }
 

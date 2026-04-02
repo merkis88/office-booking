@@ -126,21 +126,21 @@
       }
 
       &::-webkit-scrollbar-track {
-        background: #e5e7eb; // светлый фон
+        background: $color-scrollbar-track;
         border-radius: 10px;
       }
 
       &::-webkit-scrollbar-thumb {
-        background: #9ca3af; // серый вместо чёрного
+        background: $color-scrollbar-thumb;
         border-radius: 10px;
       }
 
       &::-webkit-scrollbar-thumb:hover {
-        background: #6b7280;
+        background: $color-scrollbar-thumb-hover;
       }
 
       scrollbar-width: thin;
-      scrollbar-color: #9ca3af #e5e7eb;
+      scrollbar-color: $color-scrollbar-thumb $color-scrollbar-track;
     }
 
     &__top-scroll-content {
@@ -150,7 +150,7 @@
     }
 
     &__wrapper {
-      background: rgba(255, 255, 255, 0.7);
+      background: $table-bg;
       border-radius: $radius-xs;
       padding: 1.5rem;
     }

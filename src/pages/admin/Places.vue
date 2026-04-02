@@ -3,6 +3,7 @@
   import { usePlacesStore } from '@/store/places';
   import { useRouter } from 'vue-router';
   import { storeToRefs } from 'pinia';
+  import AppPagination from '@/components/AppPagination.vue';
 
   const placesStore = usePlacesStore();
   const router = useRouter();
@@ -216,33 +217,12 @@
         </div>
       </div>
 
-      <div v-if="totalPages > 1 && !isLoading" class="admin-places__pagination">
-        <button
-          class="admin-places__pagination-btn"
-          :disabled="currentPage === 1"
-          @click="goToPage(currentPage - 1)"
-        >
-          <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
-        </button>
-
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          class="admin-places__pagination-number"
-          :class="{ 'admin-places__pagination-number--active': currentPage === page }"
-          @click="goToPage(page)"
-        >
-          {{ page }}
-        </button>
-
-        <button
-          class="admin-places__pagination-btn"
-          :disabled="currentPage === totalPages"
-          @click="goToPage(currentPage + 1)"
-        >
-          <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
-        </button>
-      </div>
+      <AppPagination
+        v-if="!isLoading"
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        @update:current-page="goToPage"
+      />
     </div>
 
     <transition name="modal">
@@ -527,54 +507,6 @@
 
       &--edit:hover {
         background: rgba(#3498db, 0.1);
-      }
-    }
-
-    // Пагинация
-    &__pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    &__pagination-btn {
-      img {
-        width: 2.5rem;
-        height: 2.5rem;
-      }
-
-      &:hover:not(:disabled) {
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
-
-    &__pagination-number {
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: $radius-xs;
-      background: $color-btn-profile;
-      color: $color-text;
-      font-size: $text-base;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 600;
-
-      &:hover {
-        background: #f5f5f5;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      &--active {
-        background: $color-footer-bg;
       }
     }
 

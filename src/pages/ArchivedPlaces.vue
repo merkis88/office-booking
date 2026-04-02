@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/auth';
 import { usePlacesStore } from '@/store/places';
 import { storeToRefs } from 'pinia';
 import ArchivedPlaceCard from '@/components/ArchivedPlaceCard.vue';
+import AppPagination from '@/components/AppPagination.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -91,33 +92,12 @@ onMounted(async () => {
                 <p class="archived-places__empty-hint">Архивные помещения появятся здесь</p>
             </div>
 
-            <div v-if="totalPages > 1 && !isLoading" class="archived-places__pagination">
-                <button
-                    class="archived-places__pagination-btn"
-                    :disabled="currentPage === 1"
-                    @click="goToPage(currentPage - 1)"
-                >
-                    <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
-                </button>
-
-                <button
-                    v-for="page in totalPages"
-                    :key="page"
-                    class="archived-places__pagination-number"
-                    :class="{ 'archived-places__pagination-number--active': currentPage === page }"
-                    @click="goToPage(page)"
-                >
-                    {{ page }}
-                </button>
-
-                <button
-                    class="archived-places__pagination-btn"
-                    :disabled="currentPage === totalPages"
-                    @click="goToPage(currentPage + 1)"
-                >
-                    <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
-                </button>
-            </div>
+            <AppPagination
+                v-if="!isLoading"
+                :current-page="currentPage"
+                :total-pages="totalPages"
+                @update:current-page="goToPage"
+            />
         </div>
     </div>
 </template>
@@ -177,56 +157,6 @@ onMounted(async () => {
     &__empty-hint {
         font-size: $text-base;
         color: rgba($color-text, 0.6);
-    }
-
-    &__pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    &__pagination-btn {
-        img {
-            width: 2.5rem;
-            height: 2.5rem;
-        }
-
-        &:hover:not(:disabled) {
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-    }
-
-    &__pagination-number {
-        width: 2.5rem;
-        height: 2.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid $color-border;
-        border-radius: $radius-xs;
-        background: $color-input-bg;
-        color: $color-text;
-        font-size: $text-base;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-weight: 500;
-
-        &:hover {
-            background: $color-input-bg-dark;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        &--active {
-            background: $color-header-bg;
-            font-weight: 600;
-            border-color: $color-text;
-        }
     }
 
     @media (max-width: 768px) {
