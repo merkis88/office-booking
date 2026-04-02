@@ -119,7 +119,8 @@
 </template>
 
 <style lang="scss" scoped>
-  @use '/src/assets/styles/variables' as *;
+@use '@/assets/styles/variables' as *;
+@use '@/assets/styles/mixins' as *;
 
   .auth {
     min-height: 100vh;
@@ -174,6 +175,7 @@
       padding: 3rem 2rem;
       display: flex;
       flex-direction: column;
+      align-items: center;
       gap: 1rem;
     }
 
@@ -209,7 +211,7 @@
         border: 1px solid $color-border;
         background: $color-input-bg;
         outline: none;
-        width: 100%;
+        width: 25rem;
 
         &:focus {
           border-color: $color-text;
@@ -273,53 +275,51 @@
       }
     }
 
-    &__btn {
-      background: $color-input-bg;
-      border-radius: $radius-sm;
-      font-size: $text-lg;
-      transition: 0.25s;
-      border: solid 1px $color-border;
-      cursor: pointer;
-      padding: 0.8rem 2rem;
-      width: auto;
-      min-width: 15rem;
+      &__btn {
+          background: $color-input-bg;
+          border-radius: $radius-sm;
+          font-size: $text-lg;
+          transition: 0.25s;
+          border: solid 1px $color-border;
+          cursor: pointer;
+          padding: 0.8rem 2rem;
+          width: 30rem; // ✅ Полная ширина
+          max-width: 17rem; // ✅ Как у полей ввода
 
-      &:hover:not(:disabled) {
-        background: $color-input-bg-dark;
-      }
+          &:hover:not(:disabled) {
+              background: $color-input-bg-dark;
+          }
 
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
+          &:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+          }
 
-      &--secondary {
-        margin-top: 0.5rem;
+          &--secondary {
+              margin-top: 0.5rem;
 
-        &:hover {
-          background: rgba($color-input-bg, 0.3);
-        }
+              &:hover {
+                  background: rgba($color-input-bg, 0.3);
+              }
+          }
+
+          @media (max-width: 768px) {
+              max-width: 100%; // ✅ На мобильных на всю ширину
+          }
       }
 
       @media (max-width: 768px) {
-        min-width: auto;
-        width: 100%;
-      }
-    }
+          &__field {
+              max-width: 100%;
+          }
 
-    @media (max-width: 768px) {
-      &__field {
-        max-width: 100%;
-      }
+          &__links {
+              max-width: 100%;
+          }
 
-      &__links {
-        max-width: 100%;
+          &__btn {
+              padding: 0.75rem 2rem;
+          }
       }
-
-      &__btn {
-        padding: 0.75rem 2rem;
-        width: 100%;
-      }
-    }
   }
 </style>

@@ -597,18 +597,26 @@
     &__image {
       flex: 1;
       position: relative;
-      background: linear-gradient(135deg, #fbd3a2 0%, #f8a5a5 50%, #7c8fa0 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 3rem;
 
-      img {
-        max-width: 100%;
-        max-height: 500px;
-        object-fit: contain;
-        z-index: 2;
-      }
+        background:
+            linear-gradient(
+                    to bottom right,
+                    #EBCAA3 0%,
+                    #FF8B95 49.9%,
+                    #7c8fa0 50%,
+                    #7c8fa0 100%
+            );
+
+        img {
+            max-width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            z-index: 2;
+        }
     }
 
     &__form-wrapper {

@@ -168,28 +168,35 @@
 </template>
 
 <style lang="scss" scoped>
-  @use '/src/assets/styles/variables' as *;
-  @use '/src/assets/styles/mixins' as *;
+    @use '@/assets/styles/variables' as *;
+    @use '@/assets/styles/mixins' as *;
 
-  .hero {
-    &__inner {
-      @include container;
-      display: flex;
-      align-items: center;
-    }
+    .hero {
+        margin-top: -100px;
+        padding-top: 100px;
+        position: relative;
 
-    &__image {
-      max-height: 43.75rem;
-      height: 100%;
-      object-fit: contain;
-      flex-shrink: 0;
-    }
+        &__inner {
+            @include container;
+            display: flex;
+            align-items: center;
+        }
 
-    &__content {
-      flex: 1;
-      display: flex;
-      justify-content: flex-end;
-    }
+        &__image {
+            max-height: 43.75rem;
+            height: 100%;
+            object-fit: contain;
+            flex-shrink: 0;
+            margin-top: -15px;
+        }
+
+        &__content {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            position: relative;
+            z-index: 2;
+        }
 
     &__text-block {
       max-width: 48rem;

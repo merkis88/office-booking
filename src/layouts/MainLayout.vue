@@ -1,54 +1,54 @@
 <script setup>
-  import Header from '@/components/Header.vue';
-  import Footer from '@/components/Footer.vue';
+import Header from '@/components/Header.vue';
+import Footer from '@/components/Footer.vue';
 
-  import { onMounted, watch } from 'vue';
-  import { useRoute } from 'vue-router';
-  import { useAuthStore } from '@/store/auth';
-  import { useNotificationsStore } from '@/store/notifications';
+import { onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { useAuthStore } from '@/store/auth';
+import { useNotificationsStore } from '@/store/notifications';
 
-  const route = useRoute();
-  const authStore = useAuthStore();
-  const notificationsStore = useNotificationsStore();
+const route = useRoute();
+const authStore = useAuthStore();
+const notificationsStore = useNotificationsStore();
 
-  async function loadNotifications() {
+async function loadNotifications() {
     if (authStore.isAuthenticated) {
-      await notificationsStore.fetchNotifications();
+        await notificationsStore.fetchNotifications();
     }
-  }
+}
 
-  onMounted(() => {
+onMounted(() => {
     loadNotifications();
-  });
+});
 
-  watch(
+watch(
     () => route.path,
     () => {
-      loadNotifications();
+        loadNotifications();
     },
-  );
+);
 </script>
 
 <template>
-  <div class="layout">
-    <Header />
+    <div class="layout">
+        <Header />
 
-    <main class="layout__content">
-      <router-view />
-    </main>
+        <main class="layout__content">
+            <router-view />
+        </main>
 
-    <Footer />
-  </div>
+        <Footer />
+    </div>
 </template>
 
 <style scoped>
-  .layout {
+.layout {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-  }
+}
 
-  .layout__content {
+.layout__content {
     flex: 1;
-  }
+}
 </style>

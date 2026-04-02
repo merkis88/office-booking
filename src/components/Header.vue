@@ -274,6 +274,10 @@
       min-width: 300px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       z-index: 1000;
+
+      .header__button{
+          border: none;
+      }
     }
 
     &__admin-close {
