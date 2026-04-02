@@ -38,22 +38,19 @@ async function loadArchivedPlaces() {
 }
 
 async function handleDeletePlace(placeId) {
-    const result = await placesStore.deletePlace(placeId);
-
-    if (result.success) {
-        console.log('Помещение удалено');
-    } else {
-        alert(result.error);
+    try {
+        await placesStore.deletePlace(placeId);
+    } catch (error) {
+        alert(error.response?.data?.message || 'Не удалось удалить помещение');
     }
 }
 
 async function handleRestorePlace(placeId) {
-    const result = await placesStore.restorePlace(placeId);
-
-    if (result.success) {
+    try {
+        await placesStore.restorePlace(placeId);
         await loadArchivedPlaces();
-    } else {
-        alert(result.error);
+    } catch (error) {
+        alert(error.response?.data?.message || 'Не удалось восстановить помещение');
     }
 }
 

@@ -45,16 +45,18 @@
 
   async function confirmDelete() {
     isDeleting.value = true;
-    const result = await placesStore.deletePlace(deletingPlaceId.value);
-    isDeleting.value = false;
-
-    if (result.success) {
+    try {
+      await placesStore.deletePlace(deletingPlaceId.value);
       deleteSuccess.value = true;
       setTimeout(() => {
         showDeleteModal.value = false;
         deleteSuccess.value = false;
         deletingPlaceId.value = null;
       }, 1200);
+    } catch (error) {
+      alert(error.response?.data?.message || 'Не удалось удалить помещение');
+    } finally {
+      isDeleting.value = false;
     }
   }
 

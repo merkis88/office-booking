@@ -95,12 +95,7 @@ function openStatusModal(request) {
 async function handleChangeStatus(data) {
     if (!requestToEdit.value) return;
 
-    const result = await servicesStore.updateServiceStatus(requestToEdit.value.id, data.status);
-
-    if (!result.success) {
-        throw new Error(result.error);
-    }
-
+    await servicesStore.updateServiceStatus(requestToEdit.value.id, data.status);
     await loadRequests();
     requestToEdit.value = null;
 }

@@ -48,45 +48,31 @@
   async function confirmDelete() {
     if (!typeToDelete.value) return;
 
-    const result = await servicesStore.deleteServiceType(typeToDelete.value.id);
-
-    if (result.success) {
+    try {
+      await servicesStore.deleteServiceType(typeToDelete.value.id);
       if (paginatedTypes.value.length === 0 && currentPage.value > 1) {
         currentPage.value--;
       }
-    } else {
-      alert(result.error);
+    } catch (error) {
+      alert(error.response?.data?.message || 'Не удалось удалить тип заявки');
     }
 
     typeToDelete.value = null;
   }
 
   async function handleCreateType(typeData) {
-    const result = await servicesStore.createServiceType(typeData);
-
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-
+    await servicesStore.createServiceType(typeData);
     currentPage.value = Math.ceil(serviceTypes.value.length / itemsPerPage);
   }
 
-  // ✅ НОВАЯ функция - открытие модалки редактирования
   function editType(type) {
     typeToEdit.value = type;
     showEditModal.value = true;
   }
 
-  // ✅ НОВАЯ функция - обновление типа
   async function handleUpdateType(typeData) {
     if (!typeToEdit.value) return;
-
-    const result = await servicesStore.updateServiceType(typeToEdit.value.id, typeData);
-
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-
+    await servicesStore.updateServiceType(typeToEdit.value.id, typeData);
     typeToEdit.value = null;
   }
 

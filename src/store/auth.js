@@ -46,7 +46,6 @@ export const useAuthStore = defineStore('auth', {
         this.user = data.user || data;
         localStorage.setItem('user', JSON.stringify(this.user));
       } catch (error) {
-        console.error('Ошибка загрузки пользователя:', error);
         this.logout();
       }
     },
@@ -57,61 +56,36 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async register(registrationData) {
-      try {
-        const { data } = await axios.post('/api/register', registrationData);
+      const { data } = await axios.post('/api/register', registrationData);
 
-        this.pendingVerificationEmail = registrationData.email;
-        this.user = data.user;
-        localStorage.setItem('user', JSON.stringify(data.user));
+      this.pendingVerificationEmail = registrationData.email;
+      this.user = data.user;
+      localStorage.setItem('user', JSON.stringify(data.user));
 
-        return {
-          success: true,
-          requires_verification: true,
-          user: data.user,
-          message: data.message,
-        };
-      } catch (error) {
-        console.error('Ошибка в authStore.register:', error);
-        throw error;
-      }
+      return data;
     },
 
     async verifyEmail(email, code) {
-      try {
-        const { data } = await axios.post('/api/verify-email', {
-          email,
-          code,
-        });
+      const { data } = await axios.post('/api/verify-email', {
+        email,
+        code,
+      });
 
-        if (data.success && data.token) {
-          this.setAuth(data.token, data.user);
-        }
-
-        return data;
-      } catch (error) {
-        console.error('Ошибка верификации:', error);
-        throw error;
+      if (data.success && data.token) {
+        this.setAuth(data.token, data.user);
       }
+
+      return data;
     },
 
     async resendVerificationCode(email) {
-      try {
-        const { data } = await axios.post('/api/resend-verification', { email });
-        return data;
-      } catch (error) {
-        console.error('Ошибка повторной отправки:', error);
-        throw error;
-      }
+      const { data } = await axios.post('/api/resend-verification', { email });
+      return data;
     },
 
     async forgotPassword(email) {
-      try {
-        const { data } = await axios.post('/api/forgot-password', { email });
-        return data;
-      } catch (error) {
-        console.error('Ошибка отправки временного пароля:', error);
-        throw error;
-      }
+      const { data } = await axios.post('/api/forgot-password', { email });
+      return data;
     },
 
     async fetchProfile() {
@@ -123,14 +97,13 @@ export const useAuthStore = defineStore('auth', {
         this.user = { ...this.user, ...profileData };
         localStorage.setItem('user', JSON.stringify(this.user));
       } catch (error) {
-        console.error('Ошибка загрузки профиля:', error);
-        throw error;
+        this.error = error.response?.data?.message || 'Ошибка загрузки профиля';
       }
     },
 
     async updateProfile(profileData) {
       const { data } = await axios.patch('/api/profile', profileData);
-      const updatedData = data.data || data;
+      const updatedData = data.data ?? data;
       this.user = { ...this.user, ...updatedData };
       localStorage.setItem('user', JSON.stringify(this.user));
       return this.user;
@@ -143,7 +116,6 @@ export const useAuthStore = defineStore('auth', {
       const response = await axios.post('/api/profile/photo', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${this.token}`,
         },
       });
 
@@ -156,17 +128,12 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async changePassword(currentPassword, newPassword, passwordConfirmation) {
-      try {
-        const { data } = await axios.put('/api/user/password', {
-          current_password: currentPassword,
-          password: newPassword,
-          password_confirmation: passwordConfirmation,
-        });
-        return data;
-      } catch (error) {
-        console.error('Ошибка смены пароля:', error);
-        throw error;
-      }
+      const { data } = await axios.put('/api/user/password', {
+        current_password: currentPassword,
+        password: newPassword,
+        password_confirmation: passwordConfirmation,
+      });
+      return data;
     },
 
     clearAuth() {
@@ -184,7 +151,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         await axios.post('/api/logout');
       } catch (e) {
-        console.error('Ошибка при выходе:', e);
+        // Ignore logout errors
       } finally {
         this.clearAuth();
       }

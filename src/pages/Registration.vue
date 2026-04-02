@@ -130,13 +130,9 @@
         registrationData.patronymic = patronymic.value.trim();
       }
 
-      const result = await authStore.register(registrationData);
-
-      if (result.success) {
-        showVerificationModal.value = true;
-      }
+      await authStore.register(registrationData);
+      showVerificationModal.value = true;
     } catch (error) {
-      console.error('Ошибка регистрации:', error);
 
       if (error.response?.data?.errors) {
         const backendErrors = error.response.data.errors;

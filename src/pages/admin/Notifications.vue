@@ -4,7 +4,7 @@
   import { storeToRefs } from 'pinia';
 
   const notificationsStore = useNotificationsStore();
-  const { isLoading, error, successMessage } = storeToRefs(notificationsStore);
+  const { isLoading, error } = storeToRefs(notificationsStore);
 
   const form = ref({
     title: '',
@@ -19,8 +19,11 @@
     email: '',
   });
 
+  const successMessage = ref('');
+
   async function handleSubmit() {
-    notificationsStore.clearMessages();
+    successMessage.value = '';
+    notificationsStore.error = null;
     clearFieldErrors();
 
     if (!form.value.title.trim()) {
@@ -43,20 +46,25 @@
       return;
     }
 
-    const result = await notificationsStore.sendNotification({
-      title: form.value.title,
-      message: form.value.message,
-      sendToEmployee: form.value.sendToEmployee,
-      email: form.value.email,
-    });
+    try {
+      const data = await notificationsStore.sendNotification({
+        title: form.value.title,
+        message: form.value.message,
+        sendToEmployee: form.value.sendToEmployee,
+        email: form.value.email,
+      });
 
-    if (!result.success && result.validationErrors) {
-      handleBackendErrors(result.validationErrors);
-    } else if (result.success) {
+      successMessage.value = data.message || 'Уведомление успешно отправлено!';
       form.value.title = '';
       form.value.message = '';
       form.value.sendToEmployee = false;
       form.value.email = '';
+    } catch (err) {
+      if (err.response?.data?.errors) {
+        handleBackendErrors(err.response.data.errors);
+      } else {
+        notificationsStore.error = err.response?.data?.message || 'Не удалось отправить уведомление';
+      }
     }
   }
 

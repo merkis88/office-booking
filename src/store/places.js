@@ -100,10 +100,8 @@ export const usePlacesStore = defineStore('places', {
       try {
         const params = {};
         if (filters.type) params.type = filters.type;
-        if (filters.minPrice !== undefined && filters.minPrice !== null)
-          params.min_price = filters.minPrice;
-        if (filters.maxPrice !== undefined && filters.maxPrice !== null)
-          params.max_price = filters.maxPrice;
+        if (filters.minPrice != null) params.min_price = filters.minPrice;
+        if (filters.maxPrice != null) params.max_price = filters.maxPrice;
         if (filters.date) params.date = filters.date;
 
         const { data } = await axios.get('/api/places', { params });
@@ -115,126 +113,89 @@ export const usePlacesStore = defineStore('places', {
 
         this.places = placesData;
         this.filters = data.filters || null;
-
-        return { success: true, data: this.places };
       } catch (error) {
-        console.error('Ошибка загрузки мест:', error);
-        this.error = 'Не удалось загрузить места';
+        this.error = error.response?.data?.message || 'Не удалось загрузить помещения';
         this.places = [];
-        return { success: false, error: this.error };
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async fetchPlace(placeId) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { data } = await axios.get(`/api/places/${placeId}`);
+        return data.data ?? data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Не удалось загрузить помещение';
+        throw error;
       } finally {
         this.isLoading = false;
       }
     },
 
     async deletePlace(placeId) {
-      try {
-        await axios.delete(`/api/admin/places/${placeId}`);
-        this.places = this.places.filter((p) => p.id !== placeId);
-        if (this.paginatedPlaces.length === 0 && this.currentPage > 1) this.currentPage--;
-        return { success: true };
-      } catch (error) {
-        console.error('Ошибка удаления помещения:', error);
-        return { success: false, error: 'Не удалось удалить помещение' };
-      }
+      await axios.delete(`/api/admin/places/${placeId}`);
+      this.places = this.places.filter((p) => p.id !== placeId);
+      if (this.paginatedPlaces.length === 0 && this.currentPage > 1) this.currentPage--;
     },
 
     async createPlace(placeData) {
-      this.isLoading = true;
-      this.error = null;
-      try {
-        const formData = new FormData();
-        Object.entries(placeData).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) formData.append(key, value);
-        });
+      const formData = new FormData();
+      Object.entries(placeData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) formData.append(key, value);
+      });
 
-        const { data } = await axios.post('/api/admin/places', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+      const { data } = await axios.post('/api/admin/places', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
-        const newPlace = data.data || data;
-        this.places.push(newPlace);
-        return { success: true, data: newPlace };
-      } catch (error) {
-        console.error('Ошибка создания помещения:', error);
-        const message = error.response?.data?.message || 'Не удалось создать помещение';
-        this.error = message;
-        return { success: false, error: message };
-      } finally {
-        this.isLoading = false;
-      }
+      const newPlace = data.data ?? data;
+      this.places.push(newPlace);
+      return newPlace;
     },
 
     async updatePlace(placeId, updatedData) {
-      this.isLoading = true;
-      this.error = null;
-      try {
-        const formData = new FormData();
-        formData.append('_method', 'PUT');
-        Object.entries(updatedData).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) formData.append(key, value);
-        });
+      const formData = new FormData();
+      formData.append('_method', 'PUT');
+      Object.entries(updatedData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) formData.append(key, value);
+      });
 
-        const { data } = await axios.post(`/api/admin/places/${placeId}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+      const { data } = await axios.post(`/api/admin/places/${placeId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
-        const index = this.places.findIndex((p) => p.id === Number(placeId));
-        if (index !== -1) this.places[index] = data.data || data;
-        return { success: true, data: data.data || data };
-      } catch (error) {
-        const message = error.response?.data?.message || 'Ошибка обновления';
-        this.error = message;
-        return { success: false, error: message };
-      } finally {
-        this.isLoading = false;
-      }
+      const updated = data.data ?? data;
+      const index = this.places.findIndex((p) => p.id === Number(placeId));
+      if (index !== -1) this.places[index] = updated;
+      return updated;
     },
 
     async archivePlace(placeId) {
-      this.isLoading = true;
-      this.error = null;
-      try {
-        const { data } = await axios.post(`/api/admin/places/${placeId}/archive`);
-        this.places = this.places.filter((p) => p.id !== placeId);
-        return { success: true, data };
-      } catch (error) {
-        const message = error.response?.data?.message || 'Не удалось архивировать помещение';
-        this.error = message;
-        return { success: false, error: message };
-      } finally {
-        this.isLoading = false;
-      }
+      const { data } = await axios.post(`/api/admin/places/${placeId}/archive`);
+      this.places = this.places.filter((p) => p.id !== placeId);
+      return data.data ?? data;
     },
 
     async restorePlace(placeId) {
-      this.isLoading = true;
-      this.error = null;
-      try {
-        const { data } = await axios.post(`/api/admin/places/${placeId}/restore`);
-        this.places = this.places.filter((p) => p.id !== placeId);
-        return { success: true, data };
-      } catch (error) {
-        const message = error.response?.data?.message || 'Не удалось восстановить помещение';
-        this.error = message;
-        return { success: false, error: message };
-      } finally {
-        this.isLoading = false;
-      }
+      const { data } = await axios.post(`/api/admin/places/${placeId}/restore`);
+      this.places = this.places.filter((p) => p.id !== placeId);
+      return data.data ?? data;
     },
 
     async fetchArchivedPlaces() {
       this.isLoading = true;
       this.error = null;
+
       try {
         const { data } = await axios.get('/api/admin/places', { params: { archived: 1 } });
         this.places = data.data || data;
-        return { success: true, data: this.places };
       } catch (error) {
-        console.error('Ошибка загрузки архивных помещений:', error);
-        this.error = 'Не удалось загрузить архивные помещения';
+        this.error = error.response?.data?.message || 'Не удалось загрузить архивные помещения';
         this.places = [];
-        return { success: false, error: this.error };
       } finally {
         this.isLoading = false;
       }
