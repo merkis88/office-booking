@@ -168,6 +168,7 @@
 
 <style lang="scss" scoped>
   @use '@/assets/styles/variables' as *;
+  @use '@/assets/styles/mixins' as *;
 
   .place-card {
     overflow: hidden;
@@ -177,17 +178,10 @@
     font-family: $font-base;
 
     &__main {
-      background: $color-btn-profile;
-      border: 1px solid $color-border;
-      border-radius: $radius-lg;
-      display: flex;
-      gap: 1rem;
-      padding: 1.5rem;
+      @include card-base;
       transition: all 0.3s;
-
       flex: 1;
       min-height: 280px;
-      position: relative;
     }
 
     &__image-wrapper {

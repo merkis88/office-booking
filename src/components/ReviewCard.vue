@@ -123,16 +123,11 @@ async function handleDelete() {
 
 <style lang="scss" scoped>
   @use '@/assets/styles/variables' as *;
+  @use '@/assets/styles/mixins' as *;
 
   .review-card {
-    padding: 1.5rem;
-    background: $color-btn-profile;
-    border: 1px solid $color-border;
-    border-radius: $radius-lg;
-    display: flex;
-    gap: 1.5rem;
+    @include card-base;
     transition: all 0.2s;
-    position: relative;
 
     &:hover {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

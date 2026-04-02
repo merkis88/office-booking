@@ -72,6 +72,7 @@
 
 <style lang="scss" scoped>
   @use '@/assets/styles/variables' as *;
+  @use '@/assets/styles/mixins' as *;
 
   .booking-card {
     width: 100%;
@@ -80,33 +81,14 @@
     gap: 1.5rem;
 
     &__main {
+      @include card-base;
       width: 600px;
       max-width: 100%;
       min-height: 260px;
-      background: rgba(230, 242, 250, 0.7);
-      border: 2px solid $color-footer-bg;
-      border-radius: 1.25rem; // 20px
-      display: flex;
-      align-items: center;
-      gap: 1.75rem;
-      padding: 1.25rem;
-      position: relative;
     }
 
     &__image-wrapper {
-      width: 190px;
-      height: 190px;
-      flex-shrink: 0;
-      border: 2px solid $color-footer-bg;
-      border-radius: 0.625rem; // 10px
-      overflow: hidden;
-      background: rgba(230, 242, 250, 0.7);
-    }
-
-    &__image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      @include card-image;
     }
 
     &__content {
@@ -158,7 +140,7 @@
       transition: background 0.2s;
 
       &:hover {
-        background: rgba(209, 223, 232, 0.95);
+        background: $color-input-bg-dark;
       }
     }
 
