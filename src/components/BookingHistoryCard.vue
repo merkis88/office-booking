@@ -57,18 +57,12 @@
 
 <style lang="scss" scoped>
   @use '@/assets/styles/variables' as *;
+  @use '@/assets/styles/mixins' as *;
 
   .booking-history-card {
-    position: relative;
-    display: flex;
-    background: rgba(230, 242, 250, 0.7);
-    border: 2px solid $color-footer-bg;
-    border-radius: 1.25rem;
+    @include card-base;
     overflow: hidden;
     min-height: 200px;
-    gap: 1.5rem;
-    padding: 1rem;
-    align-items: center;
 
     @media (max-width: 640px) {
       flex-direction: column;
@@ -76,22 +70,7 @@
     }
 
     &__image-wrapper {
-      width: 200px;
-      height: 200px; /* квадрат */
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 0.625rem;
-      overflow: hidden;
-      border: 2px solid $color-footer-bg; /* обводка wrapper */
-      background: rgba(230, 242, 250, 0.7);
-    }
-
-    &__image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover; /* полностью заполняет wrapper */
+      @include card-image;
     }
 
     &__content {
