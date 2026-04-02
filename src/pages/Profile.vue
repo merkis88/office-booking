@@ -13,6 +13,7 @@
   import DeleteAccountModal from '@/components/modals/DeleteAccountModal.vue';
   import FavoriteCard from '@/components/FavoriteCard.vue';
   import BookingHistoryCard from '@/components/BookingHistoryCard.vue';
+  import AppPagination from '@/components/AppPagination.vue';
   import { useFavoritesStore } from '@/store/favorites';
   import defaultAvatar from '@/assets/images/photos/default-avatar.png';
   import qrPlaceholder from '@/assets/images/photos/qr-placeholder.png';
@@ -509,33 +510,11 @@
             </div>
           </template>
 
-          <div v-if="bookingsTotalPages > 1" class="profile__services-pagination">
-            <button
-              class="profile__pagination-btn"
-              :disabled="bookingsCurrentPage === 1"
-              @click="goToBookingsPage(bookingsCurrentPage - 1)"
-            >
-              <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
-            </button>
-
-            <button
-              v-for="page in bookingsTotalPages"
-              :key="page"
-              class="profile__pagination-number"
-              :class="{ 'profile__pagination-number--active': bookingsCurrentPage === page }"
-              @click="goToBookingsPage(page)"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="profile__pagination-btn"
-              :disabled="bookingsCurrentPage === bookingsTotalPages"
-              @click="goToBookingsPage(bookingsCurrentPage + 1)"
-            >
-              <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
-            </button>
-          </div>
+          <AppPagination
+            :current-page="bookingsCurrentPage"
+            :total-pages="bookingsTotalPages"
+            @update:current-page="goToBookingsPage"
+          />
         </div>
 
         <div v-if="activeTab === 1" class="profile__bottom-content">
@@ -586,33 +565,12 @@
             <ServiceRequestCard v-for="service in services" :key="service.id" :service="service" />
           </div>
 
-          <div v-if="totalPages > 1 && !isLoading" class="profile__services-pagination">
-            <button
-              class="profile__pagination-btn"
-              :disabled="currentPage === 1"
-              @click="goToPage(currentPage - 1)"
-            >
-              <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
-            </button>
-
-            <button
-              v-for="page in totalPages"
-              :key="page"
-              class="profile__pagination-number"
-              :class="{ 'profile__pagination-number--active': currentPage === page }"
-              @click="goToPage(page)"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="profile__pagination-btn"
-              :disabled="currentPage === totalPages"
-              @click="goToPage(currentPage + 1)"
-            >
-              <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
-            </button>
-          </div>
+          <AppPagination
+            v-if="!isLoading"
+            :current-page="currentPage"
+            :total-pages="totalPages"
+            @update:current-page="goToPage"
+          />
         </div>
       </div>
     </div>
@@ -669,7 +627,7 @@
       gap: 2rem;
       padding: 2rem 3rem;
       background: $color-header-bg;
-      border-radius: 1.25rem; // 20px
+      border-radius: $card-radius;
       border: none;
     }
 
@@ -708,9 +666,9 @@
       justify-content: center;
       gap: 0.75rem;
       padding: 0.55rem 1.2rem;
-      border-radius: 0.625rem; // 10px
+      border-radius: $card-image-radius;
       border: 1px solid $color-border;
-      background: rgba(230, 242, 250, 0.7);
+      background: $card-bg;
       font-size: $text-base;
       cursor: pointer;
       opacity: 1;
@@ -722,7 +680,7 @@
       }
 
       &:hover {
-        background: rgba(209, 223, 232, 0.95);
+        background: rgba($color-input-bg, 0.95);
       }
     }
 
@@ -784,8 +742,8 @@
     &__qr-section {
       width: 80%;
       margin: 0 auto;
-      background: rgba(255, 255, 255, 0.7);
-      border-radius: 1.25rem; // 20px
+      background: $table-bg;
+      border-radius: $card-radius;
       border: 1px solid $color-text;
       padding: 1.25rem 2.5rem;
     }
@@ -810,7 +768,7 @@
       height: 150px;
       border: 2px solid $color-footer-bg;
       border-radius: $radius-sm;
-      background: rgba(230, 242, 250, 0.7);
+      background: $card-bg;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -866,8 +824,8 @@
       height: 42px;
       padding: 0;
       border: 1px solid $color-border;
-      background: rgba(230, 242, 250, 0.7);
-      border-radius: 0.625rem; // 10px
+      background: $card-bg;
+      border-radius: $card-image-radius;
       font-size: 1.125rem; // 18px
       font-weight: 500;
       cursor: pointer;
@@ -878,7 +836,7 @@
       justify-content: center;
 
       &:hover {
-        background: rgba(209, 223, 232, 0.95);
+        background: rgba($color-input-bg, 0.95);
       }
 
       &--active {
@@ -900,7 +858,7 @@
       height: 42px;
       padding: 0;
       border: 1px solid $color-border;
-      background: rgba(230, 242, 250, 0.7);
+      background: $card-bg;
       border-radius: 0.625rem;
       font-size: 1.125rem;
       font-weight: 500;
@@ -912,7 +870,7 @@
       white-space: nowrap;
 
       &:hover {
-        background: rgba(209, 223, 232, 0.95);
+        background: rgba($color-input-bg, 0.95);
       }
 
       &--active {
@@ -982,38 +940,6 @@
       margin-bottom: 1rem;
     }
 
-    &__pagination {
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      margin-top: 2rem;
-    }
-
-    &__page-btn {
-      width: 40px;
-      height: 40px;
-      padding: 0;
-      border-radius: 0.625rem; // 10px
-      border: 1px solid $color-border;
-      background: rgba(230, 242, 250, 0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.25rem; // 20px
-      font-weight: 500;
-
-      &.active {
-        background: rgba(124, 143, 160, 0.5);
-      }
-
-      &--arrow {
-        img {
-          width: 1.6rem;
-          height: 1.6rem;
-        }
-      }
-    }
-
     &__services {
       width: 100%;
       display: flex;
@@ -1036,57 +962,6 @@
       grid-template-columns: repeat(auto-fill, minmax(370px, 1fr));
       gap: 2.8rem;
       margin-bottom: 5rem;
-    }
-
-    &__services-pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 2rem;
-      width: 100%;
-    }
-
-    &__pagination-number {
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: $radius-xs;
-      background: $color-input-bg;
-      color: $color-text;
-      font-size: $text-base;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 500;
-
-      &:hover:not(:disabled) {
-        background: $color-input-bg-dark;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      &--active {
-        background: $color-header-bg;
-        font-weight: 600;
-        border-color: $color-text;
-      }
-    }
-
-    &__pagination-btn {
-      img {
-        width: 2.6rem;
-        height: 2.6rem;
-      }
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
     }
 
     &__history-grid {

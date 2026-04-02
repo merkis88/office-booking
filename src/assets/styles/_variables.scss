@@ -16,6 +16,31 @@ $color-danger: #b70f0f;
 $color-danger-dark: #a40d0d;
 $color-success: #15803d;
 
+// --- Status colors ---
+$color-danger-light: #fee2e2;    // фон ошибки/danger
+$color-danger-text: #991b1b;     // текст ошибки
+$color-success-light: #dcfce7;   // фон успеха
+$color-success-text: #166534;    // текст успеха
+$color-warning-light: #fef3c7;   // фон предупреждения
+$color-warning-text: #92400e;    // текст предупреждения
+
+// --- Status badges ---
+$color-status-active: #d4edda;
+$color-status-active-text: #155724;
+$color-status-blocked: #f8d7da;
+$color-status-blocked-text: #721c24;
+
+// --- Scrollbar ---
+$color-scrollbar-track: #e5e7eb;
+$color-scrollbar-thumb: #9ca3af;
+$color-scrollbar-thumb-hover: #6b7280;
+
+// --- Request status badges ---
+$color-status-pending: #fff3cd;
+$color-status-pending-text: #856404;
+$color-status-in-progress: #d1ecf1;
+$color-status-in-progress-text: #0c5460;
+
 // --- Typography ---
 $font-base: 'Inter', sans-serif;
 $font-heading: 'Unbounded', serif;

@@ -6,6 +6,7 @@
   import DeleteConfirmModal from '@/components/modals/DeleteConfirmModal.vue';
   import CreateServiceTypeModal from '@/components/modals/CreateServiceTypeModal.vue';
   import EditServiceTypeModal from '@/components/modals/EditServiceTypeModal.vue';
+  import AppPagination from '@/components/AppPagination.vue';
 
   const router = useRouter();
   const servicesStore = useServicesStore();
@@ -167,33 +168,12 @@
           </div>
 
           <!-- Пагинация -->
-          <div v-if="totalPages > 1 && !isLoading" class="admin-request-types__pagination">
-            <button
-              class="admin-request-types__pagination-btn"
-              :disabled="currentPage === 1"
-              @click="goToPage(currentPage - 1)"
-            >
-              <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
-            </button>
-
-            <button
-              v-for="page in totalPages"
-              :key="page"
-              class="admin-request-types__pagination-number"
-              :class="{ 'admin-request-types__pagination-number--active': currentPage === page }"
-              @click="goToPage(page)"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="admin-request-types__pagination-btn"
-              :disabled="currentPage === totalPages"
-              @click="goToPage(currentPage + 1)"
-            >
-              <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
-            </button>
-          </div>
+          <AppPagination
+            v-if="!isLoading"
+            :current-page="currentPage"
+            :total-pages="totalPages"
+            @update:current-page="goToPage"
+          />
         </div>
 
         <!-- Иллюстрация -->
@@ -281,7 +261,7 @@
     }
 
     &__list {
-      background: rgba(255, 255, 255, 0.7);
+      background: $table-bg;
       border-radius: $radius-xs;
       padding: 1.5rem;
     }
@@ -342,67 +322,6 @@
 
       &:hover {
         background: rgba($color-text, 0.1);
-      }
-    }
-
-    &__pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 2rem;
-    }
-
-    &__pagination-btn {
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: white;
-      border: 1px solid $color-border;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      img {
-        width: 1.25rem;
-        height: 1.25rem;
-      }
-
-      &:hover:not(:disabled) {
-        background: rgba($color-text, 0.05);
-      }
-
-      &:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-    }
-
-    &__pagination-number {
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: white;
-      border: 1px solid $color-border;
-      border-radius: 50%;
-      font-size: $text-base;
-      font-weight: 500;
-      color: $color-text;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:hover {
-        background: rgba($color-text, 0.05);
-      }
-
-      &--active {
-        background: $color-text;
-        color: white;
-        border-color: $color-text;
       }
     }
 

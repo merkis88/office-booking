@@ -154,12 +154,12 @@
       }
 
       &::-webkit-scrollbar-track {
-        background: #b2c1cb;
+        background: $color-bg;
         border-radius: 10px;
       }
 
       &::-webkit-scrollbar-thumb {
-        background: black;
+        background: $color-text;
         border: 2px solid $color-text;
         border-radius: 10px;
         background-clip: padding-box;
@@ -175,7 +175,7 @@
       }
 
       scrollbar-width: thin;
-      scrollbar-color: $color-footer-bg #b2c1cb;
+      scrollbar-color: $color-footer-bg $color-bg;
     }
 
     &__top-scroll-content {
@@ -184,7 +184,7 @@
     }
 
     &__wrapper {
-      background: rgba(255, 255, 255, 0.7);
+      background: $table-bg;
       border-radius: $radius-sm;
       padding: 1.5rem;
     }
@@ -272,23 +272,23 @@
       white-space: nowrap;
 
       &.status--pending {
-        background: #fff3cd;
-        color: #856404;
+        background: $color-status-pending;
+        color: $color-status-pending-text;
       }
 
       &.status--in-progress {
-        background: #d1ecf1;
-        color: #0c5460;
+        background: $color-status-in-progress;
+        color: $color-status-in-progress-text;
       }
 
       &.status--completed {
-        background: #d4edda;
-        color: #155724;
+        background: $color-status-active;
+        color: $color-status-active-text;
       }
 
       &.status--rejected {
-        background: #f8d7da;
-        color: #721c24;
+        background: $color-status-blocked;
+        color: $color-status-blocked-text;
       }
     }
 

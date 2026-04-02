@@ -4,6 +4,7 @@
   import { useReviewsStore } from '@/store/reviews';
   import { storeToRefs } from 'pinia';
   import ReviewCard from '@/components/ReviewCard.vue';
+  import AppPagination from '@/components/AppPagination.vue';
   import starFilled from '@/assets/images/icons/star-icon.svg'
   import starEmpty from '@/assets/images/icons/star-empty.svg'
 
@@ -268,33 +269,11 @@
         <p>Отзывов пока нет. Будьте первым!</p>
       </div>
 
-      <div v-if="totalPages > 1" class="reviews__pagination">
-        <button
-          class="reviews__pagination-btn"
-          :disabled="currentPage === 1"
-          @click="goToPage(currentPage - 1)"
-        >
-          <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
-        </button>
-
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          class="reviews__pagination-number"
-          :class="{ 'reviews__pagination-number--active': currentPage === page }"
-          @click="goToPage(page)"
-        >
-          {{ page }}
-        </button>
-
-        <button
-          class="reviews__pagination-btn"
-          :disabled="currentPage === totalPages"
-          @click="goToPage(currentPage + 1)"
-        >
-          <img src="@/assets/images/icons/arrow-right.svg" alt="Вперед" />
-        </button>
-      </div>
+      <AppPagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        @update:current-page="goToPage"
+      />
 
       <div class="reviews__form">
         <Transition name="slide-down">
@@ -453,61 +432,6 @@
       min-height: 300px;
       font-size: $text-lg;
       color: $color-text;
-    }
-
-    &__pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 4rem;
-    }
-
-    &__pagination-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:hover:not(:disabled) {
-        background: $color-input-bg-dark;
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      img {
-        width: 2.5rem;
-        height: 2.5rem;
-      }
-    }
-
-    &__pagination-number {
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: $radius-xs;
-      background: $color-input-bg;
-      color: $color-text;
-      font-size: $text-base;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 600;
-
-      &:hover {
-        background: $color-input-bg-dark;
-      }
-
-      &--active {
-        background: $color-header-bg;
-        border-color: $color-text;
-        font-weight: 600;
-      }
     }
 
     &__form {
