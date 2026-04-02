@@ -15,7 +15,7 @@ final class RemoveFavoritePlaceHandler
             ->where('place_id', $place->id)
             ->delete();
 
-        $place->setAttribute('is_favorite', true);
+        $place->setAttribute('is_favorite', false);
 
         return $place;
     }
