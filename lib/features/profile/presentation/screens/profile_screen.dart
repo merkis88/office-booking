@@ -243,6 +243,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final repository = AppScope.of(context).profileRepository;
       await repository.cancelBooking(bookingId);
       final refreshedUser = await repository.getCurrentProfile();
+      final refreshedOverview = await repository.getRentalsOverview();
 
       if (!mounted) {
         return;
@@ -250,11 +251,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       setState(() {
         _user = refreshedUser;
-        _rentalsOverview = ProfileRentalsOverview(
-          activeRentals: _rentalsOverview.activeRentals
-              .where((rental) => rental.bookingId != bookingId)
-              .toList(),
-          rentalHistory: _rentalsOverview.rentalHistory,
+        _rentalsOverview = _applyFavoriteFlags(
+          refreshedOverview,
+          _favoriteRentals.map((item) => item.placeId).whereType<int>().toSet(),
         );
       });
     } catch (error) {

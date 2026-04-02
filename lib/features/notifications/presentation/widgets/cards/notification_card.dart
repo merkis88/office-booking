@@ -122,17 +122,21 @@ class NotificationCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: _cardWidth,
-              child: NotificationReadAction(
-                label: 'Прочитать уведомление',
-                value: isRead,
-                isEnabled: !isRead,
-                isLoading: isReadLoading,
-                onChanged: onReadChanged,
+            if (!isRead) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: _cardWidth,
+                child: NotificationReadAction(
+                  label:
+                      '\u041f\u0440\u043e\u0447\u0438\u0442\u0430\u0442\u044c '
+                      '\u0443\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u0435',
+                  value: isRead,
+                  isEnabled: !isRead,
+                  isLoading: isReadLoading,
+                  onChanged: onReadChanged,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
