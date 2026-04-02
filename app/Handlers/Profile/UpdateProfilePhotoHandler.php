@@ -11,9 +11,9 @@ final class UpdateProfilePhotoHandler
 {
     public function handle(User $user, UploadedFile $photo): array
     {
-        if (!$photo->isValid()) {
+        if (! $photo->isValid()) {
             throw ValidationException::withMessages([
-                'photo' => ['Файл повреждён или не был загружен']
+                'photo' => ['Файл повреждён или не был загружен'],
             ]);
         }
 
@@ -28,6 +28,7 @@ final class UpdateProfilePhotoHandler
 
         return [
             'id' => $user->id,
+            'role_id' => $user->role_id,
             'photo' => $user->photo,
             'photo_url' => Storage::disk('public')->url($user->photo),
             'updated_at' => $user->updated_at,
