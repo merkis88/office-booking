@@ -58,6 +58,23 @@
     },
   );
 
+  function isToday(dateString) {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return dateString === `${yyyy}-${mm}-${dd}`;
+  }
+
+  function filterPastSlots(slots) {
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+    now.setHours(now.getHours() + 1);
+    const nextHour = `${String(now.getHours()).padStart(2, '0')}:00`;
+
+    return slots.filter((slot) => slot.start >= nextHour);
+  }
+
   async function loadSlots() {
     isSlotsLoading.value = true;
     try {
@@ -84,8 +101,11 @@
 
       const allSlots = [...freeSlots, { start: bookingStart, end: bookingEnd }];
 
-      availableSlots.value = allSlots;
-      mergedIntervals.value = mergeSlots(allSlots);
+      // Если дата = сегодня, убрать слоты в прошлом
+      const filteredSlots = isToday(date) ? filterPastSlots(allSlots) : allSlots;
+
+      availableSlots.value = filteredSlots;
+      mergedIntervals.value = mergeSlots(filteredSlots);
     } catch (e) {
       errorMessage.value = 'Не удалось загрузить доступное время';
     } finally {
