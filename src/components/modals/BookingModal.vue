@@ -189,6 +189,25 @@
     return Math.min(timePoints.value.length, 5);
   });
 
+  const placeTypeLabel = computed(() => {
+    const types = {
+      office: 'Офис',
+      coworking: 'Коворкинг',
+      meeting: 'Переговорная',
+    };
+
+    return types[props.place?.type];
+  });
+
+  const hoursCount = computed(() => {
+    return selectedSlots.value.length - 1;
+  });
+
+  const totalPrice = computed(() => {
+    if (!hoursCount.value || !props.place?.price) return 0;
+    return hoursCount.value * props.place.price;
+  });
+
   watch(
     () => props.modelValue,
     (open) => {
@@ -232,15 +251,19 @@
       </div>
 
       <div v-else class="booking-modal__confirm-screen">
-        <p class="booking-modal__subtitle">Проверьте правильность данных</p>
+        <p class="booking-modal__subtitle">Пожалуйста, проверьте правильность указанных данных</p>
+
+        <p class="booking-modal__info">{{ placeTypeLabel }} "{{ place?.name }}"</p>
+
+        <p class="booking-modal__info">Кабинет №{{ place?.number_place }}</p>
+
+        <p class="booking-modal__info">Вместимость: {{ place?.capacity }}</p>
 
         <p class="booking-modal__info">{{ formattedDate }}, {{ bookingTime }}</p>
 
         <p class="booking-modal__info">
-          {{ place?.name }}
+          Цена: {{ totalPrice }}р ({{ hoursCount }} ч × {{ place?.price }}р)
         </p>
-
-        <p class="booking-modal__info">Вместимость: {{ place?.capacity }}</p>
       </div>
     </div>
 
