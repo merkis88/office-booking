@@ -8,7 +8,6 @@ use App\Models\Qr;
 use App\Models\User;
 use App\Services\Qr\QrAvailabilityService;
 use App\Services\Qr\QrWindowService;
-use App\DTO\Qr\CreateUserQrDTO;
 use Illuminate\Support\Facades\Storage;
 
 final class GetProfileHandler
@@ -56,7 +55,7 @@ final class GetProfileHandler
                     ->where('time_window', $currentWindow)
                     ->first();
 
-                if (!$qr) {
+                if (! $qr) {
                     $qr = $this->createUserQrHandler->createOrGetForProfile($booking, $user);
                 }
 
@@ -72,6 +71,7 @@ final class GetProfileHandler
             'patronymic' => $user->patronymic,
             'phone' => $user->phone,
             'email' => $user->email,
+            'role_id' => $user->role_id,
 
             'qr_hash' => $qrHash,
             'qr_visible' => $qrVisible,

@@ -10,8 +10,9 @@
     bookings,
     isLoading: isLoadingBookings,
     error,
-    successMessage,
   } = storeToRefs(servicesStore);
+
+  const successMessage = ref('');
 
   const bookingList = ref(null);
   const bookingLabel = ref('');
@@ -53,7 +54,8 @@
 
   function clearErrors() {
     validationError.value = '';
-    servicesStore.clearMessages();
+    successMessage.value = '';
+    servicesStore.error = null;
   }
 
   watch(selectedDate, (val) => {
@@ -143,7 +145,8 @@
 
   onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside);
-    servicesStore.clearMessages();
+    successMessage.value = '';
+    servicesStore.error = null;
   });
 
   function handleDateUpdate(value) {
@@ -193,25 +196,24 @@
     showConfirmModal.value = false;
 
     try {
-      const result = await servicesStore.createServiceRequest(pendingRequestData.value);
+      await servicesStore.createServiceRequest(pendingRequestData.value);
 
-      if (result.success) {
-        bookingList.value = null;
-        bookingLabel.value = '';
-        selectedDate.value = '';
-        selectedTime.value = null;
-        selectedTimeLabel.value = '';
-        requestType.value = null;
-        requestTypeLabel.value = '';
-        comment.value = '';
-        pendingRequestData.value = null;
+      successMessage.value = 'Заявка успешно создана';
+      bookingList.value = null;
+      bookingLabel.value = '';
+      selectedDate.value = '';
+      selectedTime.value = null;
+      selectedTimeLabel.value = '';
+      requestType.value = null;
+      requestTypeLabel.value = '';
+      comment.value = '';
+      pendingRequestData.value = null;
 
-        setTimeout(() => {
-          servicesStore.clearMessages();
-        }, 5000);
-      }
+      setTimeout(() => {
+        successMessage.value = '';
+      }, 5000);
     } catch (err) {
-      console.error(err);
+      servicesStore.error = err.response?.data?.message || 'Не удалось создать заявку';
     } finally {
       isSubmitting.value = false;
     }
@@ -238,7 +240,7 @@
             <div v-if="successMessage" class="requests__success">
               <div class="requests__success-icon">✓</div>
               <div class="requests__success-text">{{ successMessage }}</div>
-              <button class="requests__success-close" @click="servicesStore.clearMessages()">
+              <button class="requests__success-close" @click="successMessage = ''">
                 ✕
               </button>
             </div>
@@ -246,7 +248,7 @@
             <div v-if="error" class="requests__error">
               <div class="requests__error-icon">!</div>
               <div class="requests__error-text">{{ error }}</div>
-              <button class="requests__error-close" @click="servicesStore.clearMessages()">
+              <button class="requests__error-close" @click="servicesStore.error = null">
                 ✕
               </button>
             </div>

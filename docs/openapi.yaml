@@ -1402,6 +1402,8 @@ paths:
         Auth: Sanctum Bearer token.
 
         Выдача qr-кода для гостя
+      security:
+        - bearerAuth: [ ]
       parameters:
         - in: path
           name: booking
@@ -1430,12 +1432,24 @@ paths:
         Owner: merk
         Auth: Sanctum Bearer token.
 
-        Выдача qr-кода для юзера в системе
+        Выдача qr-кода для зарегистрированного пользователя.
+        Принимает email пользователя, для которого создаётся QR-код.
+      security:
+        - bearerAuth: [ ]
       parameters:
         - in: path
           name: booking
           required: true
           schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ email ]
+              properties:
+                email: { type: string, format: email }
       responses:
         "201": { description: Created }
         "403": { $ref: "#/components/responses/Forbidden" }
@@ -4087,7 +4101,7 @@ paths:
           description: Помещение не найдено
 
 
-  /places/{place}/delete-favorite:
+  /places/{place}/remove-favorite:
     delete:
       tags: [ "Merk · Places" ]
       summary: Remove place from favorites

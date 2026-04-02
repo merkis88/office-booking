@@ -93,12 +93,7 @@ function openStatusModal(request) {
 async function handleChangeStatus(data) {
     if (!requestToEdit.value) return;
 
-    const result = await servicesStore.updateServiceStatus(requestToEdit.value.id, data.status);
-
-    if (!result.success) {
-        throw new Error(result.error);
-    }
-
+    await servicesStore.updateServiceStatus(requestToEdit.value.id, data.status);
     await loadRequests();
     requestToEdit.value = null;
 }
@@ -122,8 +117,7 @@ async function loadRequests() {
         } else if (Array.isArray(data)) {
             requests.value = data;
         }
-    } catch (error) {
-        console.error('Ошибка загрузки заявок:', error);
+    } catch {
         requests.value = [];
     } finally {
         isLoading.value = false;

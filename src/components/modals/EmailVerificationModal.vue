@@ -128,8 +128,6 @@
         inputRefs.value[0]?.focus();
       }
     } catch (error) {
-      console.error('Ошибка верификации:', error);
-
       if (error.response?.data?.success === false) {
         if (error.response.data.errors?.code) {
           errorMessage.value = error.response.data.errors.code[0];
@@ -181,7 +179,6 @@
         successMessage.value = '';
       }, 3000);
     } catch (error) {
-      console.error('Ошибка повторной отправки:', error);
       errorMessage.value =
         error.response?.data?.message || 'Не удалось отправить код. Попробуйте позже.';
     } finally {

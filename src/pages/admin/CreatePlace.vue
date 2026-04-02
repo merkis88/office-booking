@@ -116,36 +116,37 @@
     isSuccess.value = false;
     serverError.value = '';
 
-    const result = await placesStore.createPlace({
-      name: name.value.trim(),
-      type: placeType.value,
-      capacity: Number(capacity.value),
-      number_place: Number(cabinetNumber.value),
-      price: Number(price.value),
-      description: description.value.trim(),
-      is_active: isActive.value,
-      photo: photo.value,
-    });
+    try {
+      await placesStore.createPlace({
+        name: name.value.trim(),
+        type: placeType.value,
+        capacity: Number(capacity.value),
+        number_place: Number(cabinetNumber.value),
+        price: Number(price.value),
+        description: description.value.trim(),
+        is_active: isActive.value,
+        photo: photo.value,
+      });
 
-    isLoading.value = false;
-
-    if (result.success) {
       isSuccess.value = true;
       resetForm();
       setTimeout(() => {
         isSuccess.value = false;
       }, 4000);
-    } else {
-      if (result.errors) {
-        Object.keys(result.errors).forEach((key) => {
+    } catch (error) {
+      if (error.response?.data?.errors) {
+        const backendErrors = error.response.data.errors;
+        Object.keys(backendErrors).forEach((key) => {
           if (errors.hasOwnProperty(key)) {
-            errors[key] = Array.isArray(result.errors[key])
-              ? result.errors[key][0]
-              : result.errors[key];
+            errors[key] = Array.isArray(backendErrors[key])
+              ? backendErrors[key][0]
+              : backendErrors[key];
           }
         });
       }
-      serverError.value = result.error || 'Произошла ошибка при создании помещения';
+      serverError.value = error.response?.data?.message || 'Произошла ошибка при создании помещения';
+    } finally {
+      isLoading.value = false;
     }
   }
 

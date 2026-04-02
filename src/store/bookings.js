@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-import { useAuthStore } from './auth';
 import axios from 'axios';
 
 const ITEMS_PER_PAGE = 20;
@@ -57,54 +56,36 @@ export const useBookingsStore = defineStore('bookings', {
       this.searchQuery = query;
       this.currentPage = 1;
     },
+
     async fetchBookings({ admin = false, page = 1 } = {}) {
-      const authStore = useAuthStore();
       this.isLoading = true;
       this.error = null;
 
       try {
-        const query = {
-          page,
-          per_page: this.perPage,
-          ...this.filters,
-        };
-
         const params = Object.fromEntries(
-          Object.entries(query).filter(([_, v]) => v !== null && v !== undefined && v !== ''),
+          Object.entries({ page, per_page: this.perPage, ...this.filters })
+            .filter(([_, v]) => v != null && v !== ''),
         );
 
-        let url = admin ? '/api/admin/bookings' : '/api/bookings/my';
-        const headers = admin
-          ? { Authorization: `Bearer ${authStore.token}`, Accept: 'application/json' }
-          : {};
+        const url = admin ? '/api/admin/bookings' : '/api/bookings/my';
+        const { data } = await axios.get(url, { params });
 
-        const { data } = await axios.get(url, { params, headers });
-
-        this.bookings = data.data || [];
+        this.bookings = data.data ?? [];
         this.currentPage = data.current_page || 1;
-        this.perPage = data.per_page || this.perPage;
         this.total = data.total || 0;
         this.lastPage = Math.ceil(this.total / this.perPage);
       } catch (error) {
-        console.error('Ошибка загрузки бронирований:', error);
-        this.error = error.response?.data?.message || error.message || 'Ошибка запроса';
+        this.error = error.response?.data?.message || 'Ошибка загрузки бронирований';
       } finally {
         this.isLoading = false;
       }
     },
 
     async createBooking(payload) {
-      this.isLoading = true;
-
-      try {
-        const { data } = await axios.post('/api/bookings', payload);
-
-        this.bookings.unshift(data);
-
-        return data;
-      } finally {
-        this.isLoading = false;
-      }
+      const { data } = await axios.post('/api/bookings', payload);
+      const booking = data.data ?? data;
+      this.bookings.unshift(booking);
+      return booking;
     },
 
     async cancelBooking(bookingId) {
@@ -156,8 +137,6 @@ export const useBookingsStore = defineStore('bookings', {
     },
 
     async exportBookings() {
-      const authStore = useAuthStore();
-
       try {
         const params = new URLSearchParams(
           Object.entries(this.filters).filter(
@@ -167,7 +146,7 @@ export const useBookingsStore = defineStore('bookings', {
 
         const res = await fetch(`/api/admin/bookings/export?${params}`, {
           headers: {
-            Authorization: `Bearer ${authStore.token}`,
+            Authorization: axios.defaults.headers.common['Authorization'],
             Accept: 'text/csv',
           },
         });
@@ -183,7 +162,7 @@ export const useBookingsStore = defineStore('bookings', {
         a.remove();
         window.URL.revokeObjectURL(url);
       } catch (error) {
-        console.error('Ошибка экспорта бронирований:', error);
+        this.error = error.message || 'Ошибка экспорта бронирований';
       }
     },
   },
