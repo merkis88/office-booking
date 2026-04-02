@@ -119,7 +119,8 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const { data } = await axios.get('/api/profile/');
-        this.user = data.data ?? data;
+        const profileData = data.data ?? data;
+        this.user = { ...this.user, ...profileData };
         localStorage.setItem('user', JSON.stringify(this.user));
       } catch (error) {
         console.error('Ошибка загрузки профиля:', error);
@@ -129,7 +130,8 @@ export const useAuthStore = defineStore('auth', {
 
     async updateProfile(profileData) {
       const { data } = await axios.patch('/api/profile', profileData);
-      this.user = data.data || data;
+      const updatedData = data.data || data;
+      this.user = { ...this.user, ...updatedData };
       localStorage.setItem('user', JSON.stringify(this.user));
       return this.user;
     },
