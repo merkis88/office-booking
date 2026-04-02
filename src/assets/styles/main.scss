@@ -64,11 +64,11 @@ th {
   }
 
   &--outline-danger {
-    color: #991b1b;
-    border-color: #991b1b;
+    color: $color-danger;
+    border-color: $color-danger;
 
     &:hover:not(:disabled) {
-      background: #fee2e2;
+      background: rgba($color-danger, 0.1);
     }
   }
 

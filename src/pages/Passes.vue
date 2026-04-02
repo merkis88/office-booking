@@ -120,8 +120,8 @@
               <input
                 v-model="email"
                 type="email"
-                class="passes__input"
-                :class="{ 'passes__input--error': emailError }"
+                class="input"
+                :class="{ 'input--error': emailError }"
                 placeholder="Введите электронную почту"
               />
               <p v-if="emailError" class="passes__error">{{ emailError }}</p>
@@ -129,7 +129,7 @@
 
             <button
               type="submit"
-              class="passes__submit-btn"
+              class="btn"
               :disabled="isSubmitting"
             >
               {{ isSubmitting ? 'Отправка...' : 'Выдать пропуск' }}
@@ -250,60 +250,20 @@
       color: $color-text;
     }
 
-    &__input {
-      padding: 0.875rem 1.25rem;
-      border: 1px solid $color-border;
-      border-radius: $radius-sm;
-      background: $color-input-bg;
-      font-size: $text-base;
-      outline: none;
-      transition: 0.2s;
-
-      &:focus {
-        background: $color-input-bg-dark;
-      }
-
-      &--error {
-        border-color: #c0392b;
-      }
-    }
-
     &__error {
       font-size: $text-sm;
-      color: #c0392b;
-    }
-
-    &__submit-btn {
-      align-self: flex-end;
-      padding: 0.5rem 2rem;
-      border-radius: $radius-sm;
-      border: 1px solid $color-border;
-      background: $color-input-bg;
-      font-size: $text-base;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:hover {
-        background: $color-input-bg-dark;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-      }
-
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
+      color: $color-danger;
     }
 
     &__success {
       font-size: $text-base;
-      color: #166534;
+      color: $color-success;
       text-align: center;
     }
 
     &__api-error {
       font-size: $text-base;
-      color: #c0392b;
+      color: $color-danger;
       text-align: center;
     }
 

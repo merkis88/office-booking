@@ -386,12 +386,12 @@
           </div>
 
           <div class="profile__actions">
-            <button class="profile__btn" :disabled="isSaving" @click="handleSave">
+            <button class="btn profile__action-btn" :disabled="isSaving" @click="handleSave">
               {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
             </button>
-            <button class="profile__btn" @click="handleCancel">Не сохранять</button>
-            <router-link to="/update-password" class="profile__btn">Сменить пароль</router-link>
-            <button class="profile__btn profile__btn--danger" @click="showDeleteModal = true">
+            <button class="btn profile__action-btn" @click="handleCancel">Не сохранять</button>
+            <router-link to="/update-password" class="btn profile__action-btn">Сменить пароль</router-link>
+            <button class="btn btn--outline-danger profile__action-btn" @click="showDeleteModal = true">
               Удалить аккаунт
             </button>
           </div>
@@ -838,52 +838,15 @@
     }
 
     &__error {
-      color: #c0392b;
+      color: $color-danger;
       font-size: $text-base;
       text-align: center;
       margin-top: 0.5rem;
     }
 
-    &__btn {
+    &__action-btn {
       width: 180px;
       padding: 0.55rem 0;
-      border-radius: 0.625rem; // 10px
-      font-size: $text-base;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      border: 1px solid $color-border;
-      background: rgba(230, 242, 250, 0.7);
-      color: $color-text;
-      cursor: pointer;
-      text-decoration: none;
-      text-align: center;
-
-      &:hover {
-        box-shadow: none;
-        transform: none;
-        background: rgba(209, 223, 232, 0.95);
-      }
-
-      &:active {
-        transform: none;
-        box-shadow: none;
-      }
-
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-      }
-
-      &--danger {
-        color: #991b1b;
-        border-color: #991b1b;
-
-        &:hover {
-          background: #fee2e2;
-        }
-      }
     }
 
     &__bottom {

@@ -316,13 +316,13 @@
 
     <template #footer>
       <div v-if="screen === 'slots'">
-        <button class="reschedule__btn" :disabled="!isValidSelection" @click="goToConfirm">
+        <button class="btn" :disabled="!isValidSelection" @click="goToConfirm">
           Далее
         </button>
       </div>
 
       <div v-else-if="screen === 'confirm'">
-        <button class="reschedule__btn" :disabled="isSubmitting" @click="confirmReschedule">
+        <button class="btn" :disabled="isSubmitting" @click="confirmReschedule">
           {{ isSubmitting ? 'Перенос...' : 'Перенести' }}
         </button>
       </div>
@@ -413,31 +413,12 @@
 
     &__error {
       font-size: $text-sm;
-      color: #991b1b;
-      background: #fee2e2;
+      color: $color-danger;
+      background: rgba($color-danger, 0.1);
       padding: 0.5rem 1rem;
       border-radius: $radius-sm;
       margin-top: 1rem;
       text-align: center;
-    }
-
-    &__btn {
-      font-size: $text-base;
-      padding: 10px 24px;
-      border-radius: $radius-sm;
-      border: 1px solid $color-border;
-      background: $color-input-bg;
-      cursor: pointer;
-      transition: 0.2s;
-
-      &:hover {
-        background: $color-input-bg-dark;
-      }
-
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
     }
   }
 </style>
