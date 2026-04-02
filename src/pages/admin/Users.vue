@@ -1,13 +1,11 @@
 <script setup>
   import { ref, onMounted } from 'vue';
-  import { useAuthStore } from '@/store/auth';
   import { useUsersStore } from '@/store/users';
   import { useRouter } from 'vue-router';
   import { storeToRefs } from 'pinia';
   import UsersTable from '@/components/UsersTable.vue';
   import UserStatusModal from '@/components/modals/UserStatusModal.vue';
 
-  const authStore = useAuthStore();
   const usersStore = useUsersStore();
   const router = useRouter();
 
@@ -36,11 +34,6 @@
   }
 
   onMounted(async () => {
-    if (!authStore.isAdmin) {
-      await router.push('/');
-      return;
-    }
-
     await usersStore.fetchUsers();
   });
 

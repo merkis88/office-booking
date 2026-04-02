@@ -1,12 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/store/auth';
 import RequestsTable from '@/components/RequestsTable.vue';
 import axios from 'axios';
-
-const router = useRouter();
-const authStore = useAuthStore();
 
 const requests = ref([]);
 const isLoading = ref(false);
@@ -52,11 +47,6 @@ async function loadRequests() {
 }
 
 onMounted(async () => {
-    if (!authStore.isAdmin) {
-        router.push('/');
-        return;
-    }
-
     await loadRequests();
 });
 </script>

@@ -20,18 +20,7 @@
   });
 
   onMounted(async () => {
-    if (!authStore.isAdmin) {
-      router.push('/');
-      return;
-    }
-
     await placesStore.fetchPlaces();
-  });
-
-  onMounted(() => {
-    if (!authStore.isAdmin) {
-      router.push('/');
-    }
   });
 
   function editPlace(placeId) {

@@ -1,11 +1,9 @@
 <script setup>
   import { ref, onMounted } from 'vue';
-  import { useAuthStore } from '@/store/auth';
   import { usePlacesStore } from '@/store/places';
   import { useRouter } from 'vue-router';
   import { storeToRefs } from 'pinia';
 
-  const authStore = useAuthStore();
   const placesStore = usePlacesStore();
   const router = useRouter();
 
@@ -19,11 +17,6 @@
   const deleteSuccess = ref(false);
 
   onMounted(async () => {
-    if (!authStore.isAdmin) {
-      await router.push('/');
-      return;
-    }
-
     await placesStore.fetchPlaces();
   });
 

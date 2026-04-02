@@ -153,11 +153,6 @@
   }
 
   onMounted(async () => {
-    if (!authStore.isAuthenticated) {
-      await router.push('/authorization');
-      return;
-    }
-
     isLoading.value = true;
     try {
       await authStore.fetchProfile();
