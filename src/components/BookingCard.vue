@@ -1,9 +1,7 @@
 <script setup>
-  import { computed, ref } from 'vue';
-  import { useFavoritesStore } from '@/store/favorites';
+  import { computed } from 'vue';
   import { formatBookingTime } from '@/utils/dateFormat';
-  import heartFilledUrl from '@/assets/images/icons/heart-filled.svg';
-  import heartEmptyUrl from '@/assets/images/icons/heart-empty.svg';
+  import FavoriteButton from '@/components/FavoriteButton.vue';
   import placeholder from '@/assets/images/photos/placeholder.jpg';
 
   const props = defineProps({
@@ -14,21 +12,6 @@
   });
 
   defineEmits(['invite', 'reschedule', 'cancel']);
-
-  const favoritesStore = useFavoritesStore();
-
-  const isFav = computed(() => favoritesStore.isFavorite(props.booking.place?.id));
-  const isTogglingFav = ref(false);
-
-  async function toggleFavorite() {
-    if (isTogglingFav.value || !props.booking.place?.id) return;
-    isTogglingFav.value = true;
-    try {
-      await favoritesStore.toggleFavorite(props.booking.place.id);
-    } finally {
-      isTogglingFav.value = false;
-    }
-  }
 
   const placeTypeLabel = computed(() => {
     const types = {
@@ -44,15 +27,10 @@
 <template>
   <div class="booking-card">
     <div class="booking-card__main">
-      <button
+      <FavoriteButton
+        :place-id="booking.place?.id"
         class="booking-card__fav-btn"
-        :class="{ 'booking-card__fav-btn--active': isFav }"
-        @click.stop="toggleFavorite"
-        :disabled="isTogglingFav"
-        aria-label="Добавить в избранное"
-      >
-        <img :src="isFav ? heartFilledUrl : heartEmptyUrl" alt="" />
-      </button>
+      />
 
       <div class="booking-card__image-wrapper">
         <img
@@ -157,30 +135,6 @@
       position: absolute;
       top: 1rem;
       right: 1rem;
-      width: 3rem;
-      height: 3rem;
-      border-radius: 50%;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s;
-
-      img {
-        width: 2.25rem;
-        height: 2.25rem;
-      }
-
-      &:hover:not(:disabled) {
-        transform: scale(1.06);
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
     }
 
     &__side {
