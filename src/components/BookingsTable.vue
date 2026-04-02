@@ -115,32 +115,42 @@
 
 <style scoped lang="scss">
   @use '@/assets/styles/variables' as *;
+  @use '@/assets/styles/mixins' as *;
 
   .bookings-table {
     &__top-scroll {
       overflow-x: auto;
-      height: 8px; // меньше
+      overflow-y: hidden;
+      margin-bottom: 0.5rem;
+      height: 14px;
 
       &::-webkit-scrollbar {
-        height: 8px;
+        height: 14px;
       }
 
       &::-webkit-scrollbar-track {
-        background: $color-scrollbar-track;
+        background: $color-bg;
         border-radius: 10px;
       }
 
       &::-webkit-scrollbar-thumb {
-        background: $color-scrollbar-thumb;
+        background: $color-text;
+        border: 2px solid $color-text;
         border-radius: 10px;
-      }
+        background-clip: padding-box;
 
-      &::-webkit-scrollbar-thumb:hover {
-        background: $color-scrollbar-thumb-hover;
+        &:hover {
+          background: $color-footer-bg;
+          border-color: $color-text;
+        }
+
+        &:active {
+          background: $color-footer-bg;
+        }
       }
 
       scrollbar-width: thin;
-      scrollbar-color: $color-scrollbar-thumb $color-scrollbar-track;
+      scrollbar-color: $color-footer-bg $color-bg;
     }
 
     &__top-scroll-content {
@@ -151,7 +161,7 @@
 
     &__wrapper {
       background: $table-bg;
-      border-radius: $radius-xs;
+      border-radius: $table-radius;
       padding: 1.5rem;
     }
 
@@ -166,37 +176,7 @@
     }
 
     &__table {
-      width: max-content;
-      min-width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 0.75rem;
-
-      th {
-        padding: 1rem;
-        text-align: center;
-        white-space: nowrap;
-        border-bottom: 1px solid $color-header-bg;
-      }
-
-      td {
-        padding: 0.75rem 1rem;
-        text-align: center;
-        white-space: nowrap;
-        border-top: 1px solid $color-header-bg;
-        border-bottom: 1px solid $color-header-bg;
-      }
-
-      tr td:first-child {
-        border-left: 1px solid $color-header-bg;
-        border-top-left-radius: 6px;
-        border-bottom-left-radius: 6px;
-      }
-
-      tr td:last-child {
-        border-right: 1px solid $color-header-bg;
-        border-top-right-radius: 6px;
-        border-bottom-right-radius: 6px;
-      }
+      @include admin-table;
     }
 
     &__loading,

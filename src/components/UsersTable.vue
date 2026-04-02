@@ -137,6 +137,7 @@
 
 <style lang="scss" scoped>
   @use '@/assets/styles/variables' as *;
+  @use '@/assets/styles/mixins' as *;
 
   .users-table {
     &__top-scroll {
@@ -181,7 +182,7 @@
 
     &__wrapper {
       background: $table-bg;
-      border-radius: $radius-sm;
+      border-radius: $table-radius;
       padding: 1.5rem;
     }
 
@@ -196,37 +197,7 @@
     }
 
     &__table {
-      width: max-content;
-      min-width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 0.75rem;
-
-      th {
-        padding: 1rem;
-        text-align: center;
-        white-space: nowrap;
-        border-bottom: 1px solid $color-header-bg;
-      }
-
-      td {
-        padding: 0.75rem 1rem;
-        text-align: center;
-        white-space: nowrap;
-        border-top: 1px solid $color-header-bg;
-        border-bottom: 1px solid $color-header-bg;
-      }
-
-      tr td:first-child {
-        border-left: 1px solid $color-header-bg;
-        border-top-left-radius: 6px;
-        border-bottom-left-radius: 6px;
-      }
-
-      tr td:last-child {
-        border-right: 1px solid $color-header-bg;
-        border-top-right-radius: 6px;
-        border-bottom-right-radius: 6px;
-      }
+      @include admin-table;
     }
 
     &__loading,
@@ -254,29 +225,7 @@
     }
 
     &__action-btn {
-      background: transparent;
-      border: none;
-      border-radius: $radius-xs;
-      cursor: pointer;
-      transition: all 0.2s;
-      padding: 0.25rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-
-      img {
-        width: 24px;
-        height: 24px;
-      }
-
-      &:hover {
-        background: rgba($color-text, 0.1);
-      }
-
-      &--disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
+      @include icon-btn;
     }
   }
 

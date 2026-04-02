@@ -185,7 +185,7 @@
 
     &__wrapper {
       background: $table-bg;
-      border-radius: $radius-sm;
+      border-radius: $table-radius;
       padding: 1.5rem;
     }
 
@@ -216,52 +216,8 @@
     }
 
     &__table {
-      width: 100%;
+      @include admin-table;
       min-width: 3500px;
-      border-collapse: separate;
-      border-spacing: 0 0.75rem;
-
-      thead {
-        tr {
-          th {
-            padding: 1rem;
-            text-align: center;
-            font-size: $text-base;
-            font-weight: 500;
-            color: $color-text;
-            white-space: nowrap;
-          }
-        }
-      }
-
-      tbody {
-        tr {
-          background: transparent;
-          transition: all 0.2s;
-
-          td {
-            padding: 0.3rem 1rem;
-            text-align: center;
-            font-size: $text-base;
-            color: $color-text;
-            white-space: nowrap;
-            border-top: 1px solid $color-text;
-            border-bottom: 1px solid $color-text;
-
-            &:first-child {
-              border-left: 1px solid $color-text;
-              border-top-left-radius: $radius-sm;
-              border-bottom-left-radius: $radius-sm;
-            }
-
-            &:last-child {
-              border-right: 1px solid $color-text;
-              border-top-right-radius: $radius-sm;
-              border-bottom-right-radius: $radius-sm;
-            }
-          }
-        }
-      }
     }
 
     &__status {
@@ -300,21 +256,7 @@
     }
 
     &__action-btn {
-      background: transparent;
-      border: none;
-      border-radius: $radius-xs;
-      cursor: pointer;
-      transition: all 0.2s;
-      padding: 0.25rem;
-
-      img {
-        width: 24px;
-        height: 24px;
-      }
-
-      &:hover {
-        background: rgba($color-text, 0.1);
-      }
+      @include icon-btn;
     }
   }
 

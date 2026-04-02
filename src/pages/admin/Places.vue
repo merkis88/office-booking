@@ -309,28 +309,13 @@
     }
 
     &__dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      margin-top: 0.5rem;
-      background: $color-btn-profile;
-      border: 1px solid $color-border;
-      border-radius: $radius-sm;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      z-index: 100;
+      @include admin-dropdown;
       min-width: 200px;
-      overflow: hidden;
     }
 
     &__dropdown-item {
-      padding: 0.875rem 1.25rem;
-      cursor: pointer;
-      transition: all 0.2s;
+      @include admin-dropdown-item;
       color: $color-text;
-
-      &:hover {
-        background: rgba($color-text, 0.05);
-      }
     }
 
     &__search {
@@ -382,8 +367,8 @@
 
     // Таблица
     &__table-wrapper {
-      background: rgba(255, 255, 255, 0.7);
-      border-radius: $radius-lg;
+      background: $table-bg;
+      border-radius: $table-radius;
       padding: 2rem;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       margin-bottom: 2rem;
@@ -403,7 +388,7 @@
       width: 40px;
       height: 40px;
       border: 3px solid rgba($color-text, 0.2);
-      border-top-color: #4a90e2;
+      border-top-color: $color-text;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -442,7 +427,7 @@
       transition: all 0.2s;
 
       &:hover {
-        background: #ebebeb;
+        background: $color-input-bg;
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
@@ -486,27 +471,14 @@
     }
 
     &__action-btn {
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      padding: 0.5rem;
-      border-radius: $radius-xs;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      img {
-        width: 24px;
-        height: 24px;
-      }
+      @include icon-btn;
 
       &--delete:hover {
-        background: rgba(#e74c3c, 0.1);
+        background: rgba($color-danger, 0.1);
       }
 
       &--edit:hover {
-        background: rgba(#3498db, 0.1);
+        background: rgba($color-header-bg, 0.3);
       }
     }
 
@@ -590,7 +562,7 @@
   }
 
   .modal {
-    background: #fff;
+    background: $color-card-bg;
     border-radius: $radius-lg;
     padding: 2.5rem 3rem;
     min-width: 420px;
@@ -599,7 +571,7 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 
     &--success {
-      border: 2px solid #27ae60;
+      border: 2px solid $color-success;
     }
 
     &__title {
@@ -643,7 +615,7 @@
 
         &:hover:not(:disabled) {
           background: $color-text;
-          color: #fff;
+          color: $color-card-bg;
         }
       }
 

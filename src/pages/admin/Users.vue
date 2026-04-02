@@ -229,24 +229,12 @@
     }
 
     &__dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      margin-top: 0.5rem;
-      background: $color-btn-profile;
-      border: 1px solid $color-border;
-      border-radius: $radius-sm;
+      @include admin-dropdown;
       min-width: 200px;
-      z-index: 10;
     }
 
     &__dropdown-item {
-      padding: 0.75rem 1rem;
-      cursor: pointer;
-
-      &:hover {
-        background: rgba($color-text, 0.05);
-      }
+      @include admin-dropdown-item;
     }
 
     @media (max-width: 768px) {
