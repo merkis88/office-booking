@@ -3,7 +3,7 @@ import axios from 'axios';
 
 export const useQrStore = defineStore('qr', {
   state: () => ({
-    // bookingId → { loading, error, qrData }
+    // bookingId -> { loading, error, qrData }
     passes: {},
   }),
 
@@ -40,14 +40,10 @@ export const useQrStore = defineStore('qr', {
      * POST /api/qr/{bookingId}/guest-qr
      */
     async createGuestQr(bookingId, { recipient_email }) {
-      try {
-        const { data } = await axios.post(`/api/qr/${bookingId}/guest-qr`, {
-          recipient_email,
-        });
-        return data.data ?? data;
-      } catch (e) {
-        throw new Error(e.response?.data?.message || 'Ошибка создания гостевого QR');
-      }
+      const { data } = await axios.post(`/api/qr/${bookingId}/guest-qr`, {
+        recipient_email,
+      });
+      return data.data ?? data;
     },
 
     /**
@@ -55,14 +51,10 @@ export const useQrStore = defineStore('qr', {
      * POST /api/qr/{bookingId}/issue-qr
      */
     async issueQr(bookingId, { recipient_email }) {
-      try {
-        const { data } = await axios.post(`/api/qr/${bookingId}/issue-qr`, {
-          recipient_email,
-        });
-        return data.data ?? data;
-      } catch (e) {
-        throw new Error(e.response?.data?.message || 'Ошибка выдачи QR сотруднику');
-      }
+      const { data } = await axios.post(`/api/qr/${bookingId}/issue-qr`, {
+        recipient_email,
+      });
+      return data.data ?? data;
     },
   },
 });

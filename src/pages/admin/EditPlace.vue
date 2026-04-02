@@ -50,10 +50,9 @@
 
   async function loadPlace() {
     isLoading.value = true;
-    const result = await placesStore.fetchPlace(placeId);
 
-    if (result.success) {
-      const place = result.data;
+    try {
+      const place = await placesStore.fetchPlace(placeId);
 
       form.name = place.name || '';
       form.type = place.type || '';
@@ -72,11 +71,11 @@
         description: form.description,
         is_active: form.is_active,
       };
-    } else {
-      errorMessage.value = result.error;
+    } catch (error) {
+      errorMessage.value = error.response?.data?.message || 'Не удалось загрузить помещение';
+    } finally {
+      isLoading.value = false;
     }
-
-    isLoading.value = false;
   }
 
   async function getChangedFields() {
@@ -192,11 +191,9 @@
 
     isSaving.value = true;
 
-    const result = await placesStore.updatePlace(placeId, changedFields);
+    try {
+      await placesStore.updatePlace(placeId, changedFields);
 
-    isSaving.value = false;
-
-    if (result.success) {
       successMessage.value = 'Помещение успешно обновлено!';
 
       original.value = {
@@ -216,16 +213,19 @@
         successMessage.value = '';
         router.push('/admin/places');
       }, 4000);
-    } else {
-      if (result.errors) {
-        Object.keys(result.errors).forEach((key) => {
+    } catch (error) {
+      if (error.response?.data?.errors) {
+        const backendErrors = error.response.data.errors;
+        Object.keys(backendErrors).forEach((key) => {
           if (errors.hasOwnProperty(key)) {
-            const error = result.errors[key];
-            errors[key] = Array.isArray(error) ? error[0] : error;
+            const err = backendErrors[key];
+            errors[key] = Array.isArray(err) ? err[0] : err;
           }
         });
       }
-      errorMessage.value = result.error;
+      errorMessage.value = error.response?.data?.message || 'Ошибка обновления';
+    } finally {
+      isSaving.value = false;
     }
   }
 

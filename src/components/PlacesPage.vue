@@ -107,12 +107,11 @@
   }
 
   async function handleArchivePlace(placeId) {
-    const result = await placesStore.archivePlace(placeId);
-
-    if (result.success) {
+    try {
+      await placesStore.archivePlace(placeId);
       await loadPlaces();
-    } else {
-      alert(result.error);
+    } catch (error) {
+      alert(error.response?.data?.message || 'Не удалось архивировать помещение');
     }
   }
 

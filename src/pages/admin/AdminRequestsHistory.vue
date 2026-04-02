@@ -38,8 +38,7 @@ async function loadRequests() {
         } else if (Array.isArray(data)) {
             requests.value = data;
         }
-    } catch (error) {
-        console.error('Ошибка загрузки истории заявок:', error);
+    } catch {
         requests.value = [];
     } finally {
         isLoading.value = false;

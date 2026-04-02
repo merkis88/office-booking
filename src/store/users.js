@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import { useAuthStore } from './auth';
 
 export const useUsersStore = defineStore('users', {
   state: () => ({
     users: [],
-    loading: false,
+    isLoading: false,
+    error: null,
 
     currentPage: 1,
     perPage: 10,
@@ -48,21 +48,18 @@ export const useUsersStore = defineStore('users', {
 
   actions: {
     async fetchUsers() {
-      this.loading = true;
+      this.isLoading = true;
+      this.error = null;
 
       try {
-        const authStore = useAuthStore();
-
-        const response = await axios.get('/api/admin/users', {
-          headers: { Authorization: `Bearer ${authStore.token}` },
-        });
-
-        this.users = Array.isArray(response.data.data) ? response.data.data : [];
+        const { data } = await axios.get('/api/admin/users');
+        this.users = data.data ?? data;
+        if (!Array.isArray(this.users)) this.users = [];
       } catch (error) {
-        console.error('Ошибка получения пользователей:', error);
+        this.error = error.response?.data?.message || 'Ошибка загрузки пользователей';
         this.users = [];
       } finally {
-        this.loading = false;
+        this.isLoading = false;
       }
     },
 
@@ -81,95 +78,44 @@ export const useUsersStore = defineStore('users', {
     },
 
     async blockUserByEmail(email, reason = 'Нарушение правил') {
-      try {
-        const authStore = useAuthStore();
-
-        const response = await axios.post(
-          '/api/admin/users/block',
-          { email, reason },
-          { headers: { Authorization: `Bearer ${authStore.token}` } },
-        );
-
-        const updatedUser = response.data.data;
-
-        if (updatedUser) {
-          const index = this.users.findIndex((u) => u.email === email);
-
-          if (index !== -1) {
-            this.users[index] = {
-              ...this.users[index],
-              ...updatedUser,
-              is_blocked: true,
-            };
-          }
+      const { data } = await axios.post('/api/admin/users/block', { email, reason });
+      const updatedUser = data.data;
+      if (updatedUser) {
+        const index = this.users.findIndex((u) => u.email === email);
+        if (index !== -1) {
+          this.users[index] = {
+            ...this.users[index],
+            ...updatedUser,
+            is_blocked: true,
+          };
         }
-
-        return updatedUser;
-      } catch (error) {
-        if (error.response?.status === 422) {
-          const message =
-            error.response.data?.message || 'Пользователь уже заблокирован или ошибка запроса';
-
-          console.warn('Block warning:', message);
-          throw new Error(message);
-        }
-
-        console.error('Ошибка блокировки пользователя:', error);
-        throw error;
       }
+      return updatedUser;
     },
 
     async unblockUserByEmail(email) {
-      try {
-        const authStore = useAuthStore();
-
-        const response = await axios.post(
-          '/api/admin/users/unblock',
-          { email },
-          { headers: { Authorization: `Bearer ${authStore.token}` } },
-        );
-
-        const updatedUser = response.data.data;
-
-        if (updatedUser) {
-          const index = this.users.findIndex((u) => u.email === email);
-
-          if (index !== -1) {
-            this.users[index] = {
-              ...this.users[index],
-              ...updatedUser,
-              is_blocked: false,
-            };
-          }
+      const { data } = await axios.post('/api/admin/users/unblock', { email });
+      const updatedUser = data.data;
+      if (updatedUser) {
+        const index = this.users.findIndex((u) => u.email === email);
+        if (index !== -1) {
+          this.users[index] = {
+            ...this.users[index],
+            ...updatedUser,
+            is_blocked: false,
+          };
         }
-
-        return updatedUser;
-      } catch (error) {
-        if (error.response?.status === 422) {
-          const message =
-            error.response.data?.message || 'Пользователь не был заблокирован или ошибка запроса';
-
-          console.warn('Unblock warning:', message);
-          throw new Error(message);
-        }
-
-        console.error('Ошибка разблокировки пользователя:', error);
-        throw error;
       }
+      return updatedUser;
     },
 
     async toggleUserStatus(user) {
       if (!user) throw new Error('Пользователь не указан');
-
       if (!user.email) throw new Error('У пользователя нет email');
 
-      try {
-        return user.is_blocked
-          ? await this.unblockUserByEmail(user.email)
-          : await this.blockUserByEmail(user.email);
-      } catch (error) {
-        throw error;
-      }
+      return user.is_blocked
+        ? await this.unblockUserByEmail(user.email)
+        : await this.blockUserByEmail(user.email);
     },
 
     async updateUserStatus(user, reason = 'Администратор') {

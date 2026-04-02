@@ -5,6 +5,7 @@ export const useReviewsStore = defineStore('reviews', {
   state: () => ({
     reviews: [],
     isLoading: false,
+    error: null,
     currentPage: 1,
     totalPages: 1,
     filterRating: null,
@@ -37,137 +38,45 @@ export const useReviewsStore = defineStore('reviews', {
   actions: {
     async fetchReviews() {
       this.isLoading = true;
+      this.error = null;
+
       try {
         const { data } = await axios.get('/api/reviews');
-
-
-        if (data.data && Array.isArray(data.data)) {
-          this.reviews = data.data;
-        } else if (Array.isArray(data)) {
-          this.reviews = data;
-        } else if (data.reviews && Array.isArray(data.reviews)) {
-          this.reviews = data.reviews;
-        } else {
-          console.warn('Неожиданный формат данных от API:', data);
-          this.reviews = [];
-        }
+        this.reviews = data.data ?? data;
+        if (!Array.isArray(this.reviews)) this.reviews = [];
       } catch (error) {
-        console.error('Ошибка загрузки отзывов:', error);
+        this.error = error.response?.data?.message || 'Ошибка загрузки отзывов';
         this.reviews = [];
-        throw error;
       } finally {
         this.isLoading = false;
       }
     },
 
     async createReview(reviewData) {
-      this.isLoading = true;
-      try {
-        const { data } = await axios.post('/api/reviews', {
-          text: reviewData.text,
-          rating: reviewData.rating,
-          user_id: reviewData.user_id,
-        });
-
-
-        let newReview = null;
-
-        if (data.review) {
-          newReview = data.review;
-        } else if (data.data && data.data.review) {
-          newReview = data.data.review;
-        } else if (data.data && data.data.id) {
-          newReview = data.data;
-        } else if (data.id) {
-          newReview = data;
-        }
-
-        if (newReview) {
-          if (!Array.isArray(this.reviews)) {
-            this.reviews = [];
-          }
-
-          this.reviews.unshift(newReview);
-        } else {
-          console.warn('Не удалось извлечь новый отзыв из ответа, перезагружаем список');
-          await this.fetchReviews();
-        }
-
-        return data;
-      } catch (error) {
-        console.error('Ошибка создания отзыва:', error);
-        throw error;
-      } finally {
-        this.isLoading = false;
-      }
+      const { data } = await axios.post('/api/reviews', {
+        text: reviewData.text,
+        rating: reviewData.rating,
+        user_id: reviewData.user_id,
+      });
+      const review = data.data ?? data;
+      this.reviews.unshift(review);
+      return review;
     },
 
     async updateReview(reviewId, reviewData) {
-      this.isLoading = true;
-      try {
-        const { data } = await axios.put(`/api/reviews/${reviewId}`, {
-          text: reviewData.text,
-          rating: reviewData.rating,
-        });
-
-
-        let updatedReview = null;
-
-        if (data.review) {
-          updatedReview = data.review;
-        } else if (data.data && data.data.review) {
-          updatedReview = data.data.review;
-        } else if (data.data && data.data.id) {
-          updatedReview = data.data;
-        } else if (data.id) {
-          updatedReview = data;
-        }
-
-        if (Array.isArray(this.reviews)) {
-          const index = this.reviews.findIndex((r) => r.id === reviewId);
-
-          if (index !== -1) {
-            if (updatedReview) {
-              this.reviews[index] = updatedReview;
-            } else {
-              this.reviews[index] = {
-                ...this.reviews[index],
-                text: reviewData.text,
-                rating: reviewData.rating,
-                updated_at: new Date().toISOString(),
-              };
-            }
-          } else {
-            console.warn('Отзыв не найден в списке, перезагружаем');
-            await this.fetchReviews();
-          }
-        }
-
-        return data;
-      } catch (error) {
-        console.error('Ошибка обновления отзыва:', error);
-        throw error;
-      } finally {
-        this.isLoading = false;
-      }
+      const { data } = await axios.put(`/api/reviews/${reviewId}`, {
+        text: reviewData.text,
+        rating: reviewData.rating,
+      });
+      const updated = data.data ?? data;
+      const index = this.reviews.findIndex((r) => r.id === reviewId);
+      if (index !== -1) this.reviews[index] = updated;
+      return updated;
     },
 
     async deleteReview(reviewId) {
-      this.isLoading = true;
-      try {
-        const { data } = await axios.delete(`/api/reviews/${reviewId}`);
-
-        if (Array.isArray(this.reviews)) {
-          this.reviews = this.reviews.filter((r) => r.id !== reviewId);
-        }
-
-        return data;
-      } catch (error) {
-        console.error('Ошибка удаления отзыва:', error);
-        throw error;
-      } finally {
-        this.isLoading = false;
-      }
+      await axios.delete(`/api/reviews/${reviewId}`);
+      this.reviews = this.reviews.filter((r) => r.id !== reviewId);
     },
 
     setRatingFilter(rating) {
