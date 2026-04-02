@@ -6,3 +6,126 @@
   margin-left: auto;
   margin-right: auto;
 }
+
+// --- Кнопка (базовый стиль) ---
+@mixin btn-base {
+  padding: $btn-padding;
+  border-radius: $btn-radius;
+  border: 1px solid $color-border;
+  background: $btn-bg;
+  font-size: $btn-font-size;
+  font-weight: $btn-font-weight;
+  cursor: pointer;
+  transition: $btn-transition;
+  text-decoration: none;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(:disabled) {
+    background: $btn-bg-hover;
+  }
+
+  &:disabled {
+    opacity: $btn-disabled-opacity;
+    cursor: not-allowed;
+  }
+}
+
+// --- Инпут (базовый стиль) ---
+@mixin input-base {
+  padding: $input-padding;
+  border: $input-border;
+  border-radius: $input-radius;
+  background: $input-bg;
+  font-size: $input-font-size;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  transition: 0.2s;
+
+  &:focus {
+    background: $input-bg-focus;
+  }
+
+  &[readonly] {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+// --- Карточка (базовый стиль) ---
+@mixin card-base {
+  position: relative;
+  display: flex;
+  background: $card-bg;
+  border: $card-border;
+  border-radius: $card-radius;
+  padding: $card-padding;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+// --- Изображение в карточке ---
+@mixin card-image {
+  width: $card-image-size;
+  height: $card-image-size;
+  flex-shrink: 0;
+  border-radius: $card-image-radius;
+  overflow: hidden;
+  border: $card-border;
+  background: $card-bg;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// --- Спиннер загрузки ---
+@mixin spinner {
+  width: $spinner-size;
+  height: $spinner-size;
+  border: $spinner-border-width solid rgba($color-text, 0.2);
+  border-top-color: $color-text;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+// --- Таблица (админка) ---
+@mixin admin-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 $table-spacing;
+
+  th {
+    padding: 1rem;
+    text-align: center;
+    white-space: nowrap;
+    border-bottom: 1px solid $table-border-color;
+  }
+
+  td {
+    padding: $table-cell-padding;
+    text-align: center;
+    white-space: nowrap;
+    border-top: 1px solid $table-border-color;
+    border-bottom: 1px solid $table-border-color;
+  }
+
+  tr td:first-child {
+    border-left: 1px solid $table-border-color;
+    border-top-left-radius: $table-cell-radius;
+    border-bottom-left-radius: $table-cell-radius;
+  }
+
+  tr td:last-child {
+    border-right: 1px solid $table-border-color;
+    border-top-right-radius: $table-cell-radius;
+    border-bottom-right-radius: $table-cell-radius;
+  }
+}

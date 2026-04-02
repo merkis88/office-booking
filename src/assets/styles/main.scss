@@ -1,4 +1,5 @@
 @use 'variables' as *;
+@use 'mixins' as *;
 
 *,
 *::before,
@@ -44,4 +45,55 @@ button {
 
 th {
   font-weight: normal;
+}
+
+// --- Глобальные классы ---
+
+// Кнопки
+.btn {
+  @include btn-base;
+
+  &--danger {
+    background: $color-danger;
+    color: #ffffff;
+    border-color: $color-danger;
+
+    &:hover:not(:disabled) {
+      background: $color-danger-dark;
+    }
+  }
+
+  &--outline-danger {
+    color: #991b1b;
+    border-color: #991b1b;
+
+    &:hover:not(:disabled) {
+      background: #fee2e2;
+    }
+  }
+
+  &--active {
+    background: $btn-bg-active;
+    font-weight: 600;
+  }
+}
+
+// Инпуты
+.input {
+  @include input-base;
+
+  &--error {
+    border-color: $color-danger;
+  }
+}
+
+// Спиннер
+.spinner {
+  @include spinner;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
