@@ -21,8 +21,8 @@
 <template>
   <aside class="sidebar">
     <router-link to="/admin" class="sidebar__logo">
-      <div class="sidebar__logo-box"></div>
-      <span>LOGOTYPE</span>
+      <img src="@/assets/images/logo.png" alt="logo" />
+      <span>Рабочая точка.</span>
     </router-link>
 
     <div class="sidebar__profile">
@@ -81,19 +81,29 @@
   @use '@/assets/styles/variables' as *;
 
   .sidebar {
-    width: 260px;
+    width: 390px;
     background: #8b9dad;
     padding: 30px 20px;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 30px;
 
-    &__logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 600;
-    }
+      &__logo {
+          display: flex;
+          align-items: center;
+          gap: $gap-xs;
+          cursor: pointer;
+
+          img {
+              object-fit: contain;
+          }
+
+          span {
+              font-family: $font-logo;
+              font-size: $text-2xl;
+          }
+      }
 
     &__logo-box {
       width: 40px;

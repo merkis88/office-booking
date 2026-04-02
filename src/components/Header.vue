@@ -32,8 +32,8 @@
     <div class="header__container">
       <router-link to="/">
         <div class="header__logo">
-          <img src="@/assets/images/logo.svg" alt="logo" />
-          <span>LOGOTYPE</span>
+          <img src="@/assets/images/logo.png" alt="logo" />
+          <span>Рабочая точка.</span>
         </div>
       </router-link>
 
@@ -147,22 +147,19 @@
       cursor: pointer;
 
       img {
-        width: 32px;
-        height: 32px;
         object-fit: contain;
       }
 
       span {
-        font-size: $text-lg;
-        font-weight: 600;
-        letter-spacing: 0.05em;
+        font-family: $font-logo;
+        font-size: $text-2xl;
       }
     }
 
     &__nav {
       display: flex;
       align-items: center;
-      gap: 2.5rem;
+      gap: 1.7rem;
       font-size: $text-lg;
       list-style: none;
 
@@ -205,29 +202,37 @@
     }
 
     &__burger {
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 0.4rem;
-      background: transparent;
-      border: 1px solid $color-border;
-      border-radius: $radius-sm;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      padding: 0.5rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0.4rem;
+        background: transparent;
+        cursor: pointer;
+        padding: 0.5rem;
+        position: relative;
 
-      &:hover {
-        background: rgba($color-text, 0.05);
-      }
+        &:hover {
+            span:nth-child(1) {
+                animation: wave 0.6s ease-in-out;
+            }
+
+            span:nth-child(2) {
+                animation: wave 0.6s ease-in-out 0.1s;
+            }
+
+            span:nth-child(3) {
+                animation: wave 0.6s ease-in-out 0.2s;
+            }
+        }
 
       span {
         width: 1.5rem;
         height: 2px;
         background: $color-text;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         border-radius: 2px;
       }
 
@@ -245,6 +250,18 @@
         }
       }
     }
+
+      @keyframes wave {
+          0%, 100% {
+              transform: translateX(0);
+          }
+          25% {
+              transform: translateX(-4px);
+          }
+          75% {
+              transform: translateX(4px);
+          }
+      }
 
     &__admin-dropdown {
       position: absolute;
