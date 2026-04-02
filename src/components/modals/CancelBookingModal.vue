@@ -63,23 +63,21 @@
 <template>
   <BaseModal
     :model-value="modelValue"
-    title="Отменить бронирование?"
+    title="Отмена брони"
     max-width="480px"
     :close-on-backdrop="true"
+    :show-close-button="true"
     @update:model-value="handleClose"
+    @back="handleClose"
   >
     <div class="cancel-modal">
       <template v-if="booking">
         <div class="cancel-modal__info">
           <p class="cancel-modal__place">{{ booking.place?.name }}</p>
-          <p class="cancel-modal__time">
-            {{ formattedDate }}, {{ formattedTime }}
-          </p>
+          <p class="cancel-modal__time">{{ formattedDate }}, {{ formattedTime }}</p>
         </div>
 
-        <p class="cancel-modal__warning">
-          Это действие нельзя отменить.
-        </p>
+        <p class="cancel-modal__warning">Вы действительно хотите отменить бронь?</p>
 
         <p v-if="error" class="cancel-modal__error">{{ error }}</p>
 
@@ -91,11 +89,7 @@
           >
             {{ isSubmitting ? 'Отмена...' : 'Отменить бронирование' }}
           </button>
-          <button
-            class="cancel-modal__btn"
-            :disabled="isSubmitting"
-            @click="handleClose"
-          >
+          <button class="cancel-modal__btn" :disabled="isSubmitting" @click="handleClose">
             Нет
           </button>
         </div>

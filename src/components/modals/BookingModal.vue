@@ -208,14 +208,11 @@
     @update:model-value="$emit('update:modelValue', $event)"
     :title="screen === 'confirm' ? 'Подтверждение' : 'Выберите время'"
     max-width="520px"
-    :show-close-button="false"
+    :show-close-button="true"
     :close-on-backdrop="true"
+    @back="handleBack"
     @close="closeModal"
   >
-    <button class="booking-modal__back" @click="handleBack">
-      <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
-    </button>
-
     <div class="booking-modal__content">
       <div v-if="screen === 'slots'">
         <div

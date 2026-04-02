@@ -24,7 +24,7 @@
     },
   });
 
-  const emit = defineEmits(['update:modelValue', 'close']);
+  const emit = defineEmits(['update:modelValue', 'close', 'back']);
 
   function closeModal() {
     emit('update:modelValue', false);
@@ -61,7 +61,7 @@
             <button
               v-if="showCloseButton"
               class="modal-back"
-              @click="closeModal"
+              @click="$emit('back')"
               aria-label="Назад"
             >
               <img src="@/assets/images/icons/arrow.svg" alt="" />

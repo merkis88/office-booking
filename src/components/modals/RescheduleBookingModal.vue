@@ -84,7 +84,6 @@
 
       const allSlots = [...freeSlots, { start: bookingStart, end: bookingEnd }];
 
-      // Сортировать и мержить в интервалы
       availableSlots.value = allSlots;
       mergedIntervals.value = mergeSlots(allSlots);
     } catch (e) {
@@ -104,7 +103,6 @@
     for (let i = 1; i < sorted.length; i++) {
       const slot = sorted[i];
       if (slot.start <= current.end) {
-        // Слоты пересекаются или смежные — мержим
         if (slot.end > current.end) current.end = slot.end;
       } else {
         result.push({ ...current });
@@ -122,7 +120,6 @@
   function selectInterval(interval) {
     selectedInterval.value = interval;
 
-    // Генерируем ВСЕ граничные точки внутри интервала (включая конец)
     const points = [];
     let [h, m] = interval.start.split(':').map(Number);
     const [endH, endM] = interval.end.split(':').map(Number);
@@ -166,7 +163,6 @@
     return `${startTime} - ${endTime}`;
   });
 
-  // Для отправки на API
   const newStartTime = computed(() => {
     if (!isValidSelection.value) return '';
     return timePoints.value[selectedStartIndex.value];
@@ -236,16 +232,12 @@
     :model-value="modelValue"
     :title="screenTitle"
     max-width="520px"
-    :show-close-button="false"
+    :show-close-button="true"
     :close-on-backdrop="true"
     @update:model-value="$emit('update:modelValue', $event)"
+    @back="handleBack"
   >
-    <button class="reschedule__back" @click="handleBack">
-      <img src="@/assets/images/icons/arrow-left.svg" alt="Назад" />
-    </button>
-
     <div class="reschedule__content">
-      <!-- Экран 1: Выбор интервала -->
       <div v-if="screen === 'intervals'">
         <p class="reschedule__subtitle">Выберите пожалуйста подходящее время</p>
 
@@ -267,7 +259,6 @@
         </div>
       </div>
 
-      <!-- Экран 2: Выбор часа начала (длительность фиксирована) -->
       <div v-else-if="screen === 'slots'">
         <p class="reschedule__subtitle">
           Выберите время начала (длительность: {{ bookingDurationHours }} ч.)
@@ -293,7 +284,6 @@
         </div>
       </div>
 
-      <!-- Экран 3: Подтверждение -->
       <div v-else class="reschedule__confirm-screen">
         <p class="reschedule__subtitle">Проверьте правильность данных</p>
         <p class="reschedule__info">{{ formattedDate }}, {{ bookingTime }}</p>
@@ -324,31 +314,6 @@
   @use '@/assets/styles/variables' as *;
 
   .reschedule {
-    &__back {
-      position: absolute;
-      top: 1rem;
-      left: 1rem;
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: 0.2s;
-      border: 1px solid $color-border;
-      border-radius: $radius-sm;
-      background: transparent;
-
-      &:hover {
-        background: $color-input-bg-dark;
-      }
-
-      img {
-        width: 1.5rem;
-        height: 1.5rem;
-      }
-    }
-
     &__content {
       min-height: 150px;
       display: flex;
