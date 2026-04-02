@@ -171,12 +171,6 @@ class _AccountConfirmationScreenState extends State<AccountConfirmationScreen> {
   }
 
   void _onChanged(int index, String value) {
-    if (value.length > 1) {
-      final last = value.characters.last;
-      _controllers[index].text = last;
-      _controllers[index].selection = const TextSelection.collapsed(offset: 1);
-    }
-
     if (_errors.code != null) {
       setState(() {
         _errors = AccountConfirmationFormErrorState(
@@ -184,6 +178,18 @@ class _AccountConfirmationScreenState extends State<AccountConfirmationScreen> {
           code: null,
         );
       });
+    }
+
+    final sanitizedValue = value.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (sanitizedValue.length > 1) {
+      _fillCodeFrom(index, sanitizedValue);
+      return;
+    }
+
+    if (sanitizedValue.isNotEmpty && _controllers[index].text != sanitizedValue) {
+      _controllers[index].text = sanitizedValue;
+      _controllers[index].selection = const TextSelection.collapsed(offset: 1);
     }
 
     if (_controllers[index].text.isNotEmpty) {
@@ -200,6 +206,36 @@ class _AccountConfirmationScreenState extends State<AccountConfirmationScreen> {
     }
   }
 
+  void _fillCodeFrom(int startIndex, String rawValue) {
+    final digits = rawValue.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) {
+      return;
+    }
+
+    var targetIndex = startIndex;
+    for (final symbol in digits.characters) {
+      if (targetIndex >= _codeLength) {
+        break;
+      }
+      _controllers[targetIndex].text = symbol;
+      _controllers[targetIndex].selection = const TextSelection.collapsed(
+        offset: 1,
+      );
+      targetIndex += 1;
+    }
+
+    for (var i = targetIndex; i < _codeLength; i++) {
+      _controllers[i].clear();
+    }
+
+    if (targetIndex >= _codeLength) {
+      _focusNodes[_codeLength - 1].unfocus();
+      return;
+    }
+
+    _focusNodes[targetIndex].requestFocus();
+  }
+
   Widget _codeBox(int index) {
     return SizedBox(
       width: 44,
@@ -211,7 +247,6 @@ class _AccountConfirmationScreenState extends State<AccountConfirmationScreen> {
         keyboardType: TextInputType.number,
         inputFormatters: [
           FilteringTextInputFormatter.digitsOnly,
-          LengthLimitingTextInputFormatter(1),
         ],
         decoration: InputDecoration(
           contentPadding: EdgeInsets.zero,
