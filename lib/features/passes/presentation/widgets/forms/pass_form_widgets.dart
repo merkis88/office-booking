@@ -108,6 +108,26 @@ class PassFieldErrorText extends StatelessWidget {
   }
 }
 
+class PassFieldSuccessText extends StatelessWidget {
+  const PassFieldSuccessText(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Text(
+        text,
+        style: PassFormStyles.helperText.copyWith(
+          color: Colors.green.shade700,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+}
+
 class PassSubmitButton extends StatelessWidget {
   const PassSubmitButton({super.key, required this.text, this.onPressed});
 

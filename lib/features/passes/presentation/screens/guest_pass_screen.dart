@@ -32,6 +32,7 @@ class _GuestPassScreenState extends State<GuestPassScreen> {
   bool _isSubmitting = false;
   String? _bookingsError;
   String? _emailError;
+  String? _emailSuccess;
 
   @override
   void initState() {
@@ -50,13 +51,9 @@ class _GuestPassScreenState extends State<GuestPassScreen> {
   }
 
   void _onEmailChanged() {
-    if (_emailError == null) {
-      setState(() {});
-      return;
-    }
-
     setState(() {
       _emailError = null;
+      _emailSuccess = null;
     });
   }
 
@@ -173,6 +170,7 @@ class _GuestPassScreenState extends State<GuestPassScreen> {
     setState(() {
       _isSubmitting = true;
       _emailError = null;
+      _emailSuccess = null;
     });
 
     try {
@@ -190,15 +188,19 @@ class _GuestPassScreenState extends State<GuestPassScreen> {
         _selectedBooking = null;
         _isBookingMenuOpen = false;
         _emailError = null;
+        _emailSuccess = 'Пропуск успешно выдан';
       });
+      _emailController.removeListener(_onEmailChanged);
       _emailController.clear();
+      _emailController.addListener(_onEmailChanged);
     } on AuthRequestException catch (error) {
       if (!mounted) {
         return;
       }
       setState(() {
         _isSubmitting = false;
-        _emailError = error.message;
+        _emailError = _localizeEmailError(error.message);
+        _emailSuccess = null;
       });
     } catch (error) {
       if (!mounted) {
@@ -207,10 +209,22 @@ class _GuestPassScreenState extends State<GuestPassScreen> {
       setState(() {
         _isSubmitting = false;
         _emailError = error.toString().trim().isNotEmpty
-            ? error.toString()
+            ? _localizeEmailError(error.toString())
             : 'Не удалось выдать гостевой пропуск.';
+        _emailSuccess = null;
       });
     }
+  }
+
+  String _localizeEmailError(String message) {
+    final normalized = message.toLowerCase();
+    if (normalized.contains('email') &&
+        (normalized.contains('valid') ||
+            normalized.contains('invalid') ||
+            normalized.contains('format'))) {
+      return 'Введите корректный адрес электронной почты.';
+    }
+    return message;
   }
 
   String get _bookingText {
@@ -299,6 +313,9 @@ class _GuestPassScreenState extends State<GuestPassScreen> {
                         if (_emailError != null) ...[
                           const SizedBox(height: 8),
                           PassFieldErrorText(_emailError!),
+                        ] else if (_emailSuccess != null) ...[
+                          const SizedBox(height: 8),
+                          PassFieldSuccessText(_emailSuccess!),
                         ],
                       ],
                     ),

@@ -17,7 +17,7 @@ class ProfileCardStyles {
   );
 
   static const caption = TextStyle(
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
   );

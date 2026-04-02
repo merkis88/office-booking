@@ -68,6 +68,11 @@ class _PassesScreenState extends State<PassesScreen> {
   @override
   Widget build(BuildContext context) {
     final canOpenPassScreens = !_isLoadingAvailability && _hasActiveBookings;
+    final helperText = _isLoadingAvailability
+        ? null
+        : _hasActiveBookings
+        ? 'Выберите подходящий тип пропуска\nдля оформления'
+        : 'Пропуски доступны только при наличии\nактивной аренды';
 
     return AppShell(
       selectedBottomIndex: _selectedBottomIndex,
@@ -82,7 +87,7 @@ class _PassesScreenState extends State<PassesScreen> {
             const SizedBox(
               width: double.infinity,
               child: Text(
-                'Пропуск',
+                'Выдача пропусков',
                 style: PassFormStyles.title,
                 textAlign: TextAlign.left,
               ),
@@ -91,19 +96,19 @@ class _PassesScreenState extends State<PassesScreen> {
             SizedBox(
               width: double.infinity,
               height: 42,
-              child: !_isLoadingAvailability && !_hasActiveBookings
-                  ? const Center(
+              child: helperText == null
+                  ? null
+                  : Center(
                       child: Text(
-                        'Пропуски доступны только при наличии активной аренды',
+                        helperText,
                         textAlign: TextAlign.center,
                         maxLines: 2,
-                        style: TextStyle(
-                          fontSize: 14,
+                        style: const TextStyle(
+                          fontSize: 16,
                           color: Colors.black54,
                         ),
                       ),
-                    )
-                  : null,
+                    ),
             ),
             const SizedBox(height: 22),
             AppActionMenuButton(

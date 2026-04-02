@@ -466,19 +466,48 @@ class _PlaceRentalScreenState extends State<PlaceRentalScreen> {
                           child: Text(
                             _cardDateText,
                             style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: 18,
                               fontWeight: FontWeight.w400,
                             ),
                           ),
                         ),
                         if (_expandedPlaceId == item.id)
-                          _InlinePlaceDetailsCard(
-                            title: _expandedDetails?.name ?? item.title,
-                            description: _detailsLoadingPlaceId == item.id
-                                ? null
-                                : (_expandedDetails?.description ?? ''),
-                            isLoading: _detailsLoadingPlaceId == item.id,
-                            onBack: () => _togglePlaceDetails(item),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _InlinePlaceDetailsCard(
+                                title: _expandedDetails?.name ?? item.title,
+                                description: _detailsLoadingPlaceId == item.id
+                                    ? null
+                                    : (_expandedDetails?.description ?? ''),
+                                isLoading: _detailsLoadingPlaceId == item.id,
+                                onBack: () => _togglePlaceDetails(item),
+                              ),
+                              const SizedBox(height: 10),
+                              RentalAvailabilitySection(
+                                key: ValueKey(
+                                  'expanded_slots_${item.id}_$_selectedDateKey',
+                                ),
+                                availableTimeSlots: item.availableTimeSlots,
+                                isBusy: false,
+                                onPickTimeRange: (timeRange) async {
+                                  final scaffoldMessenger =
+                                      ScaffoldMessenger.of(context);
+                                  final result = await _createBooking(
+                                    item,
+                                    timeRange,
+                                  );
+                                  if (result == null) {
+                                    return;
+                                  }
+                                  scaffoldMessenger
+                                    ..hideCurrentSnackBar()
+                                    ..showSnackBar(
+                                      SnackBar(content: Text(result)),
+                                    );
+                                },
+                              ),
+                            ],
                           )
                         else
                           OfficeRentalCard(
@@ -529,63 +558,75 @@ class _InlinePlaceDetailsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
-      decoration: RentalWidgetStyles.outlinedBox(
-        18,
-        color: AppColors.formSurface,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              InkWell(
-                onTap: onBack,
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: RentalWidgetStyles.outlinedBox(12),
-                  child: const Icon(Icons.chevron_left, size: 22),
-                ),
-              ),
-              const SizedBox(width: 18),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+    return SizedBox(
+      height: RentalCardLayout.previewCardHeight,
+      child: Container(
+        width: double.infinity,
+        padding: RentalCardLayout.previewPadding,
+        decoration: RentalWidgetStyles.outlinedBox(
+          12,
+          color: AppColors.formSurface,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 32,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: InkWell(
+                      onTap: onBack,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: RentalWidgetStyles.outlinedBox(12),
+                        child: const Icon(Icons.chevron_left, size: 22),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 22),
-          if (isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: CircularProgressIndicator(),
-              ),
-            )
-          else
-            Text(
-              description ?? '',
-              style: const TextStyle(
-                fontSize: 16,
-                height: 1.45,
-                color: Colors.black87,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-        ],
+            const SizedBox(height: 22),
+            Expanded(
+              child: isLoading
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      child: Text(
+                        description ?? '',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          height: 1.45,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:wordpice/features/requests/domain/entities/request_booking_optio
 import 'package:wordpice/features/requests/presentation/widgets/styles/request_form_styles.dart';
 
 const _kDropdownSurfaceColor = Color(0xFFE6F2FA);
+const _kDropdownMaxHeight = 116.0;
 
 Future<String?> showRequestFormDropdownMenu({
   required BuildContext context,
@@ -63,6 +64,7 @@ Future<T?> _showOverlayDropdown<T>({
     constraints: BoxConstraints(
       minWidth: buttonBox.size.width,
       maxWidth: buttonBox.size.width,
+      maxHeight: _kDropdownMaxHeight,
     ),
     shape: const RoundedRectangleBorder(
       side: BorderSide(color: Colors.black87, width: 1),

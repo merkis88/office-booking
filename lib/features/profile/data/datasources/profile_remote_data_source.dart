@@ -171,7 +171,7 @@ class ProfileRemoteDataSource implements ProfileDataSource {
     );
     final statusCode = response['statusCode'] as int? ?? 500;
 
-    if (statusCode >= 200 && statusCode < 300 && response['success'] == true) {
+    if (statusCode >= 200 && statusCode < 300) {
       return ProfileServicesResponseModel.fromJson(response).items;
     }
 

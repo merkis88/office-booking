@@ -8,6 +8,7 @@ import 'package:wordpice/core/widgets/layout/app_shell.dart';
 import 'package:wordpice/features/archive/presentation/models/archive_item.dart';
 import 'package:wordpice/features/archive/presentation/widgets/cards/archive_card.dart';
 import 'package:wordpice/features/archive/presentation/widgets/states/archive_empty_state.dart';
+import 'package:wordpice/features/rentals/presentation/widgets/cards/office_rental_card.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/styles/rental_widget_styles.dart';
 
 class ArchiveScreen extends StatefulWidget {
@@ -215,55 +216,68 @@ class _InlineArchiveDetailsCard extends StatelessWidget {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 370),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
-          decoration: RentalWidgetStyles.outlinedBox(
-            18,
-            color: AppColors.formSurface,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  InkWell(
-                    onTap: onBack,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: RentalWidgetStyles.outlinedBox(12),
-                      child: const Icon(Icons.chevron_left, size: 22),
-                    ),
-                  ),
-                  const SizedBox(width: 18),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
+        child: SizedBox(
+          height: RentalCardLayout.previewCardHeight,
+          child: Container(
+            width: double.infinity,
+            padding: RentalCardLayout.previewPadding,
+            decoration: RentalWidgetStyles.outlinedBox(
+              12,
+              color: AppColors.formSurface,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: 32,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: InkWell(
+                          onTap: onBack,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: RentalWidgetStyles.outlinedBox(12),
+                            child: const Icon(Icons.chevron_left, size: 22),
+                          ),
                         ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Text(
+                      description,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        height: 1.45,
+                        color: Colors.black87,
                       ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 22),
-              Text(
-                description,
-                style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.45,
-                  color: Colors.black87,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

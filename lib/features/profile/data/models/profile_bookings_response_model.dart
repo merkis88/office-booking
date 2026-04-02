@@ -106,6 +106,7 @@ class ProfileBookingItemModel {
       placeType: placeType,
       dateIso: _formatDateIso(date),
       photoUrl: photoUrl,
+      statusLabel: _mapStatusLabel(status),
       dateLabel: RentalDateTextHelper.formatFullDate(date),
       title: _mapTypeToTitle(placeType),
       room: room,
@@ -113,6 +114,17 @@ class ProfileBookingItemModel {
       priceLabel: price > 0 ? 'Стоимость: $priceр' : '',
       timeSlots: <String>[_formatTimeRange(startTime, endTime)],
     );
+  }
+
+  static String? _mapStatusLabel(String status) {
+    switch (status) {
+      case 'cancelled':
+        return 'Аренда отменена';
+      case 'over':
+        return 'Аренда завершена';
+      default:
+        return null;
+    }
   }
 
   static DateTime _parseBusinessCenterDateTime(Object? value) {

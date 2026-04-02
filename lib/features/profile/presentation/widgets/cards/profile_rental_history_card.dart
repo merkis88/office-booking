@@ -21,6 +21,7 @@ class ProfileRentalHistoryCard extends StatelessWidget {
             capacity: item.capacity,
             photoUrl: item.photoUrl,
             timeText: item.timeSlots.isEmpty ? null : item.timeSlots.first,
+            statusLabel: item.statusLabel,
           ),
         ),
       ],

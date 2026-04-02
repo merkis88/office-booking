@@ -53,6 +53,7 @@ class ProfileRentalCardContent extends StatelessWidget {
     required this.capacity,
     this.photoUrl,
     this.timeText,
+    this.statusLabel,
     this.favoriteInitiallyFilled = false,
     this.onFavoriteTap,
     this.isFavoriteBusy = false,
@@ -64,6 +65,7 @@ class ProfileRentalCardContent extends StatelessWidget {
   final String capacity;
   final String? photoUrl;
   final String? timeText;
+  final String? statusLabel;
   final bool favoriteInitiallyFilled;
   final VoidCallback? onFavoriteTap;
   final bool isFavoriteBusy;
@@ -94,6 +96,7 @@ class ProfileRentalCardContent extends StatelessWidget {
                   priceLabel: priceLabel,
                   capacity: capacity,
                   timeText: timeText,
+                  statusLabel: statusLabel,
                 ),
               ),
             ],
@@ -142,6 +145,7 @@ class _RentalTextColumn extends StatelessWidget {
     required this.priceLabel,
     required this.capacity,
     this.timeText,
+    this.statusLabel,
   });
 
   final String title;
@@ -149,6 +153,7 @@ class _RentalTextColumn extends StatelessWidget {
   final String priceLabel;
   final String capacity;
   final String? timeText;
+  final String? statusLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -170,6 +175,10 @@ class _RentalTextColumn extends StatelessWidget {
         ],
         const SizedBox(height: 3),
         _OneLineRentalText(capacity, style: ProfileCardStyles.rentalText),
+        if (statusLabel != null && statusLabel!.isNotEmpty) ...[
+          const SizedBox(height: 3),
+          _OneLineRentalText(statusLabel!, style: ProfileCardStyles.rentalText),
+        ],
       ],
     );
   }

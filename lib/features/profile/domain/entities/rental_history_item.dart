@@ -6,6 +6,7 @@ class RentalHistoryItem {
     this.dateIso,
     this.photoUrl,
     this.isFavorite = false,
+    this.statusLabel,
     required this.dateLabel,
     required this.title,
     required this.room,
@@ -20,6 +21,7 @@ class RentalHistoryItem {
   final String? dateIso;
   final String? photoUrl;
   final bool isFavorite;
+  final String? statusLabel;
   final String dateLabel;
   final String title;
   final String room;
@@ -34,6 +36,7 @@ class RentalHistoryItem {
     String? dateIso,
     String? photoUrl,
     bool? isFavorite,
+    String? statusLabel,
     String? dateLabel,
     String? title,
     String? room,
@@ -48,6 +51,7 @@ class RentalHistoryItem {
       dateIso: dateIso ?? this.dateIso,
       photoUrl: photoUrl ?? this.photoUrl,
       isFavorite: isFavorite ?? this.isFavorite,
+      statusLabel: statusLabel ?? this.statusLabel,
       dateLabel: dateLabel ?? this.dateLabel,
       title: title ?? this.title,
       room: room ?? this.room,

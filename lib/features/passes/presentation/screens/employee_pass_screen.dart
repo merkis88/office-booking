@@ -32,6 +32,7 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
   bool _isSubmitting = false;
   String? _bookingsError;
   String? _emailError;
+  String? _emailSuccess;
 
   @override
   void initState() {
@@ -50,13 +51,9 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
   }
 
   void _onAnyFieldChanged() {
-    if (_emailError == null) {
-      setState(() {});
-      return;
-    }
-
     setState(() {
       _emailError = null;
+      _emailSuccess = null;
     });
   }
 
@@ -168,6 +165,7 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
     setState(() {
       _isSubmitting = true;
       _emailError = null;
+      _emailSuccess = null;
     });
 
     try {
@@ -185,15 +183,19 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
         _selectedBooking = null;
         _isBookingMenuOpen = false;
         _emailError = null;
+        _emailSuccess = 'Пропуск успешно выдан';
       });
+      _emailController.removeListener(_onAnyFieldChanged);
       _emailController.clear();
+      _emailController.addListener(_onAnyFieldChanged);
     } on AuthRequestException catch (error) {
       if (!mounted) {
         return;
       }
       setState(() {
         _isSubmitting = false;
-        _emailError = error.message;
+        _emailError = _localizeEmailError(error.message);
+        _emailSuccess = null;
       });
     } catch (error) {
       if (!mounted) {
@@ -202,10 +204,22 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
       setState(() {
         _isSubmitting = false;
         _emailError = error.toString().trim().isNotEmpty
-            ? error.toString()
+            ? _localizeEmailError(error.toString())
             : 'Не удалось выдать пропуск сотруднику.';
+        _emailSuccess = null;
       });
     }
+  }
+
+  String _localizeEmailError(String message) {
+    final normalized = message.toLowerCase();
+    if (normalized.contains('email') &&
+        (normalized.contains('valid') ||
+            normalized.contains('invalid') ||
+            normalized.contains('format'))) {
+      return 'Введите корректный адрес электронной почты.';
+    }
+    return message;
   }
 
   String get _bookingText {
@@ -278,6 +292,7 @@ class _EmployeePassScreenState extends State<EmployeePassScreen> {
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           errorText: _emailError,
+                          successText: _emailSuccess,
                         ),
                       ],
                     ),
@@ -332,6 +347,7 @@ class _EmployeePassField extends StatelessWidget {
     required this.hint,
     required this.controller,
     required this.errorText,
+    required this.successText,
     this.keyboardType,
   });
 
@@ -339,6 +355,7 @@ class _EmployeePassField extends StatelessWidget {
   final String hint;
   final TextEditingController controller;
   final String? errorText;
+  final String? successText;
   final TextInputType? keyboardType;
 
   @override
@@ -355,6 +372,9 @@ class _EmployeePassField extends StatelessWidget {
         if (errorText != null) ...[
           const SizedBox(height: 8),
           PassFieldErrorText(errorText!),
+        ] else if (successText != null) ...[
+          const SizedBox(height: 8),
+          PassFieldSuccessText(successText!),
         ],
       ],
     );

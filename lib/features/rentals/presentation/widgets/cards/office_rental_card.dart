@@ -10,6 +10,16 @@ import 'package:wordpice/features/rentals/presentation/widgets/modals/office_tim
 import 'package:wordpice/features/rentals/presentation/widgets/rental_time_slot_chip.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/styles/rental_widget_styles.dart';
 
+class RentalCardLayout {
+  static const double previewImageSize = 88;
+  static const double previewContentHeight = 134;
+  static const double previewPaddingTop = 18;
+  static const double previewPaddingBottom = 18;
+  static const EdgeInsets previewPadding = EdgeInsets.fromLTRB(15, 18, 13, 18);
+  static const double previewCardHeight =
+      previewContentHeight + previewPaddingTop + previewPaddingBottom;
+}
+
 class OfficeRentalCard extends StatefulWidget {
   const OfficeRentalCard({
     super.key,
@@ -41,34 +51,20 @@ class OfficeRentalCard extends StatefulWidget {
 }
 
 class _OfficeRentalCardState extends State<OfficeRentalCard> {
-  late final List<String> _freeTimeSlots;
-  int _slotWindowStart = 0;
   bool _isBooking = false;
   bool _isFavorite = false;
   bool _isFavoriteLoading = false;
   bool _isArchiveLoading = false;
 
-  int get _maxWindowStart =>
-      (_freeTimeSlots.length - 2).clamp(0, _freeTimeSlots.length);
-
   @override
   void initState() {
     super.initState();
-    _freeTimeSlots = List<String>.from(widget.availableTimeSlots);
     _isFavorite = widget.item.isFavorite;
   }
 
   @override
   void didUpdateWidget(covariant OfficeRentalCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.availableTimeSlots != widget.availableTimeSlots) {
-      _freeTimeSlots
-        ..clear()
-        ..addAll(widget.availableTimeSlots);
-      if (_slotWindowStart > _maxWindowStart) {
-        _slotWindowStart = _maxWindowStart;
-      }
-    }
     if (oldWidget.item.isFavorite != widget.item.isFavorite) {
       _isFavorite = widget.item.isFavorite;
     }
@@ -94,11 +90,6 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text(errorMessage)));
     }
-  }
-
-  Future<void> _pickTimeRange() async {
-    if (_freeTimeSlots.isEmpty || _isBooking) return;
-    await _pickTimeRangeForSlot(_freeTimeSlots.first);
   }
 
   Future<void> _pickTimeRangeForSlot(String sourceRange) async {
@@ -171,11 +162,21 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
     if (_needsArchiveConfirmation(errorMessage)) {
       final confirmed = await AppConfirmationDialog.show<bool>(
         context,
-        title: 'Архивация помещения',
+        title:
+            '\u0410\u0440\u0445\u0438\u0432\u0430\u0446\u0438\u044f \u043f\u043e\u043c\u0435\u0449\u0435\u043d\u0438\u044f',
         message:
-            'У этого помещения есть активные бронирования. Чтобы архивировать помещение, подтвердите действие. Все бронирования этого помещения будут отменены.',
-        confirmLabel: 'Подтвердить',
-        cancelLabel: 'Отменить',
+            '\u0423 \u044d\u0442\u043e\u0433\u043e \u043f\u043e\u043c\u0435\u0449\u0435\u043d\u0438\u044f '
+            '\u0435\u0441\u0442\u044c \u0430\u043a\u0442\u0438\u0432\u043d\u044b\u0435 '
+            '\u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f. '
+            '\u0427\u0442\u043e\u0431\u044b \u0430\u0440\u0445\u0438\u0432\u0438\u0440\u043e\u0432\u0430\u0442\u044c '
+            '\u043f\u043e\u043c\u0435\u0449\u0435\u043d\u0438\u0435, \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u0435 '
+            '\u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435. \u0412\u0441\u0435 '
+            '\u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f \u044d\u0442\u043e\u0433\u043e '
+            '\u043f\u043e\u043c\u0435\u0449\u0435\u043d\u0438\u044f \u0431\u0443\u0434\u0443\u0442 '
+            '\u043e\u0442\u043c\u0435\u043d\u0435\u043d\u044b.',
+        confirmLabel:
+            '\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044c',
+        cancelLabel: '\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c',
         confirmResult: true,
         cancelResult: false,
       );
@@ -207,257 +208,153 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
 
   bool _needsArchiveConfirmation(String errorMessage) {
     final normalized = errorMessage.toLowerCase();
-    return normalized.contains('активных бронир') ||
-        normalized.contains('используйте force') ||
+    return normalized.contains(
+          '\u0430\u043a\u0442\u0438\u0432\u043d\u044b\u0445 \u0431\u0440\u043e\u043d\u0438\u0440',
+        ) ||
+        normalized.contains(
+          '\u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439\u0442\u0435 force',
+        ) ||
         normalized.contains('force = 1');
-  }
-
-  void _showPreviousSlots() {
-    if (_isBooking) return;
-    setState(() {
-      _slotWindowStart = (_slotWindowStart - 1).clamp(0, _maxWindowStart);
-    });
-  }
-
-  void _showNextSlots() {
-    if (_isBooking) return;
-    setState(() {
-      _slotWindowStart = (_slotWindowStart + 1).clamp(0, _maxWindowStart);
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
-    final hasFreeTime = _freeTimeSlots.isNotEmpty;
-    final hasSingleSlot = _freeTimeSlots.length == 1;
     final hasPhoto = item.photoUrl != null && item.photoUrl!.trim().isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 370),
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(15, 18, 13, 18),
-            decoration: RentalWidgetStyles.outlinedBox(
-              12,
-              color: AppColors.formSurface,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 88,
-                  height: 88,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFBDBDBD),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: AppColors.bottomNavBackground,
-                      width: 1.5,
+          child: SizedBox(
+            height: RentalCardLayout.previewCardHeight,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 370),
+              width: double.infinity,
+              padding: RentalCardLayout.previewPadding,
+              decoration: RentalWidgetStyles.outlinedBox(
+                12,
+                color: AppColors.formSurface,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: RentalCardLayout.previewImageSize,
+                    height: RentalCardLayout.previewImageSize,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFBDBDBD),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppColors.bottomNavBackground,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: hasPhoto
+                          ? Image.network(
+                              item.photoUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => const _PhotoPlaceholder(),
+                            )
+                          : const _PhotoPlaceholder(),
                     ),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: hasPhoto
-                        ? Image.network(
-                            item.photoUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => const _PhotoPlaceholder(),
-                          )
-                        : const _PhotoPlaceholder(),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: FavoriteHeartToggle(
-                          filled: _isFavorite,
-                          isBusy: _isFavoriteLoading,
-                          onTap: _toggleFavorite,
-                        ),
-                      ),
-                      if (widget.showArchiveIcon)
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Stack(
+                      children: [
                         Positioned(
+                          top: 0,
                           right: 0,
-                          bottom: 0,
-                          child: GestureDetector(
-                            onTap: _archivePlace,
-                            behavior: HitTestBehavior.opaque,
-                            child: SizedBox(
-                              width: 28,
-                              height: 28,
-                              child: _isArchiveLoading
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(2),
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : SvgPicture.asset(
-                                      'assets/icons/nav_archive.svg',
-                                      width: 25,
-                                      height: 25,
-                                      colorFilter: const ColorFilter.mode(
-                                        AppColors.bottomNavBackground,
-                                        BlendMode.srcIn,
-                                      ),
-                                    ),
-                            ),
+                          child: FavoriteHeartToggle(
+                            filled: _isFavorite,
+                            isBusy: _isFavoriteLoading,
+                            onTap: _toggleFavorite,
                           ),
                         ),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 36),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _OneLineRentalText(
-                              item.title,
-                              style: RentalWidgetStyles.cardText,
-                            ),
-                            const SizedBox(height: 3),
-                            _OneLineRentalText(
-                              item.room,
-                              style: RentalWidgetStyles.cardText,
-                            ),
-                            const SizedBox(height: 3),
-                            _OneLineRentalText(
-                              'Стоимость: ${item.price}р/час',
-                              style: RentalWidgetStyles.cardText,
-                            ),
-                            const SizedBox(height: 3),
-                            _OneLineRentalText(
-                              'Вместимость: ${item.capacity} человек',
-                              style: RentalWidgetStyles.cardText,
-                            ),
-                            const SizedBox(height: 6),
-                            InkWell(
-                              onTap: widget.onDetailsTap,
-                              child: Text(
-                                'Подробнее',
-                                style: RentalWidgetStyles.cardText.copyWith(
-                                  decoration: TextDecoration.underline,
-                                ),
+                        if (widget.showArchiveIcon)
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: GestureDetector(
+                              onTap: _archivePlace,
+                              behavior: HitTestBehavior.opaque,
+                              child: SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: _isArchiveLoading
+                                    ? const Padding(
+                                        padding: EdgeInsets.all(2),
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : SvgPicture.asset(
+                                        'assets/icons/nav_archive.svg',
+                                        width: 25,
+                                        height: 25,
+                                        colorFilter: const ColorFilter.mode(
+                                          AppColors.bottomNavBackground,
+                                          BlendMode.srcIn,
+                                        ),
+                                      ),
                               ),
                             ),
-                          ],
+                          ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 36),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _OneLineRentalText(
+                                item.title,
+                                style: RentalWidgetStyles.cardText,
+                              ),
+                              const SizedBox(height: 3),
+                              _OneLineRentalText(
+                                item.room,
+                                style: RentalWidgetStyles.cardText,
+                              ),
+                              const SizedBox(height: 3),
+                              _OneLineRentalText(
+                                '\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c: ${item.price}\u0440/\u0447\u0430\u0441',
+                                style: RentalWidgetStyles.cardText,
+                              ),
+                              const SizedBox(height: 3),
+                              _OneLineRentalText(
+                                '\u0412\u043c\u0435\u0441\u0442\u0438\u043c\u043e\u0441\u0442\u044c: ${item.capacity} \u0447\u0435\u043b\u043e\u0432\u0435\u043a',
+                                style: RentalWidgetStyles.cardText,
+                              ),
+                              const SizedBox(height: 6),
+                              InkWell(
+                                onTap: widget.onDetailsTap,
+                                child: Text(
+                                  '\u041f\u043e\u0434\u0440\u043e\u0431\u043d\u0435\u0435',
+                                  style: RentalWidgetStyles.cardText.copyWith(
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
         const SizedBox(height: 10),
-        if (!hasFreeTime)
-          Center(
-            child: Container(
-              width: 286,
-              height: 36,
-              alignment: Alignment.center,
-              decoration: RentalWidgetStyles.outlinedBox(
-                8,
-                color: AppColors.formSurface,
-              ),
-              child: const Text(
-                'Свободного времени нет',
-                textAlign: TextAlign.center,
-                style: RentalWidgetStyles.slotInfoText,
-              ),
-            ),
-          ),
-        if (hasSingleSlot) ...[
-          Center(
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _pickTimeRange,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  width: 286,
-                  height: 36,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: RentalWidgetStyles.outlinedBox(
-                    8,
-                    color: AppColors.formSurface,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Доступное время: ${_freeTimeSlots.first}',
-                    textAlign: TextAlign.center,
-                    style: RentalWidgetStyles.slotInfoText,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-        if (hasFreeTime && !hasSingleSlot) ...[
-          if (_freeTimeSlots.length <= 2)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Row(
-                children: [
-                  for (var i = 0; i < _freeTimeSlots.length; i++) ...[
-                    Expanded(
-                      child: RentalTimeSlotChip(
-                        text: _freeTimeSlots[i],
-                        onTap: () => _pickTimeRangeForSlot(_freeTimeSlots[i]),
-                      ),
-                    ),
-                    if (i != _freeTimeSlots.length - 1)
-                      const SizedBox(width: 10),
-                  ],
-                ],
-              ),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: [
-                  _SlotArrowButton(
-                    icon: Icons.chevron_left,
-                    onTap: _slotWindowStart > 0 ? _showPreviousSlots : null,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: RentalTimeSlotChip(
-                      text: _freeTimeSlots[_slotWindowStart],
-                      onTap: () => _pickTimeRangeForSlot(
-                        _freeTimeSlots[_slotWindowStart],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: RentalTimeSlotChip(
-                      text: _freeTimeSlots[_slotWindowStart + 1],
-                      onTap: () => _pickTimeRangeForSlot(
-                        _freeTimeSlots[_slotWindowStart + 1],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  _SlotArrowButton(
-                    icon: Icons.chevron_right,
-                    onTap: _slotWindowStart < _freeTimeSlots.length - 2
-                        ? _showNextSlots
-                        : null,
-                  ),
-                ],
-              ),
-            ),
-        ],
+        RentalAvailabilitySection(
+          availableTimeSlots: widget.availableTimeSlots,
+          isBusy: _isBooking,
+          onPickTimeRange: _pickTimeRangeForSlot,
+        ),
         if (_isBooking)
           const Padding(
             padding: EdgeInsets.only(top: 10, bottom: 8),
@@ -468,6 +365,167 @@ class _OfficeRentalCardState extends State<OfficeRentalCard> {
             ),
           ),
       ],
+    );
+  }
+}
+
+class RentalAvailabilitySection extends StatefulWidget {
+  const RentalAvailabilitySection({
+    super.key,
+    required this.availableTimeSlots,
+    required this.isBusy,
+    required this.onPickTimeRange,
+  });
+
+  final List<String> availableTimeSlots;
+  final bool isBusy;
+  final Future<void> Function(String sourceRange) onPickTimeRange;
+
+  @override
+  State<RentalAvailabilitySection> createState() =>
+      _RentalAvailabilitySectionState();
+}
+
+class _RentalAvailabilitySectionState extends State<RentalAvailabilitySection> {
+  int _slotWindowStart = 0;
+
+  int get _maxWindowStart => (widget.availableTimeSlots.length - 2).clamp(
+    0,
+    widget.availableTimeSlots.length,
+  );
+
+  @override
+  void didUpdateWidget(covariant RentalAvailabilitySection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.availableTimeSlots != widget.availableTimeSlots &&
+        _slotWindowStart > _maxWindowStart) {
+      _slotWindowStart = _maxWindowStart;
+    }
+  }
+
+  Future<void> _pickTimeRange(String sourceRange) async {
+    if (widget.isBusy) return;
+    await widget.onPickTimeRange(sourceRange);
+  }
+
+  void _showPreviousSlots() {
+    if (widget.isBusy) return;
+    setState(() {
+      _slotWindowStart = (_slotWindowStart - 1).clamp(0, _maxWindowStart);
+    });
+  }
+
+  void _showNextSlots() {
+    if (widget.isBusy) return;
+    setState(() {
+      _slotWindowStart = (_slotWindowStart + 1).clamp(0, _maxWindowStart);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final freeTimeSlots = widget.availableTimeSlots;
+    final hasFreeTime = freeTimeSlots.isNotEmpty;
+    final hasSingleSlot = freeTimeSlots.length == 1;
+
+    if (!hasFreeTime) {
+      return Center(
+        child: Container(
+          width: 286,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: RentalWidgetStyles.outlinedBox(
+            8,
+            color: AppColors.formSurface,
+          ),
+          child: const Text(
+            '\u0421\u0432\u043e\u0431\u043e\u0434\u043d\u043e\u0433\u043e '
+            '\u0432\u0440\u0435\u043c\u0435\u043d\u0438 \u043d\u0435\u0442',
+            textAlign: TextAlign.center,
+            style: RentalWidgetStyles.slotInfoText,
+          ),
+        ),
+      );
+    }
+
+    if (hasSingleSlot) {
+      return Center(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _pickTimeRange(freeTimeSlots.first),
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: 286,
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: RentalWidgetStyles.outlinedBox(
+                8,
+                color: AppColors.formSurface,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                '\u0414\u043e\u0441\u0442\u0443\u043f\u043d\u043e\u0435 '
+                '\u0432\u0440\u0435\u043c\u044f: ${freeTimeSlots.first}',
+                textAlign: TextAlign.center,
+                style: RentalWidgetStyles.slotInfoText,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (freeTimeSlots.length <= 2) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Row(
+          children: [
+            for (var i = 0; i < freeTimeSlots.length; i++) ...[
+              Expanded(
+                child: RentalTimeSlotChip(
+                  text: freeTimeSlots[i],
+                  onTap: () => _pickTimeRange(freeTimeSlots[i]),
+                ),
+              ),
+              if (i != freeTimeSlots.length - 1) const SizedBox(width: 10),
+            ],
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        children: [
+          _SlotArrowButton(
+            icon: Icons.chevron_left,
+            onTap: _slotWindowStart > 0 ? _showPreviousSlots : null,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: RentalTimeSlotChip(
+              text: freeTimeSlots[_slotWindowStart],
+              onTap: () => _pickTimeRange(freeTimeSlots[_slotWindowStart]),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: RentalTimeSlotChip(
+              text: freeTimeSlots[_slotWindowStart + 1],
+              onTap: () => _pickTimeRange(freeTimeSlots[_slotWindowStart + 1]),
+            ),
+          ),
+          const SizedBox(width: 10),
+          _SlotArrowButton(
+            icon: Icons.chevron_right,
+            onTap: _slotWindowStart < freeTimeSlots.length - 2
+                ? _showNextSlots
+                : null,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -518,18 +576,11 @@ class _OneLineRentalText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: FittedBox(
-        alignment: Alignment.centerLeft,
-        fit: BoxFit.scaleDown,
-        child: Text(
-          text,
-          maxLines: 1,
-          softWrap: false,
-          style: style,
-        ),
-      ),
+    return Text(
+      text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: style,
     );
   }
 }

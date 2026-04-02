@@ -182,6 +182,7 @@ class RentalsRemoteDataSource implements RentalsDataSource {
         final response = await _apiClient.postJson(
           '/qr/$bookingId/guest-qr',
           body: <String, dynamic>{
+            'email': recipientEmail,
             'recipient_email': recipientEmail,
           },
           headers: _authorizationHeaders(),
