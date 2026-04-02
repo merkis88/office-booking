@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useAuthStore } from '@/store/auth';
 
 import MainLayout from '@/layouts/MainLayout.vue';
 import AdminLayout from '@/layouts/AdminLayout.vue';
@@ -37,14 +38,14 @@ const routes = [
       { path: 'registration', component: Registration },
       { path: 'service', component: Services },
       { path: 'privacy-policy', component: PrivacyPolicy },
-      { path: 'profile', component: Profile },
-      { path: 'update-password', component: UpdatePassword },
+      { path: 'profile', component: Profile, meta: { requiresAuth: true } },
+      { path: 'update-password', component: UpdatePassword, meta: { requiresAuth: true } },
       { path: 'reviews', component: Reviews },
       { path: 'offices', component: Offices },
       { path: 'coworking', component: Coworking },
       { path: 'meeting-rooms', component: MeetingRooms },
-      { path: 'requests', component: Requests },
-      { path: 'passes', component: Passes },
+      { path: 'requests', component: Requests, meta: { requiresAuth: true } },
+      { path: 'passes', component: Passes, meta: { requiresAuth: true } },
       {
         path: '/archived-places',
         component: () => import('@/pages/ArchivedPlaces.vue'),
@@ -55,6 +56,7 @@ const routes = [
   {
     path: '/admin',
     component: AdminLayout,
+    meta: { requiresAuth: true, requiresAdmin: true },
     children: [
       { path: '', component: MainAdmin },
       { path: 'notifications', component: Notifications },
@@ -80,6 +82,26 @@ const router = createRouter({
       return { top: 0 };
     }
   },
+});
+
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore();
+
+  // Проверка авторизации
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    if (!authStore.isAuthenticated) {
+      return next('/authorization');
+    }
+  }
+
+  // Проверка админских прав
+  if (to.matched.some((record) => record.meta.requiresAdmin)) {
+    if (!authStore.isAdmin) {
+      return next('/');
+    }
+  }
+
+  next();
 });
 
 export default router;

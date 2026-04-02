@@ -1,12 +1,10 @@
 <script setup>
   import { ref, onMounted } from 'vue';
-  import { useAuthStore } from '@/store/auth';
   import { useBookingsStore } from '@/store/bookings';
   import { useRouter } from 'vue-router';
   import { storeToRefs } from 'pinia';
   import BookingsTable from '@/components/BookingsTable.vue';
 
-  const authStore = useAuthStore();
   const bookingsStore = useBookingsStore();
   const router = useRouter();
 
@@ -16,11 +14,6 @@
   const showFilterDropdown = ref(false);
 
   onMounted(async () => {
-    if (!authStore.isAdmin) {
-      await router.push('/');
-      return;
-    }
-
     await bookingsStore.fetchBookings({ admin: true });
   });
 

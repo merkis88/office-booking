@@ -1,7 +1,6 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
-  import { useAuthStore } from '@/store/auth';
   import { useServicesStore } from '@/store/services';
   import { storeToRefs } from 'pinia';
   import DeleteConfirmModal from '@/components/modals/DeleteConfirmModal.vue';
@@ -9,7 +8,6 @@
   import EditServiceTypeModal from '@/components/modals/EditServiceTypeModal.vue';
 
   const router = useRouter();
-  const authStore = useAuthStore();
   const servicesStore = useServicesStore();
 
   const { serviceTypes, isLoading } = storeToRefs(servicesStore);
@@ -95,11 +93,6 @@
   }
 
   onMounted(async () => {
-    if (!authStore.isAdmin) {
-      router.push('/');
-      return;
-    }
-
     await loadServiceTypes();
   });
 </script>
