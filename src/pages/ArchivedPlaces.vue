@@ -13,6 +13,7 @@ const placesStore = usePlacesStore();
 
 const { places, isLoading } = storeToRefs(placesStore);
 
+const errorMessage = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 6;
 
@@ -39,19 +40,21 @@ async function loadArchivedPlaces() {
 }
 
 async function handleDeletePlace(placeId) {
+    errorMessage.value = '';
     try {
         await placesStore.deletePlace(placeId);
     } catch (error) {
-        alert(error.response?.data?.message || 'Не удалось удалить помещение');
+        errorMessage.value = error.response?.data?.message || 'Не удалось удалить помещение';
     }
 }
 
 async function handleRestorePlace(placeId) {
+    errorMessage.value = '';
     try {
         await placesStore.restorePlace(placeId);
         await loadArchivedPlaces();
     } catch (error) {
-        alert(error.response?.data?.message || 'Не удалось восстановить помещение');
+        errorMessage.value = error.response?.data?.message || 'Не удалось восстановить помещение';
     }
 }
 
@@ -72,9 +75,10 @@ onMounted(async () => {
                 <h1 class="archived-places__title">Архив помещений</h1>
             </div>
 
-            <div v-if="isLoading" class="archived-places__loading">
+            <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+            <div v-if="isLoading" class="loading">
                 <div class="spinner"></div>
-                <p>Загрузка...</p>
             </div>
 
             <div v-else-if="paginatedPlaces.length > 0" class="archived-places__grid">
@@ -87,9 +91,9 @@ onMounted(async () => {
                 />
             </div>
 
-            <div v-else class="archived-places__empty">
+            <div v-else class="empty-state">
                 <p>Архив пуст</p>
-                <p class="archived-places__empty-hint">Архивные помещения появятся здесь</p>
+                <p class="empty-state__hint">Архивные помещения появятся здесь</p>
             </div>
 
             <AppPagination
@@ -132,31 +136,6 @@ onMounted(async () => {
         grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
         gap: 2rem;
         margin-bottom: 3rem;
-    }
-
-    &__loading {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 400px;
-        gap: 1rem;
-    }
-
-    &__empty {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 400px;
-        font-size: $text-lg;
-        color: $color-text;
-        gap: 1rem;
-    }
-
-    &__empty-hint {
-        font-size: $text-base;
-        color: rgba($color-text, 0.6);
     }
 
     @media (max-width: 768px) {

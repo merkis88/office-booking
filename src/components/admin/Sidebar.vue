@@ -142,7 +142,7 @@
       border: 1px solid black;
       border-radius: 8px;
       text-align: center;
-      transition: 0.2s;
+      transition: $transition-fast;
       display: flex;
       align-items: center;
       gap: 2rem;

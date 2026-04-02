@@ -199,7 +199,7 @@
       background: $color-input-bg;
       font-size: $text-sm;
       outline: none;
-      transition: 0.2s;
+      transition: $transition-fast;
 
       &:focus {
         background: $color-input-bg-dark;
@@ -218,7 +218,7 @@
       font-size: $text-sm;
       outline: none;
       cursor: pointer;
-      transition: 0.2s;
+      transition: $transition-fast;
 
       &:focus {
         background: $color-input-bg-dark;

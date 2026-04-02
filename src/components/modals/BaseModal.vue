@@ -157,26 +157,6 @@
     justify-content: center;
   }
 
-  .modal-enter-active,
-  .modal-leave-active {
-    transition: opacity 0.3s ease;
-  }
-
-  .modal-enter-active .modal-container,
-  .modal-leave-active .modal-container {
-    transition: transform 0.3s ease;
-  }
-
-  .modal-enter-from,
-  .modal-leave-to {
-    opacity: 0;
-  }
-
-  .modal-enter-from .modal-container,
-  .modal-leave-to .modal-container {
-    transform: scale(0.95) translateY(-20px);
-  }
-
   @media screen and (max-width: 768px) {
     .modal-overlay {
       background: $color-bg;

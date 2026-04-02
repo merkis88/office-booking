@@ -368,7 +368,7 @@
     align-items: center;
     gap: 1rem;
     padding: 1.5rem;
-    transition: all 0.3s;
+    transition: $transition-fast;
 
     &:hover {
       background: rgba($color-text, 0.02);
@@ -521,26 +521,6 @@
     to {
       transform: rotate(360deg);
     }
-  }
-
-  .fade-enter-active,
-  .fade-leave-active {
-    transition: opacity 0.3s;
-  }
-
-  .fade-enter-from,
-  .fade-leave-to {
-    opacity: 0;
-  }
-
-  .slide-enter-active,
-  .slide-leave-active {
-    transition: transform 0.3s ease;
-  }
-
-  .slide-enter-from,
-  .slide-leave-to {
-    transform: translateX(100%);
   }
 
   @media (max-width: 768px) {

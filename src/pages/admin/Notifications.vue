@@ -373,7 +373,7 @@
       font-size: $text-base;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: $transition-fast;
 
       &:hover:not(:disabled) {
         transform: translateY(-2px);

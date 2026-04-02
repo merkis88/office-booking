@@ -625,7 +625,7 @@
       font-weight: 500;
       color: $color-text;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: $transition-fast;
 
       &:hover:not(:disabled) {
         background: $color-input-bg-dark;
@@ -652,7 +652,7 @@
       font-weight: 500;
       color: $color-text;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: $transition-fast;
 
       &:hover:not(:disabled) {
         background: rgba($color-text, 0.1);

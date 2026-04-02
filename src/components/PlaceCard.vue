@@ -179,7 +179,7 @@
 
     &__main {
       @include card-base;
-      transition: all 0.3s;
+      transition: $transition-fast;
       flex: 1;
       min-height: 280px;
     }
@@ -325,7 +325,7 @@
       background: $color-input-bg;
       cursor: pointer;
       font-size: $text-base;
-      transition: 0.2s;
+      transition: $transition-fast;
 
       &:hover {
         background: $color-input-bg-dark;

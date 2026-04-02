@@ -240,19 +240,14 @@
       <div class="edit-place__form-card">
         <h1 class="edit-place__title">Редактирование помещения</h1>
 
-        <div v-if="isLoading" class="edit-place__loading">
-          <div class="edit-place__spinner"></div>
-          <p>Загрузка данных...</p>
+        <div v-if="isLoading" class="loading">
+          <div class="spinner"></div>
         </div>
 
         <template v-else>
-          <div v-if="successMessage" class="edit-place__message edit-place__message--success">
-            ✓ {{ successMessage }}
-          </div>
+          <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
 
-          <div v-if="errorMessage" class="edit-place__message edit-place__message--error">
-            {{ errorMessage }}
-          </div>
+          <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
           <form @submit.prevent="handleSubmit" class="edit-place__form">
             <div class="edit-place__field">
@@ -429,42 +424,6 @@
       margin-bottom: 2rem;
     }
 
-    &__loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-      padding: 2rem;
-    }
-
-    &__spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba($color-text, 0.2);
-      border-top-color: $color-text;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    &__message {
-      padding: 1rem;
-      border-radius: $radius-sm;
-      margin-bottom: 1.5rem;
-      font-size: 14px;
-
-      &--success {
-        background: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-      }
-
-      &--error {
-        background: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-      }
-    }
-
     &__form {
       display: flex;
       flex-direction: column;
@@ -498,7 +457,7 @@
       }
 
       &--error {
-        border-color: #dc3545;
+        border-color: $color-danger;
       }
 
       &::placeholder {
@@ -514,7 +473,7 @@
 
     &__error {
       font-size: 12px;
-      color: #dc3545;
+      color: $color-danger;
     }
 
     &__select-wrapper {
@@ -539,7 +498,7 @@
 
 
       &--error {
-        border-color: #dc3545;
+        border-color: $color-danger;
       }
     }
 
@@ -682,23 +641,6 @@
         display: none;
       }
     }
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .dropdown-enter-active,
-  .dropdown-leave-active {
-    transition: all 0.2s;
-  }
-
-  .dropdown-enter-from,
-  .dropdown-leave-to {
-    opacity: 0;
-    transform: translateY(-10px);
   }
 
   /* Hide number input spinners */

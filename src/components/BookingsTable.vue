@@ -69,11 +69,11 @@
     </div>
 
     <div class="bookings-table__wrapper">
-      <div v-if="isLoading" class="bookings-table__loading">
+      <div v-if="isLoading" class="loading">
         <div class="spinner"></div>
       </div>
 
-      <div v-else-if="bookings.length === 0" class="bookings-table__empty">
+      <div v-else-if="bookings.length === 0" class="empty-state">
         <p>История аренды пуста</p>
       </div>
 
@@ -177,12 +177,6 @@
 
     &__table {
       @include admin-table;
-    }
-
-    &__loading,
-    &__empty {
-      text-align: center;
-      padding: 2rem;
     }
 
   }

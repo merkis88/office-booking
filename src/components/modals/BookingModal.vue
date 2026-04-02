@@ -299,7 +299,7 @@
       cursor: pointer;
       padding: 8px;
       border-radius: $radius-sm;
-      transition: 0.2s;
+      transition: $transition-fast;
 
       &:hover {
         background: $color-input-bg-dark;
@@ -357,7 +357,7 @@
       justify-content: center;
 
       cursor: pointer;
-      transition: 0.2s;
+      transition: $transition-fast;
 
       &:hover {
         background: $color-input-bg-dark;

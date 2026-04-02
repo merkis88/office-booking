@@ -864,33 +864,4 @@
     }
   }
 
-  .dropdown-enter-active {
-    animation: dropdown-in 0.2s ease-out;
-  }
-
-  .dropdown-leave-active {
-    animation: dropdown-out 0.2s ease-in;
-  }
-
-  @keyframes dropdown-in {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes dropdown-out {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-  }
 </style>

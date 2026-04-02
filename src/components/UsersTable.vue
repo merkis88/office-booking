@@ -75,11 +75,11 @@
     </div>
 
     <div class="users-table__wrapper">
-      <div v-if="isLoading" class="users-table__loading">
+      <div v-if="isLoading" class="loading">
         <div class="spinner"></div>
       </div>
 
-      <div v-else-if="!(users?.length ?? 0)" class="users-table__empty">
+      <div v-else-if="!(users?.length ?? 0)" class="empty-state">
         <p>Пользователи не найдены</p>
       </div>
 
@@ -198,12 +198,6 @@
 
     &__table {
       @include admin-table;
-    }
-
-    &__loading,
-    &__empty {
-      text-align: center;
-      padding: 2rem;
     }
 
     &__status {

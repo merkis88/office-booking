@@ -16,6 +16,7 @@
   const deletingPlaceId = ref(null);
   const isDeleting = ref(false);
   const deleteSuccess = ref(false);
+  const errorMessage = ref('');
 
   onMounted(async () => {
     await placesStore.fetchPlaces();
@@ -63,7 +64,7 @@
         deletingPlaceId.value = null;
       }, 1200);
     } catch (error) {
-      alert(error.response?.data?.message || 'Не удалось удалить помещение');
+      errorMessage.value = error.response?.data?.message || 'Не удалось удалить помещение';
     } finally {
       isDeleting.value = false;
     }
@@ -154,6 +155,8 @@
       </div>
 
       <h1 class="admin-places__title">Помещения</h1>
+
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
       <div class="admin-places__table-wrapper">
         <div v-if="isLoading" class="admin-places__loading">
@@ -540,14 +543,6 @@
     }
   }
 
-  .dropdown-enter-active {
-    animation: dropdown-in 0.2s ease-out;
-  }
-
-  .dropdown-leave-active {
-    animation: dropdown-out 0.2s ease-in;
-  }
-
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -644,55 +639,4 @@
     }
   }
 
-  .modal-enter-active {
-    animation: modal-in 0.25s ease-out;
-  }
-
-  .modal-leave-active {
-    animation: modal-out 0.2s ease-in;
-  }
-
-  @keyframes modal-in {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes modal-out {
-    from {
-      opacity: 1;
-      transform: scale(1);
-    }
-    to {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-  }
-
-  @keyframes dropdown-in {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes dropdown-out {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-  }
 </style>

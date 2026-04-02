@@ -599,7 +599,7 @@
       font-size: $text-sm;
 
       a {
-        transition: 0.2s;
+        transition: $transition-fast;
 
         &:hover {
           opacity: 0.6;

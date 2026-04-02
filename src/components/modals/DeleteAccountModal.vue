@@ -144,7 +144,7 @@
       background: $color-input-bg;
       font-size: $text-base;
       outline: none;
-      transition: 0.2s;
+      transition: $transition-fast;
 
       &:focus {
         background: $color-input-bg-dark;
@@ -218,7 +218,7 @@
       align-items: center;
       justify-content: center;
       padding: 0.25rem;
-      transition: 0.2s;
+      transition: $transition-fast;
 
       &:hover {
         opacity: 0.6;

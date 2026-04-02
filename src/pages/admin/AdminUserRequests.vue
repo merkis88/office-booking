@@ -352,14 +352,4 @@ onMounted(async () => {
     }
 }
 
-.dropdown-enter-active,
-.dropdown-leave-active {
-    transition: all 0.2s ease;
-}
-
-.dropdown-enter-from,
-.dropdown-leave-to {
-    opacity: 0;
-    transform: translateY(-10px);
-}
 </style>
