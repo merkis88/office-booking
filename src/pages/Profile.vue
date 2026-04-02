@@ -256,7 +256,7 @@
   }
 
   const filteredBookings = computed(() => {
-    let bookings = bookingsStore.bookings.filter((b) => b.status !== 'cancelled');
+    let bookings = bookingsStore.bookings.filter((b) => b.status === 'active');
     if (activePlaceType.value) {
       bookings = bookings.filter((b) => b.place?.type === activePlaceType.value);
     }
