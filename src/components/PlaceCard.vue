@@ -99,7 +99,7 @@
       <div class="place-card__content">
         <h3 class="place-card__title">{{ placeTypeLabel }} "{{ place.name }}"</h3>
         <p class="place-card__number">Кабинет №{{ place.number_place }}</p>
-        <p class="place-card__price">Стоимость: {{ place.price }}₽</p>
+        <p class="place-card__price">Стоимость: {{ Math.round(place.price) }}р/час</p>
         <p class="place-card__capacity">Вместимость: {{ place.capacity }} человек</p>
         <span class="place-card__details-text" @click="toggleDetails">Подробнее</span>
       </div>

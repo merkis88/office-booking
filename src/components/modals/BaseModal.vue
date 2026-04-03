@@ -54,29 +54,31 @@
 
 <template>
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition name="fade">
       <div v-if="modelValue" class="modal-overlay" @click.self="handleBackdropClick">
-        <div class="modal-container" :style="{ maxWidth: maxWidth }">
-          <div class="modal-header">
-            <button
-              v-if="showCloseButton"
-              class="modal-back"
-              @click="$emit('back')"
-              aria-label="Назад"
-            >
-              <img src="@/assets/images/icons/arrow.svg" alt="" />
-            </button>
-            <h3 v-if="title" class="modal-title">{{ title }}</h3>
-          </div>
+        <Transition name="modal-scale">
+          <div class="modal-container" :style="{ maxWidth: maxWidth }">
+            <div class="modal-header">
+              <button
+                v-if="showCloseButton"
+                class="modal-back"
+                @click="$emit('back')"
+                aria-label="Назад"
+              >
+                <img src="@/assets/images/icons/arrow.svg" alt="" />
+              </button>
+              <h3 v-if="title" class="modal-title">{{ title }}</h3>
+            </div>
 
-          <div class="modal-body">
-            <slot />
-          </div>
+            <div class="modal-body">
+              <slot />
+            </div>
 
-          <div v-if="$slots.footer" class="modal-footer">
-            <slot name="footer" />
+            <div v-if="$slots.footer" class="modal-footer">
+              <slot name="footer" />
+            </div>
           </div>
-        </div>
+        </Transition>
       </div>
     </Transition>
   </Teleport>
@@ -109,6 +111,30 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   }
 
+  /* Анимация появления/исчезновения оверлея (только opacity) */
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity 0.2s ease;
+  }
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
+  }
+
+  /* Анимация масштабирования контента модалки */
+  .modal-scale-enter-active,
+  .modal-scale-leave-active {
+    transition:
+      transform 0.2s ease,
+      opacity 0.2s ease;
+  }
+  .modal-scale-enter-from,
+  .modal-scale-leave-to {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  /* Остальные стили без изменений */
   .modal-header {
     display: flex;
     align-items: center;

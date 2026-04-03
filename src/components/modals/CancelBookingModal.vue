@@ -91,16 +91,10 @@
         <p v-if="error" class="cancel-modal__error">{{ error }}</p>
 
         <div class="cancel-modal__actions">
-          <button
-            class="btn btn--danger"
-            :disabled="isSubmitting"
-            @click="handleConfirm"
-          >
-            {{ isSubmitting ? 'Отмена...' : 'Отменить бронирование' }}
+          <button class="btn btn--danger" :disabled="isSubmitting" @click="handleConfirm">
+            {{ isSubmitting ? 'Отмена...' : 'Отменить бронь' }}
           </button>
-          <button class="btn" :disabled="isSubmitting" @click="handleClose">
-            Нет
-          </button>
+          <button class="btn" :disabled="isSubmitting" @click="handleClose">Не отменять</button>
         </div>
       </template>
     </div>
