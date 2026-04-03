@@ -312,7 +312,7 @@
       border-radius: $radius-xs;
       background: $color-input-bg;
       cursor: pointer;
-      font-size: $text-base;
+      font-size: $text-lg;
       transition: $transition-fast;
 
       &:hover {
@@ -392,8 +392,8 @@
       cursor: pointer;
 
       img {
-        width: 28px;
-        height: 28px;
+        width: 40px;
+        height: 40px;
       }
 
       &:disabled {
