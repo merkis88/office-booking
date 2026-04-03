@@ -16,7 +16,7 @@ class PlaceSeeder extends Seeder
         */
 
         Place::create([
-            'name' => 'Офис «Старт»',
+            'name' => 'Старт',
             'photo' => 'places/офис_5_человек.jpg',
             'type' => 'office',
             'capacity' => 5,
@@ -30,7 +30,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Офис «Фокус»',
+            'name' => 'Фокус',
             'photo' => 'places/офис_5_человек_2.jpg',
             'type' => 'office',
             'capacity' => 5,
@@ -44,7 +44,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Офис «Команда»',
+            'name' => 'Команда',
             'photo' => 'places/офис_10_человек.jpg',
             'type' => 'office',
             'capacity' => 10,
@@ -58,7 +58,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Офис «Импульс»',
+            'name' => 'Импульс',
             'photo' => 'places/офис_10_человек_2.jpg',
             'type' => 'office',
             'capacity' => 10,
@@ -72,7 +72,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Офис «Вектор»',
+            'name' => 'Вектор',
             'photo' => 'places/офис_20_человек.jpg',
             'type' => 'office',
             'capacity' => 20,
@@ -86,7 +86,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Офис «Атлас»',
+            'name' => 'Атлас',
             'photo' => 'places/офис_20_человек_2.jpg',
             'type' => 'office',
             'capacity' => 20,
@@ -100,7 +100,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Офис «Премьер»',
+            'name' => 'Премьер',
             'photo' => 'places/офис_40_человек.jpg',
             'type' => 'office',
             'capacity' => 40,
@@ -114,7 +114,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Офис «Форум»',
+            'name' => 'Форум',
             'photo' => 'places/офис_40_человек_2.jpg',
             'type' => 'office',
             'capacity' => 40,
@@ -134,7 +134,7 @@ class PlaceSeeder extends Seeder
         */
 
         Place::create([
-            'name' => 'Коворкинг «Опен Спейс»',
+            'name' => 'Опен Спейс',
             'photo' => 'places/коворкинг_1.jpg',
             'type' => 'coworking',
             'capacity' => 40,
@@ -148,7 +148,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Коворкинг «Резиденция»',
+            'name' => 'Резиденция',
             'photo' => 'places/коворкинг_2.jpg',
             'type' => 'coworking',
             'capacity' => 55,
@@ -162,7 +162,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Коворкинг «Горизонт»',
+            'name' => 'Горизонт',
             'photo' => 'places/коворкинг_3.jpg',
             'type' => 'coworking',
             'capacity' => 60,
@@ -176,7 +176,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Коворкинг «Поток»',
+            'name' => 'Поток',
             'photo' => 'places/коворкинг_4.jpg',
             'type' => 'coworking',
             'capacity' => 40,
@@ -190,7 +190,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Коворкинг «Вектор»',
+            'name' => 'Вектор',
             'photo' => 'places/коворкинг_5.jpg',
             'type' => 'coworking',
             'capacity' => 60,
@@ -204,7 +204,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Коворкинг «Контур»',
+            'name' => 'Контур',
             'photo' => 'places/коворкинг_6.jpg',
             'type' => 'coworking',
             'capacity' => 55,
@@ -218,7 +218,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Коворкинг «Синхрон»',
+            'name' => 'Синхрон',
             'photo' => 'places/коворкинг_7.jpg',
             'type' => 'coworking',
             'capacity' => 45,
@@ -232,7 +232,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Коворкинг «Базис»',
+            'name' => 'Базис',
             'photo' => 'places/коворкинг_8.jpg',
             'type' => 'coworking',
             'capacity' => 50,
@@ -252,7 +252,7 @@ class PlaceSeeder extends Seeder
         */
 
         Place::create([
-            'name' => 'Переговорная «Диалог»',
+            'name' => 'Диалог',
             'photo' => 'places/переговорная_5_человек.jpg',
             'type' => 'meeting',
             'capacity' => 5,
@@ -266,7 +266,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Переговорная «Формат»',
+            'name' => 'Формат',
             'photo' => 'places/переговорная_6_человек.jpg',
             'type' => 'meeting',
             'capacity' => 6,
@@ -280,7 +280,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Переговорная «Альянс»',
+            'name' => 'Альянс',
             'photo' => 'places/переговорная_7_человек.jpg',
             'type' => 'meeting',
             'capacity' => 7,
@@ -294,7 +294,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Переговорная «Партнёр»',
+            'name' => 'Партнёр',
             'photo' => 'places/переговорная_7_человек_2.jpg',
             'type' => 'meeting',
             'capacity' => 7,
@@ -308,7 +308,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Переговорная «Синтез»',
+            'name' => 'Синтез',
             'photo' => 'places/переговорная_8_человек.jpg',
             'type' => 'meeting',
             'capacity' => 8,
@@ -322,7 +322,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Переговорная «Контакт»',
+            'name' => 'Контакт',
             'photo' => 'places/переговорная_8_человек_2.jpg',
             'type' => 'meeting',
             'capacity' => 8,
@@ -336,7 +336,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Переговорная «Стратегия»',
+            'name' => 'Стратегия',
             'photo' => 'places/переговорная_12_человек.jpg',
             'type' => 'meeting',
             'capacity' => 12,
@@ -350,7 +350,7 @@ class PlaceSeeder extends Seeder
         ]);
 
         Place::create([
-            'name' => 'Переговорная «Форум»',
+            'name' => 'Форум',
             'photo' => 'places/переговорная_15_человек.jpg',
             'type' => 'meeting',
             'capacity' => 15,
