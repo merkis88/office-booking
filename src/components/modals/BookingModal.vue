@@ -200,7 +200,9 @@
   });
 
   const hoursCount = computed(() => {
-    return selectedSlots.value.length - 1;
+    if (startIndex.value === null || endIndex.value === null) return 0;
+
+    return Math.abs(endIndex.value - startIndex.value);
   });
 
   const totalPrice = computed(() => {
