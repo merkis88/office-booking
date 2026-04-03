@@ -34,7 +34,12 @@ class ReviewCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(item.authorName, style: ReviewsStyles.cardTitle),
+                    Text(
+                      item.authorName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: ReviewsStyles.cardTitle,
+                    ),
                     const SizedBox(height: 3),
                     const SizedBox(
                       width: 250,

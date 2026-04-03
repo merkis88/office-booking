@@ -88,7 +88,11 @@ class ProfileActivitySection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (var i = 0; i < rentalHistory.length; i++) ...[
-              ProfileRentalHistoryCard(item: rentalHistory[i]),
+              ProfileRentalHistoryCard(
+                item: rentalHistory[i],
+                onFavoritePressed: onFavoriteRental,
+                isFavoriteBusy: isFavoriteBusy(rentalHistory[i]),
+              ),
               if (i != rentalHistory.length - 1) const SizedBox(height: 22),
             ],
           ],
