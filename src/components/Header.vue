@@ -78,14 +78,6 @@
           <li>Регистрация</li>
         </router-link>
 
-          <router-link
-              to="/archived-places"
-              v-if="authStore.isAdmin"
-              :class="{ 'header__link--active': isActive('/archived-places') }"
-          >
-              <li>Архив</li>
-          </router-link>
-
         <div v-if="authStore.isAdmin" class="header__admin-menu">
           <button
             class="header__burger"
@@ -100,6 +92,10 @@
 
           <transition name="fade">
             <div v-if="isAdminMenuOpen" class="header__admin-dropdown">
+              <router-link to="/archived-places" @click="closeAdminMenu" class="header__button">
+                Архив
+              </router-link>
+
               <router-link to="/admin" @click="closeAdminMenu" class="header__button">
                 Административная панель
               </router-link>
@@ -141,6 +137,7 @@
     }
 
     &__logo {
+      margin: -$header-pad-y 0;
       display: flex;
       align-items: center;
       gap: $gap-xs;
@@ -202,31 +199,31 @@
     }
 
     &__burger {
-        width: 2.5rem;
-        height: 2.5rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        gap: 0.4rem;
-        background: transparent;
-        cursor: pointer;
-        padding: 0.5rem;
-        position: relative;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0.4rem;
+      background: transparent;
+      cursor: pointer;
+      padding: 0.5rem;
+      position: relative;
 
-        &:hover {
-            span:nth-child(1) {
-                animation: wave 0.6s ease-in-out;
-            }
-
-            span:nth-child(2) {
-                animation: wave 0.6s ease-in-out 0.1s;
-            }
-
-            span:nth-child(3) {
-                animation: wave 0.6s ease-in-out 0.2s;
-            }
+      &:hover {
+        span:nth-child(1) {
+          animation: wave 0.6s ease-in-out;
         }
+
+        span:nth-child(2) {
+          animation: wave 0.6s ease-in-out 0.1s;
+        }
+
+        span:nth-child(3) {
+          animation: wave 0.6s ease-in-out 0.2s;
+        }
+      }
 
       span {
         width: 1.5rem;
@@ -251,17 +248,18 @@
       }
     }
 
-      @keyframes wave {
-          0%, 100% {
-              transform: translateX(0);
-          }
-          25% {
-              transform: translateX(-4px);
-          }
-          75% {
-              transform: translateX(4px);
-          }
+    @keyframes wave {
+      0%,
+      100% {
+        transform: translateX(0);
       }
+      25% {
+        transform: translateX(-4px);
+      }
+      75% {
+        transform: translateX(4px);
+      }
+    }
 
     &__admin-dropdown {
       position: absolute;
@@ -274,9 +272,12 @@
       min-width: 300px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
 
-      .header__button{
-          border: none;
+      .header__button {
+        border: none;
       }
     }
 
@@ -311,5 +312,4 @@
       z-index: 99;
     }
   }
-
 </style>
