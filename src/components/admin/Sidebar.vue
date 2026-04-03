@@ -89,21 +89,21 @@
     align-items: center;
     gap: 30px;
 
-      &__logo {
-          display: flex;
-          align-items: center;
-          gap: $gap-xs;
-          cursor: pointer;
+    &__logo {
+      display: flex;
+      align-items: center;
+      gap: $gap-xs;
+      cursor: pointer;
 
-          img {
-              object-fit: contain;
-          }
-
-          span {
-              font-family: $font-logo;
-              font-size: $text-2xl;
-          }
+      img {
+        object-fit: contain;
       }
+
+      span {
+        font-family: $font-logo;
+        font-size: $text-2xl;
+      }
+    }
 
     &__logo-box {
       width: 40px;
@@ -120,7 +120,7 @@
       width: 80px;
       height: 80px;
       background: #d9d9d9;
-      border-radius: 10px;
+      border-radius: 50%;
       margin: 0 auto 10px;
 
       img {

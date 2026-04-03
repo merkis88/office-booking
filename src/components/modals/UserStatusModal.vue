@@ -66,6 +66,7 @@
     max-width="480px"
     :close-on-backdrop="true"
     @update:model-value="emit('update:modelValue', $event)"
+    @back="close"
   >
     <div class="user-status-modal">
       <template v-if="isBlocked">
