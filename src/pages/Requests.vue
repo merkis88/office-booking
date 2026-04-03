@@ -8,6 +8,7 @@
   const servicesStore = useServicesStore();
   const {
     bookings,
+      serviceTypes,
     isLoading: isLoadingBookings,
     error,
   } = storeToRefs(servicesStore);
@@ -34,14 +35,19 @@
 
   const validationError = ref('');
 
-  const requestTypes = [
-    { id: 1, label: 'Клининг' },
-    { id: 2, label: 'Техобслуживание' },
-  ];
+  const formattedRequestTypes = computed(() => {
+      return serviceTypes.value
+          .filter(type => type.is_active)
+          .map(type => ({
+              id: type.id,
+              label: type.name,
+              description: type.description,
+          }));
+  });
 
   const timeSlots = computed(() => {
     const slots = [];
-    for (let hour = 9; hour < 19; hour++) {
+    for (let hour = 9; hour < 22; hour++) {
       const startTime = `${hour.toString().padStart(2, '0')}:00`;
       const endTime = `${((hour + 1) % 24).toString().padStart(2, '0')}:00`;
       slots.push({
@@ -64,6 +70,14 @@
 
   async function loadBookings() {
     await servicesStore.fetchMyBookings();
+  }
+
+  async function loadServiceTypes() {
+      try {
+          await servicesStore.fetchServiceTypes();
+      } catch (error) {
+          console.error('Не удалось загрузить типы услуг:', error);
+      }
   }
 
   function selectBooking(booking) {
@@ -140,6 +154,7 @@
 
   onMounted(() => {
     loadBookings();
+      loadServiceTypes(),
     document.addEventListener('click', handleClickOutside);
   });
 
@@ -353,47 +368,54 @@
               </div>
             </div>
 
-            <div class="requests__field">
-              <label class="requests__label">Тип заявки*</label>
-              <div class="requests__select-wrapper">
-                <div
-                  class="requests__input-wrapper requests__request-type-input"
-                  @click="toggleRequestTypeDropdown"
-                >
-                  <input
-                    :value="requestTypeLabel"
-                    type="text"
-                    class="requests__input"
-                    placeholder="Выберите тип заявки"
-                    readonly
-                  />
-                  <img
-                    src="@/assets/images/icons/arrow-square-down.svg"
-                    alt=""
-                    class="requests__icon"
-                    :class="{ 'requests__icon--rotate': showRequestTypeDropdown }"
-                  />
-                </div>
+              <div class="requests__field">
+                  <label class="requests__label">Тип заявки*</label>
+                  <div class="requests__select-wrapper">
+                      <div
+                          class="requests__input-wrapper requests__request-type-input"
+                          @click="toggleRequestTypeDropdown"
+                      >
+                          <input
+                              :value="requestTypeLabel"
+                              type="text"
+                              class="requests__input"
+                              placeholder="Выберите тип заявки"
+                              readonly
+                          />
+                          <img
+                              src="@/assets/images/icons/arrow-square-down.svg"
+                              alt=""
+                              class="requests__icon"
+                              :class="{ 'requests__icon--rotate': showRequestTypeDropdown }"
+                          />
+                      </div>
 
-                <Transition name="dropdown">
-                  <div
-                    v-if="showRequestTypeDropdown"
-                    class="requests__dropdown requests__dropdown--type"
-                  >
-                    <div
-                      v-for="type in requestTypes"
-                      :key="type.id"
-                      class="requests__dropdown-item"
-                      @click="selectRequestType(type)"
-                    >
-                      {{ type.label }}
-                    </div>
+                      <Transition name="dropdown">
+                          <div
+                              v-if="showRequestTypeDropdown"
+                              class="requests__dropdown requests__dropdown--type"
+                          >
+                              <!-- ✅ Показываем загрузку -->
+                              <div v-if="!formattedRequestTypes.length" class="requests__dropdown-loading">
+                                  Загрузка типов...
+                              </div>
+                              <!-- ✅ Показываем динамический список -->
+                              <div
+                                  v-else
+                                  v-for="type in formattedRequestTypes"
+                                  :key="type.id"
+                                  class="requests__dropdown-item"
+                                  @click="selectRequestType(type)"
+                              >
+                                  {{ type.label }}
+                              </div>
+                          </div>
+                      </Transition>
                   </div>
-                </Transition>
               </div>
-            </div>
 
-            <div class="requests__field">
+
+              <div class="requests__field">
               <label class="requests__label">Комментарий (необязательно)</label>
               <textarea
                 v-model="comment"

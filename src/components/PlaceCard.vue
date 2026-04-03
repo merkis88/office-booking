@@ -3,6 +3,7 @@
   import { useAuthStore } from '@/store/auth';
   import FavoriteButton from '@/components/FavoriteButton.vue';
   import placeholder from '@/assets/images/photos/placeholder.jpg';
+  import ArchiveConfirmModal from "@/components/modals/ArchiveConfirmModal.vue";
 
   const authStore = useAuthStore();
 
@@ -14,7 +15,9 @@
   });
 
   const emit = defineEmits(['select-slot', 'delete-place', 'archive-place']);
-  const showDetails = ref(false); // состояние переключения вида карточки
+  const showDetails = ref(false);
+  const showArchiveModal = ref(false);
+  const isArchiving = ref(false);
 
   const slotsPerPage = 2;
   const slotPage = ref(0);
@@ -71,8 +74,21 @@
     return types[props.place.type] || props.place.type;
   });
 
-  function handleArchive() {
-    emit('archive-place', props.place.id);
+  async function handleArchive() {
+      isArchiving.value = true;
+
+      const result = await emit('archive-place', props.place.id, false);
+
+      isArchiving.value = false;
+  }
+
+  function handleArchiveWithForce() {
+      emit('archive-place', props.place.id, true);
+      showArchiveModal.value = false;
+  }
+
+  function handleCancelArchive() {
+      showArchiveModal.value = false;
   }
 
   function toggleDetails() {
@@ -81,6 +97,13 @@
 </script>
 
 <template>
+    <ArchiveConfirmModal
+        v-model="showArchiveModal"
+        :place-name="place.name"
+        @confirm="handleArchiveWithForce"
+        @cancel="handleCancelArchive"
+    />
+
   <div class="place-card">
     <div v-if="!showDetails" class="place-card__main">
       <div class="place-card__image-wrapper">
@@ -110,9 +133,11 @@
         v-if="authStore.isAdmin"
         class="place-card__archive"
         @click="handleArchive"
+        :disabled="isArchiving"
         aria-label="Отправить в архив"
       >
-        <img src="@/assets/images/icons/archive.svg" alt="Удалить" />
+          <div v-if="isArchiving" class="place-card__archive-spinner"></div>
+        <img src="@/assets/images/icons/archive.svg" alt="Архивировать" />
       </button>
     </div>
 
@@ -228,11 +253,16 @@
       cursor: pointer;
       transition: all 0.2s;
 
-      &:hover {
+      &:hover(:disabled){
         transform: scale(1.1);
       }
 
-      &:active {
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+      &:active(:disabled){
         transform: scale(0.95);
       }
 
@@ -240,7 +270,22 @@
         width: 1.5rem;
         height: 1.5rem;
       }
+
+        &__archive-spinner {
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2px solid rgba($color-text, 0.2);
+            border-top-color: $color-text;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
     }
+
+      @keyframes spin {
+          to {
+              transform: rotate(360deg);
+          }
+      }
 
     &__number {
       font-size: $text-lg;

@@ -54,6 +54,24 @@
     if (!date) return '';
     return new Date(date).toLocaleDateString();
   }
+
+  function getStatusClass(status) {
+    const classes = {
+      active: 'status--active',
+      cancelled: 'status--cancelled',
+      over: 'status--over',
+    };
+    return classes[status] || '';
+  }
+
+  function getStatusName(status) {
+    const names = {
+      active: 'Активна',
+      cancelled: 'Отменена',
+      over: 'Завершена',
+    };
+    return names[status] || status || '—';
+  }
 </script>
 
 <template>
@@ -86,11 +104,13 @@
               <th>Имя</th>
               <th>Отчество</th>
               <th>Тип помещения</th>
+              <th>Название</th>
               <th>Кабинет №</th>
               <th>Вместимость</th>
               <th>Стоимость</th>
               <th>Время</th>
               <th>Дата</th>
+              <th>Статус</th>
             </tr>
           </thead>
 
@@ -100,11 +120,17 @@
               <td>{{ booking.user?.first_name || '—' }}</td>
               <td>{{ booking.user?.patronymic || '—' }}</td>
               <td>{{ getPlaceTypeName(booking.place?.type) }}</td>
+              <td>{{ booking.place?.name || '—' }}</td>
               <td>№{{ booking.place?.number_place || '—' }}</td>
               <td>{{ formatCapacity(booking.place?.capacity) }}</td>
               <td>{{ booking.price }} р</td>
               <td>{{ formatTime(booking.start_time, booking.end_time) }}</td>
               <td>{{ formatDate(booking.start_time) }}</td>
+              <td>
+                <span class="bookings-table__status" :class="getStatusClass(booking.status)">
+                  {{ getStatusName(booking.status) }}
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -154,8 +180,7 @@
     }
 
     &__top-scroll-content {
-      width: 100%;
-      min-width: 100%;
+      width: 1800px;
       height: 1px;
     }
 
@@ -167,16 +192,43 @@
 
     &__scroll {
       overflow-x: auto;
+      overflow-y: visible;
+      max-width: 100%;
 
       &::-webkit-scrollbar {
         display: none;
       }
 
       scrollbar-width: none;
+      -ms-overflow-style: none;
     }
 
     &__table {
       @include admin-table;
+      min-width: 1600px;
+    }
+
+    &__status {
+      padding: 0.375rem 0.75rem;
+      border-radius: $radius-xs;
+      font-size: $text-sm;
+      font-weight: 500;
+      white-space: nowrap;
+
+      &.status--active {
+        background: $color-status-active;
+        color: $color-status-active-text;
+      }
+
+      &.status--over {
+        background: $color-warning-light;
+        color: $color-warning-text;
+      }
+
+      &.status--cancelled {
+        background: $color-status-blocked;
+        color: $color-status-blocked-text;
+      }
     }
 
   }
