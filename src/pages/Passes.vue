@@ -58,7 +58,8 @@
       }
       email.value = '';
     } catch (error) {
-      apiError.value = error.response?.data?.message || 'Не удалось выдать пропуск. Попробуйте позже.';
+      apiError.value =
+        error.response?.data?.message || 'Не удалось выдать пропуск. Попробуйте позже.';
     } finally {
       isSubmitting.value = false;
     }
@@ -127,11 +128,7 @@
               <p v-if="emailError" class="passes__error">{{ emailError }}</p>
             </div>
 
-            <button
-              type="submit"
-              class="btn"
-              :disabled="isSubmitting"
-            >
+            <button type="submit" class="btn" :disabled="isSubmitting">
               {{ isSubmitting ? 'Отправка...' : 'Выдать пропуск' }}
             </button>
           </form>
@@ -162,21 +159,19 @@
       align-items: center;
     }
 
+    // --- ТАБЫ ---
     &__tabs {
       display: flex;
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 3rem;
     }
 
     &__tab {
-      padding: 1rem 3rem;
+      padding: 1.2rem 3rem;
       border-radius: $radius-md;
       border: 1px solid $color-border;
-      background: $color-input-bg;
+      background: $color-header-bg;
       font-size: $text-lg;
-      font-weight: 500;
-      cursor: pointer;
       transition: $transition-fast;
 
       &:hover {
@@ -184,91 +179,87 @@
       }
 
       &--active {
-        background: #EBCAA3;
-        font-weight: 600;
-        border-color: $color-border;
+        background: #e5c39c;
       }
     }
 
     &__title {
-      font-family: $font-title;
-      font-size: $text-2xl;
-      font-weight: 500;
-      font-style: italic;
-      margin-bottom: 2rem;
-      text-align: center;
+      display: none; // в макете его нет
     }
 
+    // --- ОСНОВНАЯ КАРТОЧКА ---
     &__content {
+      position: relative;
       display: flex;
-      gap: 0;
-      align-items: stretch;
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
+      min-height: 380px;
       border-radius: $radius-lg;
       overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      background: $color-footer-bg;
     }
 
+    // диагональный фон
+    &__content::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+
+      background: linear-gradient(to top, #ff8b95 0%, #e5c39c 100%);
+
+      clip-path: polygon(60% 0, 100% 0, 100% 100%);
+    }
+
+    // --- КАРТИНКА ---
     &__image-col {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 3rem;
-      background: $color-footer-bg;
-    }
-
-    &__image {
-      max-width: 100%;
-      max-height: 400px;
-      object-fit: contain;
+      padding: 2rem;
       z-index: 2;
     }
 
+    &__image {
+      max-height: 320px;
+    }
+
+    // --- ФОРМА ---
     &__form-col {
       flex: 1;
-      padding: 3rem;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 1.5rem;
-      position: relative;
-      background:
-        linear-gradient(
-          to bottom left,
-          #EBCAA3 0%,
-          #FF8B95 49.9%,
-          $color-footer-bg 50%,
-          $color-footer-bg 100%
-        );
+      align-items: center;
+      justify-content: flex-end;
+      z-index: 2;
     }
 
-    &__hint {
-      font-size: $text-base;
-      color: $color-text;
-      line-height: 1.4;
-      font-weight: 600;
-    }
-
+    // плашка формы (ВАЖНО)
     &__form {
+      background: #aeb8c2;
+      padding: 2rem;
+      border-radius: $radius-md;
+      width: 100%;
+      max-width: 380px;
+
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
-      align-items: flex-end;
     }
 
     &__field {
-      width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
+      gap: 0.5rem;
     }
 
     &__label {
       font-size: $text-sm;
-      font-weight: 500;
-      color: $color-text;
+    }
+
+    // инпут как в макете
+    .input {
+      background: #cbd5df;
     }
 
     &__error {
@@ -276,38 +267,34 @@
       color: $color-danger;
     }
 
-    &__success {
-      font-size: $text-base;
-      color: $color-success;
-      text-align: center;
+    // кнопка по центру
+    .btn {
+      align-self: center;
+      padding: 0.6rem 2rem;
     }
 
+    &__success,
     &__api-error {
-      font-size: $text-base;
-      color: $color-danger;
       text-align: center;
+      margin-top: 1rem;
     }
 
+    // --- МОБИЛКА ---
     @media (max-width: 768px) {
       &__content {
         flex-direction: column;
       }
 
-      &__image-col {
-        padding: 2rem;
+      &__content::before {
+        display: none;
       }
 
       &__image {
-        max-height: 250px;
+        max-height: 200px;
       }
 
-      &__form-col {
-        padding: 2rem;
-      }
-
-      &__tabs {
-        flex-direction: column;
-        gap: 0.5rem;
+      &__form {
+        max-width: 100%;
       }
     }
   }
