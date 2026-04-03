@@ -103,20 +103,17 @@
         <p class="place-card__capacity">Вместимость: {{ place.capacity }} человек</p>
         <span class="place-card__details-text" @click="toggleDetails">Подробнее</span>
       </div>
-      <div class="place-card__actions">
-        <FavoriteButton
-          :place-id="place.id"
-          class="place-card__favorite"
-        />
-        <button
-          v-if="authStore.isAdmin"
-          class="place-card__archive"
-          @click="handleArchive"
-          aria-label="Отправить в архив"
-        >
-          <img src="@/assets/images/icons/archive.svg" alt="Удалить" />
-        </button>
-      </div>
+
+      <FavoriteButton :place-id="place.id" class="place-card__favorite" />
+
+      <button
+        v-if="authStore.isAdmin"
+        class="place-card__archive"
+        @click="handleArchive"
+        aria-label="Отправить в архив"
+      >
+        <img src="@/assets/images/icons/archive.svg" alt="Удалить" />
+      </button>
     </div>
 
     <div v-if="showDetails" class="place-card__main place-card__main--details">
@@ -151,7 +148,7 @@
           class="place-card__slot-btn"
           @click="selectSlot(slot)"
         >
-          {{ slot.time }}
+          {{ mergedSlots.length === 1 ? `Доступное время: ${slot.time}` : slot.time }}
         </button>
       </div>
       <button
@@ -182,6 +179,7 @@
       transition: $transition-fast;
       flex: 1;
       min-height: 280px;
+      position: relative;
     }
 
     &__image-wrapper {
@@ -206,11 +204,12 @@
       justify-content: center;
       gap: 1rem;
       align-items: stretch;
+      padding-right: 3rem;
     }
 
     &__title {
-      font-size: $text-xl;
-      font-weight: 600;
+      font-size: $text-lg;
+      font-weight: normal;
       color: $color-text;
       margin: 0;
     }
@@ -261,21 +260,10 @@
       margin: 0;
     }
 
-    &__actions {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-
-      img {
-        width: 2rem;
-        height: 2rem;
-      }
-    }
-
     &__favorite {
-      top: 2rem;
-      right: 2rem;
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
       width: 3rem;
       height: 3rem;
       border-radius: 50%;
@@ -336,7 +324,7 @@
       color: $color-text;
       text-decoration: underline;
       cursor: pointer;
-      font-size: $text-base;
+      font-size: $text-lg;
       font-weight: 500;
     }
 
@@ -344,7 +332,6 @@
       flex-direction: column;
       justify-content: flex-start;
       align-items: stretch;
-      padding-top: 2rem;
       min-height: 280px;
       position: relative;
     }
@@ -356,14 +343,14 @@
       gap: 1rem;
       flex: 1;
       justify-content: flex-start;
-      text-align: center;
+      text-align: left;
       padding: 0 1rem;
     }
 
     &__title--details {
       margin: 0;
       font-size: $text-xl;
-      font-weight: 600;
+      font-weight: normal;
     }
 
     &__description {
