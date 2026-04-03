@@ -145,7 +145,9 @@ export const usePlacesStore = defineStore('places', {
     async createPlace(placeData) {
       const formData = new FormData();
       Object.entries(placeData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) formData.append(key, value);
+        if (value !== undefined && value !== null) {
+          formData.append(key, typeof value === 'boolean' ? (value ? 1 : 0) : value);
+        }
       });
 
       const { data } = await axios.post('/api/admin/places', formData, {
@@ -161,7 +163,9 @@ export const usePlacesStore = defineStore('places', {
       const formData = new FormData();
       formData.append('_method', 'PUT');
       Object.entries(updatedData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) formData.append(key, value);
+        if (value !== undefined && value !== null) {
+          formData.append(key, typeof value === 'boolean' ? (value ? 1 : 0) : value);
+        }
       });
 
       const { data } = await axios.post(`/api/admin/places/${placeId}`, formData, {
