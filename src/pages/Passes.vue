@@ -164,28 +164,29 @@
 
     &__tabs {
       display: flex;
-      gap: 2rem;
+      gap: 1.5rem;
       margin-bottom: 2rem;
+      justify-content: center;
     }
 
     &__tab {
-      padding: 0.75rem 2.5rem;
-      border-radius: $radius-sm;
+      padding: 1rem 3rem;
+      border-radius: $radius-md;
       border: 1px solid $color-border;
       background: $color-input-bg;
-      font-size: $text-base;
+      font-size: $text-lg;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: $transition-fast;
 
       &:hover {
         background: $color-input-bg-dark;
       }
 
       &--active {
-        background: $color-header-bg;
+        background: #EBCAA3;
         font-weight: 600;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        border-color: $color-border;
       }
     }
 
@@ -193,52 +194,72 @@
       font-family: $font-title;
       font-size: $text-2xl;
       font-weight: 500;
+      font-style: italic;
       margin-bottom: 2rem;
+      text-align: center;
     }
 
     &__content {
       display: flex;
-      gap: 3rem;
-      align-items: center;
+      gap: 0;
+      align-items: stretch;
       width: 100%;
-      max-width: 800px;
-      background: $color-footer-bg;
-      border-radius: $radius-sm;
-      border: 1px solid $color-text;
-      padding: 3rem;
+      max-width: 900px;
+      border-radius: $radius-lg;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
 
     &__image-col {
-      flex-shrink: 0;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      background: $color-footer-bg;
     }
 
     &__image {
-      width: 250px;
-      height: auto;
+      max-width: 100%;
+      max-height: 400px;
       object-fit: contain;
+      z-index: 2;
     }
 
     &__form-col {
       flex: 1;
+      padding: 3rem;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       gap: 1.5rem;
+      position: relative;
+      background:
+        linear-gradient(
+          to bottom left,
+          #EBCAA3 0%,
+          #FF8B95 49.9%,
+          $color-footer-bg 50%,
+          $color-footer-bg 100%
+        );
     }
 
     &__hint {
-      font-size: $text-sm;
+      font-size: $text-base;
       color: $color-text;
       line-height: 1.4;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     &__form {
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
+      align-items: flex-end;
     }
 
     &__field {
+      width: 100%;
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
@@ -272,8 +293,16 @@
         flex-direction: column;
       }
 
+      &__image-col {
+        padding: 2rem;
+      }
+
       &__image {
-        width: 180px;
+        max-height: 250px;
+      }
+
+      &__form-col {
+        padding: 2rem;
       }
 
       &__tabs {

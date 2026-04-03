@@ -47,6 +47,14 @@
         </router-link>
 
         <router-link
+          to="/passes"
+          v-if="authStore.isAuthenticated"
+          :class="{ 'header__link--active': isActive('/passes') }"
+        >
+          <li>Пропуск</li>
+        </router-link>
+
+        <router-link
           to="/requests"
           v-if="authStore.isAuthenticated"
           :class="{ 'header__link--active': isActive('/requests') }"
