@@ -357,7 +357,7 @@
       border-radius: $radius-xs;
       background: $color-input-bg;
       cursor: pointer;
-      font-size: $text-xl;
+      font-size: $text-2xl;
       transition: $transition-fast;
 
       &:hover {

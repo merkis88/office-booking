@@ -58,7 +58,8 @@
       }
       email.value = '';
     } catch (error) {
-      apiError.value = error.response?.data?.message || 'Не удалось выдать пропуск. Попробуйте позже.';
+      apiError.value =
+        error.response?.data?.message || 'Не удалось выдать пропуск. Попробуйте позже.';
     } finally {
       isSubmitting.value = false;
     }
@@ -111,30 +112,31 @@
         <div class="passes__form-col">
           <!-- Подсказка для гостя -->
           <p v-if="activeTab === 'guest'" class="passes__hint">
-            Пропуск для гостя является одноразовым и действует всего 2 часа
+            Пропуск для гостя является одноразовым и
+            <br />
+            действует всего 2 часа
           </p>
 
-          <form @submit.prevent="handleSubmit" class="passes__form">
-            <div class="passes__field">
-              <label class="passes__label">Эл.почта*</label>
-              <input
-                v-model="email"
-                type="email"
-                class="input"
-                :class="{ 'input--error': emailError }"
-                placeholder="Введите электронную почту"
-              />
-              <p v-if="emailError" class="passes__error">{{ emailError }}</p>
-            </div>
+          <div class="passes__form-wrapper">
+            <form @submit.prevent="handleSubmit" class="passes__form">
+              <div class="passes__field">
+                <label class="passes__label">Эл.почта*</label>
+                <input
+                  v-model="email"
+                  type="email"
+                  class="input"
+                  :class="{ 'input--error': emailError }"
+                  placeholder="Введите электронную почту"
+                />
+                <p v-if="emailError" class="passes__error">{{ emailError }}</p>
+              </div>
+            </form>
 
-            <button
-              type="submit"
-              class="btn"
-              :disabled="isSubmitting"
-            >
+            <!-- Кнопка вне фонового блока формы -->
+            <button type="submit" class="btn" :disabled="isSubmitting" @click="handleSubmit">
               {{ isSubmitting ? 'Отправка...' : 'Выдать пропуск' }}
             </button>
-          </form>
+          </div>
 
           <!-- Успех -->
           <p v-if="successMessage" class="passes__success">{{ successMessage }}</p>
@@ -162,113 +164,126 @@
       align-items: center;
     }
 
+    // --- ТАБЫ ---
     &__tabs {
       display: flex;
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 3rem;
     }
 
     &__tab {
-      padding: 1rem 3rem;
+      padding: 2rem 3rem;
       border-radius: $radius-md;
       border: 1px solid $color-border;
-      background: $color-input-bg;
+      background: $color-header-bg;
       font-size: $text-lg;
-      font-weight: 500;
-      cursor: pointer;
       transition: $transition-fast;
+      box-shadow: none;
 
       &:hover {
-        background: $color-input-bg-dark;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
 
       &--active {
-        background: #EBCAA3;
-        font-weight: 600;
-        border-color: $color-border;
+        background: #e5c39c;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
     }
 
     &__title {
-      font-family: $font-title;
-      font-size: $text-2xl;
-      font-weight: 500;
-      font-style: italic;
-      margin-bottom: 2rem;
-      text-align: center;
+      display: none; // в макете его нет
     }
 
+    // --- ОСНОВНАЯ КАРТОЧКА ---
     &__content {
+      position: relative;
       display: flex;
-      gap: 0;
-      align-items: stretch;
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
+      height: 100%;
+      max-height: 410px;
       border-radius: $radius-lg;
       overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      background: $color-footer-bg;
     }
 
+    // диагональный фон
+    &__content::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+
+      background: linear-gradient(to top, #ff8b95 0%, #e5c39c 100%);
+
+      clip-path: polygon(60% 0, 100% 0, 100% 100%);
+    }
+
+    // --- КАРТИНКА ---
     &__image-col {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 3rem;
-      background: $color-footer-bg;
-    }
-
-    &__image {
-      max-width: 100%;
-      max-height: 400px;
-      object-fit: contain;
+      padding: 2rem;
       z-index: 2;
     }
 
-    &__form-col {
-      flex: 1;
-      padding: 3rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 1.5rem;
-      position: relative;
-      background:
-        linear-gradient(
-          to bottom left,
-          #EBCAA3 0%,
-          #FF8B95 49.9%,
-          $color-footer-bg 50%,
-          $color-footer-bg 100%
-        );
+    &__image {
+      max-height: 340px;
     }
 
-    &__hint {
-      font-size: $text-base;
-      color: $color-text;
-      line-height: 1.4;
-      font-weight: 600;
+    // --- ФОРМА ---
+    &__form-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: end;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    // плашка формы (ВАЖНО)
+
+    &__form-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem; /* расстояние между формой и кнопкой */
+      width: 100%;
     }
 
     &__form {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-      align-items: flex-end;
+      background: #aeb8c2;
+      padding: 2rem;
+      border-radius: $radius-md 0 0 $radius-md;
+      width: 100%;
+    }
+
+    .btn {
+      z-index: 2;
+    }
+
+    &__hint {
+      padding: 0 1rem;
+      margin: -2rem 0 2rem;
+      text-align: center;
+      font-size: $text-sm;
     }
 
     &__field {
-      width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
+      gap: 0.5rem;
     }
 
     &__label {
       font-size: $text-sm;
-      font-weight: 500;
-      color: $color-text;
+    }
+
+    // инпут как в макете
+    .input {
+      background: #cbd5df;
     }
 
     &__error {
@@ -276,38 +291,34 @@
       color: $color-danger;
     }
 
-    &__success {
-      font-size: $text-base;
-      color: $color-success;
-      text-align: center;
+    // кнопка по центру
+    .btn {
+      align-self: center;
+      padding: 0.6rem 2rem;
     }
 
+    &__success,
     &__api-error {
-      font-size: $text-base;
-      color: $color-danger;
       text-align: center;
+      margin-top: 1rem;
     }
 
+    // --- МОБИЛКА ---
     @media (max-width: 768px) {
       &__content {
         flex-direction: column;
       }
 
-      &__image-col {
-        padding: 2rem;
+      &__content::before {
+        display: none;
       }
 
       &__image {
-        max-height: 250px;
+        max-height: 200px;
       }
 
-      &__form-col {
-        padding: 2rem;
-      }
-
-      &__tabs {
-        flex-direction: column;
-        gap: 0.5rem;
+      &__form {
+        max-width: 100%;
       }
     }
   }
