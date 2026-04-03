@@ -62,7 +62,7 @@ export const useServicesStore = defineStore('services', {
       this.error = null;
 
       try {
-        const { data } = await axios.get('/api/admin/service-types');
+        const { data } = await axios.get('/api/service-types');
         this.serviceTypes = data.data ?? data;
         if (!Array.isArray(this.serviceTypes)) this.serviceTypes = [];
       } catch (error) {

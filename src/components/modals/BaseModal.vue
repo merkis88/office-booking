@@ -1,92 +1,94 @@
 <script setup>
-  import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 
-  const props = defineProps({
+const props = defineProps({
     modelValue: {
-      type: Boolean,
-      default: false,
+        type: Boolean,
+        default: false,
     },
     title: {
-      type: String,
-      default: '',
+        type: String,
+        default: '',
     },
     maxWidth: {
-      type: String,
-      default: '500px',
+        type: String,
+        default: '500px',
     },
     closeOnBackdrop: {
-      type: Boolean,
-      default: false,
+        type: Boolean,
+        default: false,
     },
     showCloseButton: {
-      type: Boolean,
-      default: true,
+        type: Boolean,
+        default: true,
     },
-  });
+});
 
-  const emit = defineEmits(['update:modelValue', 'close', 'back']);
+const emit = defineEmits(['update:modelValue', 'close', 'back']);
 
-  function closeModal() {
+function closeModal() {
     emit('update:modelValue', false);
     emit('close');
-  }
+}
 
-  function handleBackdropClick() {
+function handleBackdropClick() {
     if (props.closeOnBackdrop) {
-      closeModal();
+        closeModal();
     }
-  }
+}
 
-  function handleEscape(e) {
+function handleEscape(e) {
     if (e.key === 'Escape' && props.modelValue && props.closeOnBackdrop) {
-      closeModal();
+        closeModal();
     }
-  }
+}
 
-  onMounted(() => {
+onMounted(() => {
     document.addEventListener('keydown', handleEscape);
-  });
+});
 
-  onUnmounted(() => {
+onUnmounted(() => {
     document.removeEventListener('keydown', handleEscape);
-  });
+});
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition name="modal">
-      <div v-if="modelValue" class="modal-overlay" @click.self="handleBackdropClick">
-        <div class="modal-container" :style="{ maxWidth: maxWidth }">
-          <div class="modal-header">
-            <button
-              v-if="showCloseButton"
-              class="modal-back"
-              @click="$emit('back')"
-              aria-label="Назад"
-            >
-              <img src="@/assets/images/icons/arrow.svg" alt="" />
-            </button>
-            <h3 v-if="title" class="modal-title">{{ title }}</h3>
-          </div>
+    <Teleport to="body">
+        <Transition name="modal">
+            <div v-if="modelValue" class="modal-overlay" @click.self="handleBackdropClick">
+                <Transition name="modal-scale">
+                    <div class="modal-container" :style="{ maxWidth: maxWidth }">
+                        <div class="modal-header">
+                            <button
+                                v-if="showCloseButton"
+                                class="modal-back"
+                                @click="closeModal"
+                                aria-label="Назад"
+                            >
+                                <img src="@/assets/images/icons/arrow.svg" alt="" />
+                            </button>
+                            <h3 v-if="title" class="modal-title">{{ title }}</h3>
+                        </div>
 
-          <div class="modal-body">
-            <slot />
-          </div>
+                        <div class="modal-body">
+                            <slot />
+                        </div>
 
-          <div v-if="$slots.footer" class="modal-footer">
-            <slot name="footer" />
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+                        <div v-if="$slots.footer" class="modal-footer">
+                            <slot name="footer" />
+                        </div>
+                    </div>
+                </Transition>
+            </div>
+        </Transition>
+    </Teleport>
 </template>
 
 <style lang="scss" scoped>
-  @use '@/assets/styles/variables' as *;
-  @use '@/assets/styles/mixins' as *;
+@use '@/assets/styles/variables' as *;
+@use '@/assets/styles/mixins' as *;
 
-  .modal-overlay {
+.modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -98,37 +100,47 @@
     align-items: center;
     z-index: 9999;
     padding: 1rem;
-  }
+}
 
-  .modal-container {
+.modal-container {
     background: $color-bg;
     border-radius: $radius-sm;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  }
+}
 
-  .modal-enter-active,
-  .modal-leave-active {
+.modal-enter-active,
+.modal-leave-active {
     transition: opacity 0.2s ease;
-  }
+}
 
-  .modal-enter-from,
-  .modal-leave-to {
+.modal-enter-from,
+.modal-leave-to {
     opacity: 0;
-  }
+}
 
-  /* Остальные стили без изменений */
-  .modal-header {
+.modal-scale-enter-active,
+.modal-scale-leave-active {
+    transition: all 0.3s ease;
+}
+
+.modal-scale-enter-from,
+.modal-scale-leave-to {
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+.modal-header {
     display: flex;
     align-items: center;
     padding: 1.5rem 1rem;
     position: relative;
     justify-content: center;
-  }
+}
 
-  .modal-back {
+.modal-back {
     position: absolute;
     left: 1rem;
     display: flex;
@@ -140,37 +152,41 @@
     transition: all 0.2s;
     color: $color-text;
     border: 1px solid #292d32;
+    background: transparent;
+    cursor: pointer;
+
+    img {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
 
     &:hover {
-      background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-3px);
     }
-  }
+}
 
-  .modal-back:hover {
-    transform: translateY(-3px);
-  }
-
-  .modal-title {
+.modal-title {
     font-size: $text-2xl;
     font-family: $font-title;
     font-weight: normal;
     color: $color-text;
     margin: 0;
-  }
+}
 
-  .modal-body {
+.modal-body {
     padding: 0 1.5rem 1.5rem;
-  }
+}
 
-  .modal-footer {
+.modal-footer {
     padding: 1rem 1.5rem 1.5rem;
     display: flex;
     justify-content: center;
-  }
+}
 
-  @media screen and (max-width: 768px) {
+@media screen and (max-width: 768px) {
     .modal-overlay {
-      background: $color-bg;
+        background: $color-bg;
     }
-  }
+}
 </style>
