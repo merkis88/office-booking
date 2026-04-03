@@ -112,26 +112,31 @@
         <div class="passes__form-col">
           <!-- Подсказка для гостя -->
           <p v-if="activeTab === 'guest'" class="passes__hint">
-            Пропуск для гостя является одноразовым и действует всего 2 часа
+            Пропуск для гостя является одноразовым и
+            <br />
+            действует всего 2 часа
           </p>
 
-          <form @submit.prevent="handleSubmit" class="passes__form">
-            <div class="passes__field">
-              <label class="passes__label">Эл.почта*</label>
-              <input
-                v-model="email"
-                type="email"
-                class="input"
-                :class="{ 'input--error': emailError }"
-                placeholder="Введите электронную почту"
-              />
-              <p v-if="emailError" class="passes__error">{{ emailError }}</p>
-            </div>
+          <div class="passes__form-wrapper">
+            <form @submit.prevent="handleSubmit" class="passes__form">
+              <div class="passes__field">
+                <label class="passes__label">Эл.почта*</label>
+                <input
+                  v-model="email"
+                  type="email"
+                  class="input"
+                  :class="{ 'input--error': emailError }"
+                  placeholder="Введите электронную почту"
+                />
+                <p v-if="emailError" class="passes__error">{{ emailError }}</p>
+              </div>
+            </form>
 
-            <button type="submit" class="btn" :disabled="isSubmitting">
+            <!-- Кнопка вне фонового блока формы -->
+            <button type="submit" class="btn" :disabled="isSubmitting" @click="handleSubmit">
               {{ isSubmitting ? 'Отправка...' : 'Выдать пропуск' }}
             </button>
-          </form>
+          </div>
 
           <!-- Успех -->
           <p v-if="successMessage" class="passes__success">{{ successMessage }}</p>
@@ -167,19 +172,21 @@
     }
 
     &__tab {
-      padding: 1.2rem 3rem;
+      padding: 2rem 3rem;
       border-radius: $radius-md;
       border: 1px solid $color-border;
       background: $color-header-bg;
       font-size: $text-lg;
       transition: $transition-fast;
+      box-shadow: none;
 
       &:hover {
-        background: $color-input-bg-dark;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
 
       &--active {
         background: #e5c39c;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
     }
 
@@ -193,7 +200,8 @@
       display: flex;
       width: 100%;
       max-width: 1000px;
-      min-height: 380px;
+      height: 100%;
+      max-height: 410px;
       border-radius: $radius-lg;
       overflow: hidden;
       background: $color-footer-bg;
@@ -222,29 +230,45 @@
     }
 
     &__image {
-      max-height: 320px;
+      max-height: 340px;
     }
 
     // --- ФОРМА ---
     &__form-col {
       flex: 1;
       display: flex;
-      align-items: center;
-      justify-content: flex-end;
+      flex-direction: column;
+      align-items: end;
+      justify-content: center;
       z-index: 2;
     }
 
     // плашка формы (ВАЖНО)
+
+    &__form-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem; /* расстояние между формой и кнопкой */
+      width: 100%;
+    }
+
     &__form {
       background: #aeb8c2;
       padding: 2rem;
-      border-radius: $radius-md;
+      border-radius: $radius-md 0 0 $radius-md;
       width: 100%;
-      max-width: 380px;
+    }
 
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
+    .btn {
+      z-index: 2;
+    }
+
+    &__hint {
+      padding: 0 1rem;
+      margin: -2rem 0 2rem;
+      text-align: center;
+      font-size: $text-sm;
     }
 
     &__field {
