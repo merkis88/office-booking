@@ -20,7 +20,7 @@
   const isArchiving = ref(false);
 
   const slotsPerPage = 2;
-  const slotPage = ref(0);
+  const slotIndex = ref(0);
 
   const mergedSlots = computed(() => {
     const slots = props.place.available_slots || [];
@@ -45,16 +45,20 @@
   const totalPages = computed(() => Math.ceil(mergedSlots.value.length / slotsPerPage));
 
   const paginatedSlots = computed(() => {
-    const start = slotPage.value * slotsPerPage;
-    return mergedSlots.value.slice(start, start + slotsPerPage);
+    const slots = mergedSlots.value;
+    return slots.slice(slotIndex.value, slotIndex.value + slotsPerPage);
   });
 
   function nextSlots() {
-    if (slotPage.value < totalPages.value - 1) slotPage.value++;
+    if (slotIndex.value < mergedSlots.value.length - slotsPerPage) {
+      slotIndex.value++;
+    }
   }
 
   function prevSlots() {
-    if (slotPage.value > 0) slotPage.value--;
+    if (slotIndex.value > 0) {
+      slotIndex.value--;
+    }
   }
 
   function selectSlot(range) {
@@ -162,10 +166,11 @@
         v-if="mergedSlots.length > 2"
         class="place-card__slot-arrow"
         @click="prevSlots"
-        :disabled="slotPage === 0"
+        :disabled="slotIndex === 0"
       >
         <img src="@/assets/images/icons/arrow-left.svg" alt="&lt;" />
       </button>
+
       <div class="place-card__slot-list">
         <button
           v-for="slot in paginatedSlots"
@@ -180,11 +185,12 @@
           {{ mergedSlots.length === 1 ? `Доступное время: ${slot.time}` : slot.time }}
         </button>
       </div>
+
       <button
         v-if="mergedSlots.length > 2"
         class="place-card__slot-arrow"
         @click="nextSlots"
-        :disabled="slotPage >= totalPages - 1"
+        :disabled="slotIndex >= mergedSlots.length - slotsPerPage"
       >
         <img src="@/assets/images/icons/arrow-right.svg" alt="&gt;" />
       </button>
