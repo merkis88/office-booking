@@ -1,88 +1,87 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { useAuthStore } from '@/store/auth';
-import { useReviewsStore } from '@/store/reviews';
-import { storeToRefs } from 'pinia';
-import starFilled from '@/assets/images/icons/star-icon.svg';
-import starEmpty from '@/assets/images/icons/star-empty.svg';
+  import { ref, computed } from 'vue';
+  import { useAuthStore } from '@/store/auth';
+  import { useReviewsStore } from '@/store/reviews';
+  import { storeToRefs } from 'pinia';
+  import starFilled from '@/assets/images/icons/star-icon.svg';
+  import starEmpty from '@/assets/images/icons/star-empty.svg';
 
-const authStore = useAuthStore();
-const reviewsStore = useReviewsStore();
-const { deletingReviewId } = storeToRefs(reviewsStore);
+  const authStore = useAuthStore();
+  const reviewsStore = useReviewsStore();
+  const { deletingReviewId } = storeToRefs(reviewsStore);
 
-const props = defineProps({
+  const props = defineProps({
     review: {
-        type: Object,
-        required: true,
+      type: Object,
+      required: true,
     },
-});
+  });
 
-const emit = defineEmits(['edit', 'delete']);
+  const emit = defineEmits(['edit', 'delete']);
 
-const errorMessage = ref('');
+  const errorMessage = ref('');
 
-const stars = Array.from({ length: 5 }, (_, i) => i < props.review.rating);
+  const stars = Array.from({ length: 5 }, (_, i) => i < props.review.rating);
 
-const isCurrentUserReview = computed(() => {
+  const isCurrentUserReview = computed(() => {
     if (!authStore.user) return false;
     return props.review.user_id === authStore.user.id;
-});
+  });
 
-const authorName = computed(() => {
+  const authorName = computed(() => {
     if (props.review.user) {
-        const { first_name, last_name, patronymic } = props.review.user;
-        const parts = [last_name, first_name];
-        if (patronymic) {
-            parts.push(patronymic);
-        }
-        return parts.filter(Boolean).join(' ');
+      const { first_name, last_name, patronymic } = props.review.user;
+      const parts = [last_name, first_name];
+      if (patronymic) {
+        parts.push(patronymic);
+      }
+      return parts.filter(Boolean).join(' ');
     }
     return 'Аноним';
-});
+  });
 
-const avatarSrc = computed(() => {
+  const avatarSrc = computed(() => {
     if (props.review.user?.photo_url) {
-        return props.review.user.photo_url;
+      return props.review.user.photo_url;
     }
     return '/avatar-default.png';
-});
+  });
 
-const reviewDate = computed(() => {
+  const reviewDate = computed(() => {
     if (!props.review.created_at) return 'Дата не указана';
 
     if (props.review.created_at.includes('-')) {
-        const date = new Date(props.review.created_at);
-        return date.toLocaleDateString('ru-RU', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        });
+      const date = new Date(props.review.created_at);
+      return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
     }
 
     return props.review.created_at;
-});
+  });
 
-const isDeleting = computed(() => {
+  const isDeleting = computed(() => {
     return deletingReviewId.value === props.review.id;
-});
+  });
 
-function handleEdit() {
+  function handleEdit() {
     emit('edit', props.review);
-}
+  }
 
-async function handleDelete() {
-
+  async function handleDelete() {
     try {
-        const result = await reviewsStore.deleteReview(props.review.id);
+      const result = await reviewsStore.deleteReview(props.review.id);
 
-        if (!result.success) {
-            errorMessage.value = result?.error || 'Не удалось удалить отзыв';
-        }
+      if (!result.success) {
+        errorMessage.value = result?.error || 'Не удалось удалить отзыв';
+      }
     } catch (error) {
-        console.error('Ошибка удаления отзыва:', error);
-        errorMessage.value = 'Произошла ошибка при удалении отзыва';
+      console.error('Ошибка удаления отзыва:', error);
+      errorMessage.value = 'Произошла ошибка при удалении отзыва';
     }
-}
+  }
 </script>
 
 <template>
@@ -95,15 +94,15 @@ async function handleDelete() {
         </div>
       </div>
 
-        <div class="review-card__rating">
-            <img
-                v-for="(filled, index) in stars"
-                :key="index"
-                :src="filled ? starFilled : starEmpty"
-                alt="star"
-                class="review-card__star"
-            />
-        </div>
+      <div class="review-card__rating">
+        <img
+          v-for="(filled, index) in stars"
+          :key="index"
+          :src="filled ? starFilled : starEmpty"
+          alt="star"
+          class="review-card__star"
+        />
+      </div>
 
       <p class="review-card__text">{{ review.text }}</p>
 
@@ -111,8 +110,8 @@ async function handleDelete() {
     </div>
 
     <div class="review-card__avatar-wrapper">
-        <img :src="avatarSrc" class="review-card__avatar" alt="Аватар" />
-        <div v-if="isCurrentUserReview" class="review-card__actions">
+      <img :src="avatarSrc" class="review-card__avatar" alt="Аватар" />
+      <div v-if="isCurrentUserReview" class="review-card__actions">
         <button class="review-card__action-btn" @click="handleEdit" aria-label="Редактировать">
           <img src="@/assets/images/icons/edit-icon.svg" alt="Редактировать" />
         </button>
@@ -120,6 +119,7 @@ async function handleDelete() {
           <img src="@/assets/images/icons/delete-icon.svg" alt="Удалить" />
         </button>
       </div>
+      <div v-else></div>
     </div>
   </div>
 </template>
@@ -226,6 +226,7 @@ async function handleDelete() {
     }
 
     &__avatar-wrapper {
+      height: 100%;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
