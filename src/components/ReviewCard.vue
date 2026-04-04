@@ -5,6 +5,7 @@ import { useReviewsStore } from '@/store/reviews';
 import { storeToRefs } from 'pinia';
 import starFilled from '@/assets/images/icons/star-icon.svg';
 import starEmpty from '@/assets/images/icons/star-empty.svg';
+import placeholder from "@/assets/images/photos/placeholder.jpg";
 
 const authStore = useAuthStore();
 const reviewsStore = useReviewsStore();
@@ -111,7 +112,12 @@ async function handleDelete() {
     </div>
 
     <div class="review-card__avatar-wrapper">
-        <img :src="avatarSrc" class="review-card__avatar" alt="Аватар" />
+        <img :src="avatarSrc" class="review-card__avatar" alt="Аватар" @error="
+            (e) => {
+              e.target.onerror = null;
+              e.target.src = placeholder;
+            }
+          "/>
         <div v-if="isCurrentUserReview" class="review-card__actions">
         <button class="review-card__action-btn" @click="handleEdit" aria-label="Редактировать">
           <img src="@/assets/images/icons/edit-icon.svg" alt="Редактировать" />

@@ -2,7 +2,8 @@
 import Header from '@/components/Header.vue';
 import Footer from '@/components/Footer.vue';
 
-import { onMounted, watch } from 'vue';
+
+import { onMounted, watch, computed  } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/store/auth';
 import { useNotificationsStore } from '@/store/notifications';
@@ -10,6 +11,7 @@ import { useNotificationsStore } from '@/store/notifications';
 const route = useRoute();
 const authStore = useAuthStore();
 const notificationsStore = useNotificationsStore();
+const showFooter = computed(() => route.name !== 'NotFound');
 
 async function loadNotifications() {
     if (authStore.isAuthenticated) {
@@ -37,8 +39,7 @@ watch(
             <router-view />
         </main>
 
-        <Footer />
-    </div>
+        <Footer v-if="showFooter" />    </div>
 </template>
 
 <style scoped>

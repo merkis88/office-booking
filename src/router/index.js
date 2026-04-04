@@ -27,6 +27,7 @@ import AdminRequestTypes from '@/pages/admin/AdminRequestTypes.vue';
 import AdminUserRequests from '@/pages/admin/AdminUserRequests.vue';
 import AdminRequestsHistory from '@/pages/admin/AdminRequestsHistory.vue';
 import Users from '@/pages/admin/Users.vue';
+import NotFound from '@/pages/NotFound.vue';
 
 const routes = [
   {
@@ -51,6 +52,11 @@ const routes = [
         component: () => import('@/pages/ArchivedPlaces.vue'),
         meta: { requiresAuth: true, requiresAdmin: true },
       },
+        {
+            path: '/:pathMatch(.*)*',
+            name: 'NotFound',
+            component: NotFound,
+        },
     ],
   },
   {
