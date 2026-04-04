@@ -25,7 +25,7 @@
   <div class="booking-history-card">
     <div class="booking-history-card__image-wrapper">
       <img
-        :src="booking.place?.photo || placeholder"
+        :src="booking.place?.photo_url || placeholder"
         :alt="booking.place?.name"
         class="booking-history-card__image"
         @error="
@@ -36,10 +36,7 @@
         "
       />
     </div>
-    <FavoriteButton
-      :place-id="booking.place?.id"
-      class="booking-history-card__fav-btn"
-    />
+    <FavoriteButton :place-id="booking.place?.id" class="booking-history-card__fav-btn" />
     <div class="booking-history-card__content">
       <p class="booking-history-card__title">{{ placeTypeLabel }} “{{ booking.place?.name }}”</p>
       <p class="booking-history-card__line">Кабинет №{{ booking.place?.number_place }}</p>

@@ -63,14 +63,22 @@ export const useBookingsStore = defineStore('bookings', {
 
       try {
         const params = Object.fromEntries(
-          Object.entries({ page, per_page: this.perPage, ...this.filters })
-            .filter(([_, v]) => v != null && v !== ''),
+          Object.entries({ page, per_page: this.perPage, ...this.filters }).filter(
+            ([_, v]) => v != null && v !== '',
+          ),
         );
 
         const url = admin ? '/api/admin/bookings' : '/api/bookings/my';
         const { data } = await axios.get(url, { params });
 
-        this.bookings = data.data ?? [];
+        this.bookings = (data.data ?? []).map((b) => {
+          if (b.place) {
+            if (!b.place.photo_url && b.place.photo) {
+              b.place.photo_url = `/storage/${b.place.photo}`;
+            }
+          }
+          return b;
+        });
         this.currentPage = data.current_page || 1;
         this.total = data.total || 0;
         this.lastPage = Math.ceil(this.total / this.perPage);
@@ -90,7 +98,7 @@ export const useBookingsStore = defineStore('bookings', {
 
     async cancelBooking(bookingId) {
       const { data } = await axios.post(`/api/bookings/${bookingId}/cancel`);
-      const index = this.bookings.findIndex(b => b.id === bookingId);
+      const index = this.bookings.findIndex((b) => b.id === bookingId);
       if (index !== -1) {
         this.bookings[index] = data.data;
       }
@@ -102,7 +110,7 @@ export const useBookingsStore = defineStore('bookings', {
         start_time,
         end_time,
       });
-      const index = this.bookings.findIndex(b => b.id === bookingId);
+      const index = this.bookings.findIndex((b) => b.id === bookingId);
       if (index !== -1) {
         this.bookings[index] = data.data;
       }

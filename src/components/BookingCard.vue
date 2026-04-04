@@ -22,15 +22,21 @@
 
     return types[props.booking.place?.type] || props.booking.place?.type;
   });
+
+  const isCurrentBooking = computed(() => {
+    const now = new Date();
+
+    const start = new Date(props.booking.start_time);
+    const end = new Date(props.booking.end_time);
+
+    return now >= start && now <= end;
+  });
 </script>
 
 <template>
   <div class="booking-card">
     <div class="booking-card__main">
-      <FavoriteButton
-        :place-id="booking.place?.id"
-        class="booking-card__fav-btn"
-      />
+      <FavoriteButton :place-id="booking.place?.id" class="booking-card__fav-btn" />
 
       <div class="booking-card__image-wrapper">
         <img
@@ -60,10 +66,21 @@
       <button class="booking-card__action-btn" @click="$emit('invite', booking)">
         Пригласить сотрудников
       </button>
-      <button class="booking-card__action-btn" @click="$emit('reschedule', booking)">
+      <button
+        class="booking-card__action-btn"
+        @click="$emit('reschedule', booking)"
+        :disabled="isCurrentBooking"
+        :title="isCurrentBooking ? 'Нельзя перенести бронь, так как она уже началась' : ''"
+      >
         Перенести бронь
       </button>
-      <button class="booking-card__action-btn" @click="$emit('cancel', booking)">
+
+      <button
+        class="booking-card__action-btn"
+        @click="$emit('cancel', booking)"
+        :disabled="isCurrentBooking"
+        :title="isCurrentBooking ? 'Нельзя отменить бронь, так как она уже началась' : ''"
+      >
         Отменить бронь
       </button>
     </div>
@@ -141,6 +158,15 @@
 
       &:hover {
         background: $color-input-bg-dark;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      &:disabled:hover {
+        background: $color-btn-profile;
       }
     }
 
