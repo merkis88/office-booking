@@ -95,6 +95,8 @@
     };
     return labels[selectedFilter.value] || 'Фильтрация';
   }
+
+
 </script>
 
 <template>

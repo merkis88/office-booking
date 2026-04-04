@@ -211,6 +211,7 @@
       padding: 0.5rem;
       position: relative;
 
+
       span {
         width: 1.5rem;
         height: 2px;
@@ -233,6 +234,8 @@
         }
       }
     }
+
+
 
     &__admin-dropdown {
       position: absolute;
