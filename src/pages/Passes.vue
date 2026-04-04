@@ -2,6 +2,7 @@
   import { ref, onMounted } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useQrStore } from '@/store/qr';
+  import PassConfirmModal from '@/components/modals/PassConfirmModal.vue';
 
   const route = useRoute();
   const router = useRouter();
@@ -13,6 +14,8 @@
   const apiError = ref('');
   const successMessage = ref('');
   const isSubmitting = ref(false);
+  const showConfirmModal = ref(false);
+  const modalError = ref('');
 
   const bookingId = ref(null);
 
@@ -40,25 +43,28 @@
   async function handleSubmit() {
     if (!validateEmail()) return;
 
+    modalError.value = '';
+    showConfirmModal.value = true;
+  }
+
+  async function handleConfirm() {
     isSubmitting.value = true;
-    apiError.value = '';
-    successMessage.value = '';
+    modalError.value = '';
 
     try {
       if (activeTab.value === 'guest') {
-        await qrStore.sendGuestQr(bookingId.value, {
-          email: email.value.trim(),
-        });
+        await qrStore.sendGuestQr(bookingId.value, { email: email.value.trim() });
         successMessage.value = 'Гостевой пропуск отправлен на ' + email.value.trim();
       } else {
-        await qrStore.sendUserQr(bookingId.value, {
-          email: email.value.trim(),
-        });
+        await qrStore.sendUserQr(bookingId.value, { email: email.value.trim() });
         successMessage.value = 'Пропуск для сотрудника отправлен на ' + email.value.trim();
       }
       email.value = '';
+      showConfirmModal.value = false;
+
+      setTimeout(() => (successMessage.value = ''), 5000);
     } catch (error) {
-      apiError.value =
+      modalError.value =
         error.response?.data?.message || 'Не удалось выдать пропуск. Попробуйте позже.';
     } finally {
       isSubmitting.value = false;
@@ -130,6 +136,12 @@
                 />
                 <p v-if="emailError" class="passes__error">{{ emailError }}</p>
               </div>
+
+              <!-- Успех -->
+              <p v-if="successMessage" class="passes__success">{{ successMessage }}</p>
+
+              <!-- Общая ошибка API -->
+              <p v-if="apiError" class="passes__api-error">{{ apiError }}</p>
             </form>
 
             <!-- Кнопка вне фонового блока формы -->
@@ -137,16 +149,18 @@
               {{ isSubmitting ? 'Отправка...' : 'Выдать пропуск' }}
             </button>
           </div>
-
-          <!-- Успех -->
-          <p v-if="successMessage" class="passes__success">{{ successMessage }}</p>
-
-          <!-- Общая ошибка API -->
-          <p v-if="apiError" class="passes__api-error">{{ apiError }}</p>
         </div>
       </div>
     </div>
   </div>
+
+  <PassConfirmModal
+    :model-value="showConfirmModal"
+    :email="email"
+    :error="modalError"
+    @update:model-value="showConfirmModal = $event"
+    @confirm="handleConfirm"
+  />
 </template>
 
 <style lang="scss" scoped>
@@ -302,6 +316,11 @@
     &__api-error {
       text-align: center;
       margin-top: 1rem;
+      margin-right: 1rem;
+    }
+
+    &__success {
+      color: $color-success;
     }
 
     // --- МОБИЛКА ---
