@@ -211,9 +211,11 @@
     &__title {
       font-family: $font-heading;
       font-size: $text-3xl;
+      font-weight: 400;
       text-align: center;
       max-width: 26rem;
       line-height: 1.35;
+        min-width: 800px;
     }
 
     &__description {
@@ -229,16 +231,15 @@
       font-size: $text-xl;
       border: 1px solid $color-border;
       border-radius: $radius-sm;
-      padding: 0.8rem 3.75rem;
+      padding: 0.4rem 3.75rem;
       color: $color-text;
-      transition:
-        background-color 0.25s ease,
-        color 0.25s ease;
+        background: $color-btn-profile;
+        transition:0.25s ease;
 
-      &:hover {
-        background-color: $color-text;
-        color: #fff;
-      }
+        &:hover {
+            background-color: #D6E7F6;
+            filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.5));
+        }
     }
   }
 
@@ -253,32 +254,40 @@
       font-family: $font-heading;
       font-size: $text-3xl;
       margin-bottom: 4rem;
+        font-weight: 400;
+        margin-left: 10rem;
     }
 
     &__body {
       position: relative;
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: center;
+        margin-left: 2rem;
     }
 
     &__image {
+        width: 340px;
+        height: 250px;
       position: absolute;
       left: 0;
       pointer-events: none;
+        border: solid 1px $color-border;
+        border-radius: 10px;
     }
 
     &__list {
       display: flex;
       flex-direction: column;
-      gap: 2rem;
+      gap: 1rem;
       max-width: 46rem;
+        max-height: 23rem;
       border: 1px solid $color-border;
       border-radius: $radius-lg;
-      padding: 4rem 5rem;
-      background: transparent;
+      padding: 2rem 1rem 2rem 7rem;
       font-size: $text-lg;
       line-height: 1.65;
+        background-color: $color-btn-profile;
     }
 
     &__item {
@@ -286,8 +295,8 @@
       gap: 0.75rem;
 
       img {
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
         object-fit: contain;
         flex-shrink: 0;
         margin-top: 0.2rem;
@@ -307,6 +316,7 @@
       font-size: $text-3xl;
       text-align: center;
       margin-bottom: 3.5rem;
+        font-weight: 400;
     }
 
     &__inner {
@@ -320,6 +330,7 @@
       display: flex;
       justify-content: center;
       gap: $gap-xl;
+
     }
 
     &__man {
@@ -341,7 +352,7 @@
 
     &__body {
       position: relative;
-      background-color: $color-card-bg;
+        background-color: #D9D9D9;
       border-radius: $card-radius;
       width: $card-size;
       height: $card-size;
@@ -389,7 +400,7 @@
       align-items: flex-start;
       gap: $gap-md;
       font-size: $text-xl;
-      max-width: 28rem;
+      min-width: 38rem;
       line-height: 1.65;
 
       img {
@@ -405,14 +416,13 @@
       border-radius: $radius-sm;
       padding: 0.5rem 3.75rem;
       color: $color-text;
-      transition:
-        background-color 0.25s ease,
-        color 0.25s ease;
+        background: $color-btn-profile;
+        transition:0.25s ease;
 
-      &:hover {
-        background-color: $color-text;
-        color: #fff;
-      }
+        &:hover {
+            background-color: #D6E7F6;
+            filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.5));
+        }
     }
 
     &__map {

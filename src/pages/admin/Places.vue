@@ -4,6 +4,7 @@
   import { useRouter } from 'vue-router';
   import { storeToRefs } from 'pinia';
   import AppPagination from '@/components/AppPagination.vue';
+  import placeholder from "@/assets/images/photos/placeholder.jpg";
 
   const placesStore = usePlacesStore();
   const router = useRouter();
@@ -182,7 +183,7 @@
           <div v-for="place in paginatedPlaces" :key="place.id" class="admin-places__table-row">
             <div class="admin-places__table-col admin-places__table-col--photo">
               <div class="admin-places__place-photo">
-                <img :src="place.photo_url" :alt="getPlaceTypeName(place.type)" />
+                <img :src="place.photo_url" :alt="getPlaceTypeName(place.type)" @error="(e) => { e.target.onerror = null; e.target.src = placeholder; }"/>
               </div>
             </div>
             <div class="admin-places__table-col admin-places__table-col--type">

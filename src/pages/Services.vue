@@ -81,8 +81,8 @@
 </template>
 
 <style lang="scss" scoped>
-  @use '/src/assets/styles/variables' as *;
-  @use '/src/assets/styles/mixins' as *;
+@use '@/assets/styles/variables' as *;
+@use '@/assets/styles/mixins' as *;
 
   .services-page {
     padding: 5rem 0 6rem;
@@ -165,16 +165,15 @@
       font-size: $text-xl;
       border: 1px solid $color-border;
       border-radius: $radius-sm;
-      padding: 0.5rem 3rem;
+      padding: 0.5rem 4rem;
       color: $color-text;
       cursor: pointer;
-      transition:
-        background-color 0.25s ease,
-        color 0.25s ease;
+        background: $color-btn-profile;
+      transition:0.25s ease;
 
       &:hover {
-        background-color: $color-text;
-        color: #fff;
+        background-color: #D6E7F6;
+          filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.5));
       }
     }
   }
