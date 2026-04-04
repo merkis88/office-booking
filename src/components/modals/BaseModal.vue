@@ -53,7 +53,6 @@ onUnmounted(() => {
 </script>
 
 <template>
-<<<<<<< Updated upstream
     <Teleport to="body">
         <Transition name="modal">
             <div v-if="modelValue" class="modal-overlay" @click.self="handleBackdropClick">
@@ -70,24 +69,6 @@ onUnmounted(() => {
                             </button>
                             <h3 v-if="title" class="modal-title">{{ title }}</h3>
                         </div>
-=======
-  <Teleport to="body">
-    <Transition name="fade">
-      <div v-if="modelValue" class="modal-overlay" @click.self="handleBackdropClick">
-        <Transition name="modal-scale">
-          <div class="modal-container" :style="{ maxWidth: maxWidth }">
-            <div class="modal-header">
-              <button
-                v-if="showCloseButton"
-                class="modal-back"
-                @click="closeModal()"
-                aria-label="Назад"
-              >
-                <img src="@/assets/images/icons/arrow.svg" alt="" />
-              </button>
-              <h3 v-if="title" class="modal-title">{{ title }}</h3>
-            </div>
->>>>>>> Stashed changes
 
                         <div class="modal-body">
                             <slot />

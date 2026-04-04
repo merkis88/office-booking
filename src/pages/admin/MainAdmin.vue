@@ -117,7 +117,6 @@
           <div class="admin__table-header">
             <div class="admin__table-col admin__table-col--photo">Фото</div>
             <div class="admin__table-col admin__table-col--type">Тип помещения</div>
-            <div class="admin__table-col admin__table-col--name">Название</div>
             <div class="admin__table-col admin__table-col--number">Кабинет№</div>
             <div class="admin__table-col admin__table-col--capacity">Вместимость</div>
             <div class="admin__table-col admin__table-col--price">Стоимость</div>
