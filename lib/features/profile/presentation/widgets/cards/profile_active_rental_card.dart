@@ -9,6 +9,7 @@ import 'package:wordpice/features/profile/domain/entities/rental_history_item.da
 import 'package:wordpice/features/profile/presentation/widgets/cards/profile_rental_card_layout.dart';
 import 'package:wordpice/features/profile/presentation/widgets/modals/profile_booking_reschedule_modal.dart';
 import 'package:wordpice/features/profile/presentation/widgets/styles/profile_card_styles.dart';
+import 'package:wordpice/features/rentals/presentation/utils/tomsk_time_helper.dart';
 import 'package:wordpice/features/rentals/presentation/widgets/modals/office_time_picker_modal.dart';
 
 class ProfileActiveRentalCard extends StatefulWidget {
@@ -158,8 +159,12 @@ class _ProfileActiveRentalCardState extends State<ProfileActiveRentalCard> {
         );
       }
 
+      final filteredAvailableSlots = _filterPastTimeSlots(
+        currentPlace.first.availableTimeSlots,
+        dateIso: dateIso,
+      );
       availableSlots = _mergeCurrentBookingWithAvailableSlots(
-        availableSlots: currentPlace.first.availableTimeSlots,
+        availableSlots: filteredAvailableSlots,
         currentBookingTime: currentBookingTime,
       );
     } catch (error) {
@@ -332,6 +337,56 @@ class _ProfileActiveRentalCardState extends State<ProfileActiveRentalCard> {
     }
 
     return merged.map(_formatRange).toList();
+  }
+
+  List<String> _filterPastTimeSlots(
+    List<String> slots, {
+    required String dateIso,
+  }) {
+    final bookingDate = DateTime.tryParse(dateIso);
+    if (bookingDate == null) {
+      return slots;
+    }
+
+    final now = TomskTimeHelper.now();
+    final isToday =
+        bookingDate.year == now.year &&
+        bookingDate.month == now.month &&
+        bookingDate.day == now.day;
+
+    if (!isToday) {
+      return slots;
+    }
+
+    final nextAvailableHour =
+        now.minute > 0 || now.second > 0 || now.millisecond > 0
+        ? now.hour + 1
+        : now.hour;
+
+    final filtered = <String>[];
+    for (final slot in slots) {
+      final parsedRange = _parseRange(slot);
+      if (parsedRange == null) {
+        filtered.add(slot);
+        continue;
+      }
+
+      final effectiveStart = nextAvailableHour > parsedRange.startMinutes ~/ 60
+          ? nextAvailableHour
+          : parsedRange.startMinutes ~/ 60;
+      final endHour = parsedRange.endMinutes ~/ 60;
+
+      if (effectiveStart >= endHour) {
+        continue;
+      }
+
+      filtered.add(_formatRange(_TimeRange(
+        startMinutes: effectiveStart * 60,
+        endMinutes: parsedRange.endMinutes,
+      )));
+    }
+
+    return filtered;
   }
 
   _TimeRange? _parseRange(String? value) {
