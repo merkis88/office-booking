@@ -128,7 +128,7 @@
             <div class="admin__table-col admin__table-col--photo">
               <div class="admin__place-photo">
                   <img
-                      :src="place.photo || placeholder"
+                      :src="place.photo_url || placeholder"
                       :alt="place.type"
                       @error="(e) => { e.target.onerror = null; e.target.src = placeholder; }"
                   />
