@@ -188,7 +188,7 @@
       min-width: 150px;
 
       &::placeholder {
-        color: rgba($color-text, 1);
+        color: rgba($color-text, 0.6);
       }
     }
 

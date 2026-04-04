@@ -170,7 +170,11 @@
         <button
           v-for="slot in paginatedSlots"
           :key="slot.start"
-          class="place-card__slot-btn"
+          :class="
+            mergedSlots.length === 1
+              ? 'place-card__slot-btn place-card__slot-btn__long'
+              : 'place-card__slot-btn'
+          "
           @click="selectSlot(slot)"
         >
           {{ mergedSlots.length === 1 ? `Доступное время: ${slot.time}` : slot.time }}
@@ -339,29 +343,36 @@
     }
 
     &__slots {
+      overflow: visible;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
       margin-top: 12px;
+      margin-bottom: 5px;
     }
 
     &__slot-list {
+      overflow: visible;
       display: flex;
       gap: 10px;
     }
 
     &__slot-btn {
-      padding: 8px 14px;
+      padding: 0.6rem 0.6rem;
       border: 1px solid $color-border;
       border-radius: $radius-xs;
       background: $color-input-bg;
       cursor: pointer;
-      font-size: $text-2xl;
+      font-size: $text-xl;
       transition: $transition-fast;
 
       &:hover {
-        background: $color-input-bg-dark;
+        box-shadow: $button-shadow;
+      }
+
+      &__long {
+        padding: 0.6rem 6rem;
       }
     }
 

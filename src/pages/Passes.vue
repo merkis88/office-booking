@@ -172,6 +172,7 @@
     }
 
     &__tab {
+      min-width: 310px;
       padding: 2rem 3rem;
       border-radius: $radius-md;
       border: 1px solid $color-border;
