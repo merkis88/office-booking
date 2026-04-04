@@ -42,9 +42,9 @@ const routes = [
       { path: 'profile', component: Profile, meta: { requiresAuth: true } },
       { path: 'update-password', component: UpdatePassword, meta: { requiresAuth: true } },
       { path: 'reviews', component: Reviews },
-      { path: 'offices', component: Offices },
-      { path: 'coworking', component: Coworking },
-      { path: 'meeting-rooms', component: MeetingRooms },
+      { path: 'offices', component: Offices, meta: { requiresAuth: true } },
+      { path: 'coworking', component: Coworking, meta: { requiresAuth: true } },
+      { path: 'meeting-rooms', component: MeetingRooms, meta: { requiresAuth: true } },
       { path: 'requests', component: Requests, meta: { requiresAuth: true } },
       { path: 'passes', component: Passes, meta: { requiresAuth: true } },
       {
@@ -52,11 +52,11 @@ const routes = [
         component: () => import('@/pages/ArchivedPlaces.vue'),
         meta: { requiresAuth: true, requiresAdmin: true },
       },
-        {
-            path: '/:pathMatch(.*)*',
-            name: 'NotFound',
-            component: NotFound,
-        },
+      {
+        path: '/:pathMatch(.*)*',
+        name: 'NotFound',
+        component: NotFound,
+      },
     ],
   },
   {
