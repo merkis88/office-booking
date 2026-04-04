@@ -83,14 +83,17 @@ export const usePlacesStore = defineStore('places', {
 
       const nextHour = this.getNextHour();
 
-      return places.map((place) => {
-        const slots = place.available_slots || [];
-        const filteredSlots = slots.filter((slot) => slot.start >= nextHour);
-        return {
-          ...place,
-          available_slots: filteredSlots,
-        };
-      });
+      return places
+        .map((place) => {
+          const slots = place.available_slots || [];
+          const filteredSlots = slots.filter((slot) => slot.start >= nextHour);
+
+          return {
+            ...place,
+            available_slots: filteredSlots,
+          };
+        })
+        .filter((place) => place.available_slots.length > 0);
     },
 
     async fetchPlaces(filters = {}) {
@@ -178,48 +181,46 @@ export const usePlacesStore = defineStore('places', {
       return updated;
     },
 
-      // store/places.js
-      async archivePlace(placeId, force = false) {
-          try {
-              const url = force
-                  ? `/api/admin/places/${placeId}/archive?force=1`
-                  : `/api/admin/places/${placeId}/archive`;
+    // store/places.js
+    async archivePlace(placeId, force = false) {
+      try {
+        const url = force
+          ? `/api/admin/places/${placeId}/archive?force=1`
+          : `/api/admin/places/${placeId}/archive`;
 
+        await axios.post(url);
 
-              await axios.post(url);
+        this.places = this.places.filter((place) => place.id !== placeId);
 
-              this.places = this.places.filter((place) => place.id !== placeId);
+        return { success: true };
+      } catch (error) {
+        console.error('Ошибка архивации помещения:', error);
 
-              return { success: true };
-          } catch (error) {
-              console.error('Ошибка архивации помещения:', error);
+        // ✅ УПРОЩЕННАЯ ПРОВЕРКА: если 422 - значит есть бронирования
+        if (error.response?.status === 422) {
+          return {
+            success: false,
+            hasBookings: true,
+            error: error.response?.data?.message || 'У помещения есть активные бронирования',
+          };
+        }
 
+        // Проверяем также 409 и has_bookings для других случаев
+        if (error.response?.status === 409 || error.response?.data?.has_bookings) {
+          return {
+            success: false,
+            hasBookings: true,
+            error: error.response?.data?.message || 'У помещения есть активные бронирования',
+          };
+        }
 
-              // ✅ УПРОЩЕННАЯ ПРОВЕРКА: если 422 - значит есть бронирования
-              if (error.response?.status === 422) {
-                  return {
-                      success: false,
-                      hasBookings: true,
-                      error: error.response?.data?.message || 'У помещения есть активные бронирования',
-                  };
-              }
-
-              // Проверяем также 409 и has_bookings для других случаев
-              if (error.response?.status === 409 || error.response?.data?.has_bookings) {
-                  return {
-                      success: false,
-                      hasBookings: true,
-                      error: error.response?.data?.message || 'У помещения есть активные бронирования',
-                  };
-              }
-
-              return {
-                  success: false,
-                  hasBookings: false,
-                  error: error.response?.data?.message || 'Не удалось архивировать помещение',
-              };
-          }
-      },
+        return {
+          success: false,
+          hasBookings: false,
+          error: error.response?.data?.message || 'Не удалось архивировать помещение',
+        };
+      }
+    },
 
     async restorePlace(placeId) {
       const { data } = await axios.post(`/api/admin/places/${placeId}/restore`);
