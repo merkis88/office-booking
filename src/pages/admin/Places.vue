@@ -95,8 +95,6 @@
     };
     return labels[selectedFilter.value] || 'Фильтрация';
   }
-
-
 </script>
 
 <template>
@@ -366,7 +364,7 @@
       min-width: 150px;
 
       &::placeholder {
-        color: rgba($color-text, 0.6);
+        color: rgba($color-text, 1);
       }
     }
 
@@ -650,4 +648,5 @@
       animation: spin 0.6s linear infinite;
     }
   }
+
 </style>
