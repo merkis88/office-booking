@@ -119,15 +119,13 @@
     &__avatar {
       width: 80px;
       height: 80px;
-      background: #d9d9d9;
-      border-radius: 50%;
       margin: 0 auto 10px;
 
       img {
         width: 80px;
         height: 80px;
         object-fit: cover;
-        border-radius: 10px;
+        border-radius: 50%;
       }
     }
 
