@@ -211,20 +211,6 @@
       padding: 0.5rem;
       position: relative;
 
-      &:hover {
-        span:nth-child(1) {
-          animation: wave 0.6s ease-in-out;
-        }
-
-        span:nth-child(2) {
-          animation: wave 0.6s ease-in-out 0.1s;
-        }
-
-        span:nth-child(3) {
-          animation: wave 0.6s ease-in-out 0.2s;
-        }
-      }
-
       span {
         width: 1.5rem;
         height: 2px;
@@ -245,19 +231,6 @@
             transform: rotate(-45deg) translate(5px, -6px);
           }
         }
-      }
-    }
-
-    @keyframes wave {
-      0%,
-      100% {
-        transform: translateX(0);
-      }
-      25% {
-        transform: translateX(-4px);
-      }
-      75% {
-        transform: translateX(4px);
       }
     }
 
