@@ -41,8 +41,8 @@ const authorName = computed(() => {
 });
 
 const avatarSrc = computed(() => {
-    if (props.review.user?.photo) {
-        return props.review.user.photo;
+    if (props.review.user?.photo_url) {
+        return props.review.user.photo_url;
     }
     return '/avatar-default.png';
 });
@@ -70,7 +70,6 @@ function handleEdit() {
     emit('edit', props.review);
 }
 
-// ✅ ИСПРАВЛЕННАЯ функция удаления
 async function handleDelete() {
 
     try {
@@ -112,8 +111,8 @@ async function handleDelete() {
     </div>
 
     <div class="review-card__avatar-wrapper">
-      <img src="@/assets/images/photos/avatar.png" class="review-card__avatar" alt="Аватар" />
-      <div v-if="isCurrentUserReview" class="review-card__actions">
+        <img :src="avatarSrc" class="review-card__avatar" alt="Аватар" />
+        <div v-if="isCurrentUserReview" class="review-card__actions">
         <button class="review-card__action-btn" @click="handleEdit" aria-label="Редактировать">
           <img src="@/assets/images/icons/edit-icon.svg" alt="Редактировать" />
         </button>

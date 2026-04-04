@@ -4,6 +4,7 @@
   import { useRouter } from 'vue-router';
   import { storeToRefs } from 'pinia';
   import { usePlacesStore } from '@/store/places.js';
+  import placeholder from "@/assets/images/photos/placeholder.jpg";
 
   const authStore = useAuthStore();
   const placesStore = usePlacesStore();
@@ -116,6 +117,7 @@
           <div class="admin__table-header">
             <div class="admin__table-col admin__table-col--photo">Фото</div>
             <div class="admin__table-col admin__table-col--type">Тип помещения</div>
+            <div class="admin__table-col admin__table-col--name">Название</div>
             <div class="admin__table-col admin__table-col--number">Кабинет№</div>
             <div class="admin__table-col admin__table-col--capacity">Вместимость</div>
             <div class="admin__table-col admin__table-col--price">Стоимость</div>
@@ -125,12 +127,19 @@
           <div v-for="place in firstThreePlaces" :key="place.id" class="admin__table-row">
             <div class="admin__table-col admin__table-col--photo">
               <div class="admin__place-photo">
-                <img :src="place.photo" :alt="place.type" />
+                  <img
+                      :src="place.photo || placeholder"
+                      :alt="place.type"
+                      @error="(e) => { e.target.onerror = null; e.target.src = placeholder; }"
+                  />
               </div>
             </div>
             <div class="admin__table-col admin__table-col--type">
               {{ getPlaceTypeName(place.type) }}
             </div>
+              <div class="admin__table-col admin__table-col--name">
+                  {{ getPlaceTypeName(place.name) }}
+              </div>
             <div class="admin__table-col admin__table-col--number">№{{ place.number_place }}</div>
             <div class="admin__table-col admin__table-col--capacity">
               {{ formatCapacity(place.capacity) }}
@@ -268,19 +277,19 @@
 
     &__table-header {
       display: grid;
-      grid-template-columns: 100px 1fr 120px 150px 120px 100px;
+        grid-template-columns: 100px 130px 120px 150px 120px 100px 100px;
       gap: 1.2rem;
       padding: 1rem 1.5rem;
       background: transparent;
       border-bottom: 2px solid $color-border;
       color: $color-text;
-      justify-content: center;
-      justify-items: center;
+        justify-content: space-evenly;
+        justify-items: center;
     }
 
     &__table-row {
       display: grid;
-      grid-template-columns: 100px 1fr 120px 150px 120px 100px;
+      grid-template-columns: 100px 130px 120px 150px 120px 100px 100px;
       gap: 1rem;
       padding: 1.5rem;
       align-items: center;
@@ -288,8 +297,8 @@
       border-radius: $radius-sm;
       margin: 1rem;
       transition: all 0.2s;
-      justify-content: center;
-      justify-items: center;
+        justify-content: space-evenly;
+        justify-items: center;
 
       &:hover {
         background: #ebebeb;
