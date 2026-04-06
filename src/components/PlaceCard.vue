@@ -72,7 +72,7 @@
   const placeTypeLabel = computed(() => {
     const types = {
       office: 'Офис',
-      coworking: 'Коворкинга',
+      coworking: 'Коворкинг',
       meeting: 'Переговорная',
     };
     return types[props.place.type] || props.place.type;
