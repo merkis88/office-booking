@@ -737,7 +737,9 @@
       pointer-events: none;
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
 
       display: flex;
       align-items: center;
