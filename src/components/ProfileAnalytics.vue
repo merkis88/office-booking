@@ -85,7 +85,7 @@
 
       <div class="analytics-item">
         <strong>Всего часов забронировано:</strong>
-        {{ totalBookedHours.toFixed(1) }}
+        {{ totalBookedHours.toFixed(0) }}
       </div>
 
       <div class="analytics-item">
@@ -105,7 +105,7 @@
     width: 70%;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     align-self: center;
     gap: 2rem;
     margin-top: 1rem;
