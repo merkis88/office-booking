@@ -17,6 +17,7 @@
   import { useFavoritesStore } from '@/store/favorites';
   import defaultAvatar from '@/assets/images/photos/default-avatar.png';
   import qrPlaceholder from '@/assets/images/photos/qr-placeholder.png';
+  import downloadIcon from '@/assets/images/icons/download-white.svg';
 
   const authStore = useAuthStore();
   const bookingsStore = useBookingsStore();
@@ -24,6 +25,8 @@
   const favoritesStore = useFavoritesStore();
   const router = useRouter();
   const BOOKINGS_PER_PAGE = 3;
+  const isDragOver = ref(false);
+  const dragCounter = ref(0);
 
   onMounted(() => {
     bookingsStore.fetchBookings();
@@ -328,6 +331,51 @@
     isEditing.value = false;
     saveError.value = '';
   };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    dragCounter.value++;
+    isDragOver.value = true;
+  };
+
+  const handleDragLeave = () => {
+    dragCounter.value--;
+
+    if (dragCounter.value <= 0) {
+      isDragOver.value = false;
+      dragCounter.value = 0;
+    }
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+
+    dragCounter.value = 0;
+    isDragOver.value = false;
+
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    photoError.value = '';
+
+    const isValidType = file.type === 'image/jpeg' || file.type === 'image/png';
+
+    if (!isValidType) {
+      photoError.value = 'Только JPG или PNG';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      photoError.value = 'Файл больше 5MB';
+      return;
+    }
+
+    await uploadPhoto(file);
+  };
 </script>
 
 <template>
@@ -335,7 +383,14 @@
     <div v-if="user" class="profile__wrapper">
       <div class="profile__header-card">
         <div class="profile__avatar-col">
-          <div class="profile__avatar-wrapper">
+          <div
+            class="profile__avatar-wrapper"
+            :class="{ 'profile__avatar-wrapper--drag': isDragOver }"
+            @dragenter="handleDragEnter"
+            @dragover="handleDragOver"
+            @dragleave="handleDragLeave"
+            @drop="handleDrop"
+          >
             <img
               :src="user.photo_url || defaultAvatar"
               alt="Фото профиля"
@@ -347,6 +402,10 @@
                 }
               "
             />
+
+            <div class="profile__avatar-overlay">
+              <img :src="downloadIcon" alt="Загрузка" />
+            </div>
           </div>
           <input
             ref="fileInput"
@@ -395,8 +454,13 @@
               {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
             </button>
             <button class="btn profile__action-btn" @click="handleCancel">Не сохранять</button>
-            <router-link to="/update-password" class="btn profile__action-btn">Сменить пароль</router-link>
-            <button class="btn btn--outline-danger profile__action-btn" @click="showDeleteModal = true">
+            <router-link to="/update-password" class="btn profile__action-btn">
+              Сменить пароль
+            </router-link>
+            <button
+              class="btn btn--outline-danger profile__action-btn"
+              @click="showDeleteModal = true"
+            >
               Удалить аккаунт
             </button>
           </div>
@@ -536,7 +600,11 @@
           </div>
 
           <div v-else class="profile__favorites-grid">
-            <FavoriteCard v-for="place in favoritesStore.favorites" :key="place.id" :place="place" />
+            <FavoriteCard
+              v-for="place in favoritesStore.favorites"
+              :key="place.id"
+              :place="place"
+            />
           </div>
         </div>
 
@@ -630,6 +698,10 @@
       flex-direction: column;
       align-items: center;
       gap: 1rem;
+
+      .error-message {
+        width: 190px;
+      }
     }
 
     &__right-col {
@@ -641,11 +713,50 @@
     }
 
     &__avatar-wrapper {
+      position: relative;
       width: 300px;
       height: 300px;
       border-radius: 50%;
       overflow: hidden;
-      box-shadow: none;
+
+      border: 3px solid transparent;
+      transition:
+        border-color 0.2s ease,
+        transform 0.2s ease;
+
+      &--drag {
+        border: 3px solid $color-btn-profile;
+        transform: scale(1.03);
+      }
+    }
+
+    &__avatar-overlay {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      opacity: 0;
+      transition: opacity 0.25s ease;
+
+      img {
+        width: 48px;
+        height: 48px;
+        transform: translateY(10px) scale(0.9);
+        transition: transform 0.25s ease;
+      }
+    }
+
+    &__avatar-wrapper--drag &__avatar-overlay {
+      opacity: 1;
+
+      img {
+        transform: translateY(0) scale(1);
+      }
     }
 
     &__avatar {
@@ -655,6 +766,7 @@
     }
 
     &__upload-btn {
+      width: 190px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
