@@ -3,8 +3,8 @@
   import { useAuthStore } from '@/store/auth';
   import { useRouter } from 'vue-router';
   import { storeToRefs } from 'pinia';
-  import { usePlacesStore } from '@/store/places.js';
-  import placeholder from "@/assets/images/photos/placeholder.jpg";
+  import { getPlaceTypeLabel, usePlacesStore } from '@/store/places.js';
+  import placeholder from '@/assets/images/photos/placeholder.jpg';
 
   const authStore = useAuthStore();
   const placesStore = usePlacesStore();
@@ -69,15 +69,6 @@
       return `${capacity} человек`;
     }
   }
-
-  function getPlaceTypeName(type) {
-    const types = {
-      office: 'Офис',
-      coworking: 'Коворкинг',
-      meeting: 'Переговорная',
-    };
-    return types[type] || type;
-  }
 </script>
 
 <template>
@@ -126,15 +117,20 @@
           <div v-for="place in firstThreePlaces" :key="place.id" class="admin__table-row">
             <div class="admin__table-col admin__table-col--photo">
               <div class="admin__place-photo">
-                  <img
-                      :src="place.photo_url || placeholder"
-                      :alt="place.type"
-                      @error="(e) => { e.target.onerror = null; e.target.src = placeholder; }"
-                  />
+                <img
+                  :src="place.photo_url || placeholder"
+                  :alt="place.type"
+                  @error="
+                    (e) => {
+                      e.target.onerror = null;
+                      e.target.src = placeholder;
+                    }
+                  "
+                />
               </div>
             </div>
             <div class="admin__table-col admin__table-col--type">
-              {{ getPlaceTypeName(place.type) }}
+              {{ getPlaceTypeLabel(place.type) }}
             </div>
             <div class="admin__table-col admin__table-col--number">№{{ place.number_place }}</div>
             <div class="admin__table-col admin__table-col--capacity">
@@ -537,5 +533,4 @@
       animation: spin 0.6s linear infinite;
     }
   }
-
 </style>

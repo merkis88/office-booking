@@ -3,6 +3,7 @@
   import { useBookingsStore } from '@/store/bookings';
   import { formatBookingDate, formatBookingTime } from '@/utils/dateFormat';
   import BaseModal from '@/components/modals/BaseModal.vue';
+  import { getPlaceTypeLabel } from '@/store/places.js';
 
   const props = defineProps({
     booking: {
@@ -60,12 +61,7 @@
   }
 
   const placeTypeLabel = computed(() => {
-    const types = {
-      office: 'Офис',
-      coworking: 'Коворкинга',
-      meeting: 'Переговорная',
-    };
-    return types[props.booking.place.type];
+    getPlaceTypeLabel(booking.place?.type);
   });
 </script>
 

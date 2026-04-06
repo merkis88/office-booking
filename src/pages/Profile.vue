@@ -18,6 +18,7 @@
   import defaultAvatar from '@/assets/images/photos/default-avatar.png';
   import qrPlaceholder from '@/assets/images/photos/qr-placeholder.png';
   import downloadIcon from '@/assets/images/icons/download-white.svg';
+  import ProfileAnalytics from '@/components/ProfileAnalytics.vue';
 
   const authStore = useAuthStore();
   const bookingsStore = useBookingsStore();
@@ -467,6 +468,8 @@
         </div>
       </div>
 
+      <p v-if="saveError" class="error-message">{{ saveError }}</p>
+
       <div class="profile__qr-section">
         <div v-if="!user.qr_booking" class="profile__qr-section-inner">
           <p class="profile__qr-section-text">
@@ -506,7 +509,7 @@
         </div>
       </div>
 
-      <p v-if="saveError" class="error-message">{{ saveError }}</p>
+      <ProfileAnalytics />
 
       <div class="profile__bottom">
         <div class="profile__tabs">

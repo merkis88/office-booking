@@ -1,5 +1,6 @@
 <script setup>
   import { computed } from 'vue';
+  import { getPlaceTypeLabel } from '@/store/places.js';
   import { formatBookingTime } from '@/utils/dateFormat';
   import FavoriteButton from '@/components/FavoriteButton.vue';
   import placeholder from '@/assets/images/photos/placeholder.jpg';
@@ -11,14 +12,7 @@
     },
   });
 
-  const placeTypeLabel = computed(() => {
-    const types = {
-      office: 'Офис',
-      coworking: 'Коворкинг',
-      meeting: 'Переговорная',
-    };
-    return types[props.booking.place?.type] || props.booking.place?.type;
-  });
+  const placeTypeLabel = computed(() => getPlaceTypeLabel(props.booking.place?.type));
 </script>
 
 <template>
