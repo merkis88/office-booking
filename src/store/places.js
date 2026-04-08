@@ -3,6 +3,22 @@ import axios from 'axios';
 
 const ITEMS_PER_PAGE = 4;
 
+export const PLACE_TYPE_LABELS = {
+  office: 'Офис',
+  coworking: 'Коворкинг',
+  meeting: 'Переговорная',
+};
+
+export const PLACE_TYPE_TITLES = {
+  office: 'Офисы',
+  coworking: 'Коворкинги',
+  meeting: 'Переговорные комнаты',
+};
+
+export const getPlaceTypeLabel = (type) => PLACE_TYPE_LABELS[type] || type;
+
+export const getPlaceTypeTitle = (type) => PLACE_TYPE_TITLES[type] || type;
+
 export const usePlacesStore = defineStore('places', {
   state: () => ({
     places: [],

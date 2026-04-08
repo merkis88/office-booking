@@ -1,13 +1,14 @@
 <script setup>
   import { computed, nextTick, onMounted, ref, watch } from 'vue';
   import { usePlacesStore } from '@/store/places';
+  import { getPlaceTypeTitle } from '@/store/places';
   import { storeToRefs } from 'pinia';
   import PlaceCard from '@/components/PlaceCard.vue';
   import DatePicker from '@/components/DatePicker.vue';
   import RangeSlider from '@/components/RangeSlider.vue';
   import BookingModal from '@/components/modals/BookingModal.vue';
   import AppPagination from '@/components/AppPagination.vue';
-  import ArchiveConfirmModal from "@/components/modals/ArchiveConfirmModal.vue";
+  import ArchiveConfirmModal from '@/components/modals/ArchiveConfirmModal.vue';
 
   const props = defineProps({
     type: {
@@ -27,14 +28,7 @@
   const showArchiveModal = ref(false);
   const placeToArchive = ref(null);
 
-  const pageTitle = computed(() => {
-    const titles = {
-      office: 'Офисы',
-      coworking: 'Коворкинги',
-      meeting: 'Переговорные комнаты',
-    };
-    return titles[props.type];
-  });
+  const pageTitle = computed(() => getPlaceTypeTitle(props.type));
 
   const filteredPlaces = computed(() => {
     return places.value;
@@ -112,54 +106,50 @@
   }
 
   async function handleArchivePlace(placeId, force = false) {
-      errorMessage.value = '';
+    errorMessage.value = '';
 
+    try {
+      const result = await placesStore.archivePlace(placeId, force);
 
-      try {
-          const result = await placesStore.archivePlace(placeId, force);
-
-
-          if (!result.success) {
-              if (result.hasBookings) {
-                  placeToArchive.value = placeId;
-                  showArchiveModal.value = true;
-                  return result;
-              } else {
-                  errorMessage.value = result.error;
-              }
-          } else {
-              await loadPlaces();
-          }
-      } catch (error) {
-          console.error('Ошибка архивации:', error);
-          errorMessage.value = 'Произошла ошибка при архивации помещения';
+      if (!result.success) {
+        if (result.hasBookings) {
+          placeToArchive.value = placeId;
+          showArchiveModal.value = true;
+          return result;
+        } else {
+          errorMessage.value = result.error;
+        }
+      } else {
+        await loadPlaces();
       }
+    } catch (error) {
+      console.error('Ошибка архивации:', error);
+      errorMessage.value = 'Произошла ошибка при архивации помещения';
+    }
   }
 
   async function confirmArchiveWithForce() {
+    if (!placeToArchive.value) {
+      return;
+    }
 
-      if (!placeToArchive.value) {
-          return;
-      }
+    showArchiveModal.value = false;
+    errorMessage.value = '';
 
-      showArchiveModal.value = false;
-      errorMessage.value = '';
+    const result = await placesStore.archivePlace(placeToArchive.value, true);
 
-      const result = await placesStore.archivePlace(placeToArchive.value, true);
+    if (result.success) {
+      await loadPlaces();
+    } else {
+      errorMessage.value = result.error || 'Не удалось архивировать помещение';
+    }
 
-
-      if (result.success) {
-          await loadPlaces();
-      } else {
-          errorMessage.value = result.error || 'Не удалось архивировать помещение';
-      }
-
-      placeToArchive.value = null;
+    placeToArchive.value = null;
   }
 
   function cancelArchive() {
-      showArchiveModal.value = false;
-      placeToArchive.value = null;
+    showArchiveModal.value = false;
+    placeToArchive.value = null;
   }
 
   watch(
@@ -211,11 +201,11 @@
 </script>
 
 <template>
-    <ArchiveConfirmModal
-        v-model="showArchiveModal"
-        @confirm="confirmArchiveWithForce"
-        @cancel="cancelArchive"
-    />
+  <ArchiveConfirmModal
+    v-model="showArchiveModal"
+    @confirm="confirmArchiveWithForce"
+    @cancel="cancelArchive"
+  />
 
   <BookingModal
     v-model="showBookingModal"
@@ -258,7 +248,6 @@
           </div>
         </div>
       </div>
-
 
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 

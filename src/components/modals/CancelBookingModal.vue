@@ -3,6 +3,7 @@
   import { useBookingsStore } from '@/store/bookings';
   import { formatBookingDate, formatBookingTime } from '@/utils/dateFormat';
   import BaseModal from '@/components/modals/BaseModal.vue';
+  import { getPlaceTypeLabel } from '@/store/places.js';
 
   const props = defineProps({
     booking: {
@@ -58,15 +59,6 @@
     error.value = '';
     emit('update:modelValue', false);
   }
-
-  const placeTypeLabel = computed(() => {
-    const types = {
-      office: 'Офис',
-      coworking: 'Коворкинга',
-      meeting: 'Переговорная',
-    };
-    return types[props.booking.place.type];
-  });
 </script>
 
 <template>
@@ -84,7 +76,9 @@
         <p class="cancel-modal__warning">Вы действительно хотите отменить бронь?</p>
 
         <div class="cancel-modal__info">
-          <p class="cancel-modal__place">{{ placeTypeLabel }} "{{ booking.place?.name }}"</p>
+          <p class="cancel-modal__place">
+            {{ getPlaceTypeLabel(booking.place?.type) }} "{{ booking.place?.name }}"
+          </p>
           <p class="cancel-modal__time">{{ formattedDate }}, {{ formattedTime }}</p>
         </div>
 

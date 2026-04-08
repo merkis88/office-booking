@@ -1,6 +1,7 @@
 <script setup>
-  import { ref } from 'vue';
+  import { computed, ref } from 'vue';
   import { useAuthStore } from '@/store/auth';
+  import { getPlaceTypeTitle } from '@/store/places.js';
 
   const props = defineProps({
     service: {
@@ -34,12 +35,7 @@
 
   const placeType = props.service.place?.type || '';
 
-  const placeTypeLabel =
-    {
-      office: 'офис',
-      coworking: 'коворкинг',
-      meeting_room: 'переговорная',
-    }[placeType] || 'помещение';
+  const placeTypeLabel = computed(() => getPlaceTypeTitle(placeType));
 
   const placeNumber =
     props.service.booking?.place?.number_place ||
@@ -85,7 +81,6 @@
       document.body.removeChild(link);
 
       window.URL.revokeObjectURL(url);
-
     } catch (error) {
       console.error('Ошибка скачивания PDF:', error);
     } finally {

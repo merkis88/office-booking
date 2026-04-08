@@ -1,5 +1,6 @@
 <script setup>
   import { ref } from 'vue';
+  import { getPlaceTypeLabel } from '../store/places.js';
 
   const props = defineProps({
     bookings: {
@@ -25,15 +26,6 @@
     if (topScrollRef.value && tableScrollRef.value) {
       topScrollRef.value.scrollLeft = tableScrollRef.value.scrollLeft;
     }
-  }
-
-  function getPlaceTypeName(type) {
-    const types = {
-      office: 'Офис',
-      coworking: 'Коворкинг',
-      meeting: 'Переговорная',
-    };
-    return types[type] || type;
   }
 
   function formatCapacity(capacity) {
@@ -119,7 +111,7 @@
               <td>{{ booking.user?.last_name || '—' }}</td>
               <td>{{ booking.user?.first_name || '—' }}</td>
               <td>{{ booking.user?.patronymic || '—' }}</td>
-              <td>{{ getPlaceTypeName(booking.place?.type) }}</td>
+              <td>{{ getPlaceTypeLabel(booking.place?.type) }}</td>
               <td>{{ booking.place?.name || '—' }}</td>
               <td>№{{ booking.place?.number_place || '—' }}</td>
               <td>{{ formatCapacity(booking.place?.capacity) }}</td>
@@ -230,6 +222,5 @@
         color: $color-status-blocked-text;
       }
     }
-
   }
 </style>

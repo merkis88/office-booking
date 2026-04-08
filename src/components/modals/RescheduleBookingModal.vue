@@ -3,6 +3,7 @@
   import { useBookingsStore } from '@/store/bookings';
   import axios from 'axios';
   import BaseModal from '@/components/modals/BaseModal.vue';
+  import { getPlaceTypeLabel } from '../../store/places.js';
 
   const props = defineProps({
     booking: {
@@ -307,7 +308,9 @@
       <div v-else class="reschedule__confirm-screen">
         <p class="reschedule__subtitle">Проверьте правильность данных</p>
         <p class="reschedule__info">{{ formattedDate }}, {{ bookingTime }}</p>
-        <p class="reschedule__info">{{ booking?.place?.name }}</p>
+        <p class="reschedule__info">
+          {{ getPlaceTypeLabel(booking?.place?.type) }} "{{ booking?.place?.name }}"
+        </p>
         <p class="reschedule__info">Вместимость: {{ booking?.place?.capacity }}</p>
       </div>
 
@@ -316,9 +319,7 @@
 
     <template #footer>
       <div v-if="screen === 'slots'">
-        <button class="btn" :disabled="!isValidSelection" @click="goToConfirm">
-          Далее
-        </button>
+        <button class="btn" :disabled="!isValidSelection" @click="goToConfirm">Далее</button>
       </div>
 
       <div v-else-if="screen === 'confirm'">

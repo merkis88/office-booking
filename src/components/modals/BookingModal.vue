@@ -3,6 +3,7 @@
   import { useBookingsStore } from '@/store/bookings.js';
   import BaseModal from '@/components/modals/BaseModal.vue';
   import { useRouter } from 'vue-router';
+  import { getPlaceTypeLabel } from '@/store/places.js';
 
   const props = defineProps({
     slots: Array,
@@ -190,13 +191,7 @@
   });
 
   const placeTypeLabel = computed(() => {
-    const types = {
-      office: 'Офис',
-      coworking: 'Коворкинг',
-      meeting: 'Переговорная',
-    };
-
-    return types[props.place?.type];
+    getPlaceTypeLabel(props.place?.type);
   });
 
   const hoursCount = computed(() => {

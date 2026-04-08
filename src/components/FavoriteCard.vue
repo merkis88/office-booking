@@ -1,5 +1,6 @@
 <script setup>
   import { computed } from 'vue';
+  import { getPlaceTypeLabel } from '@/store/places';
   import FavoriteButton from '@/components/FavoriteButton.vue';
   import placeholder from '@/assets/images/photos/placeholder.jpg';
 
@@ -10,14 +11,7 @@
     },
   });
 
-  const placeTypeLabel = computed(() => {
-    const types = {
-      office: 'Офис',
-      coworking: 'Коворкинг',
-      meeting: 'Переговорная',
-    };
-    return types[props.place.type] || props.place.type;
-  });
+  const placeTypeLabel = computed(() => getPlaceTypeLabel(props.place.type));
 </script>
 
 <template>
@@ -27,7 +21,12 @@
         :src="place.photo_url || placeholder"
         :alt="place.name"
         class="favorite-card__image"
-        @error="(e) => { e.target.onerror = null; e.target.src = placeholder; }"
+        @error="
+          (e) => {
+            e.target.onerror = null;
+            e.target.src = placeholder;
+          }
+        "
       />
     </div>
 
@@ -38,10 +37,7 @@
       <p class="favorite-card__line">Вместимость: {{ place.capacity }} человек</p>
     </div>
 
-    <FavoriteButton
-      :place-id="place.id"
-      class="favorite-card__fav-btn"
-    />
+    <FavoriteButton :place-id="place.id" class="favorite-card__fav-btn" />
   </div>
 </template>
 

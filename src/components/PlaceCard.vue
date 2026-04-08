@@ -1,6 +1,7 @@
 <script setup>
   import { ref, computed } from 'vue';
   import { useAuthStore } from '@/store/auth';
+  import { getPlaceTypeLabel } from '@/store/places.js';
   import FavoriteButton from '@/components/FavoriteButton.vue';
   import placeholder from '@/assets/images/photos/placeholder.jpg';
   import ArchiveConfirmModal from '@/components/modals/ArchiveConfirmModal.vue';
@@ -13,6 +14,8 @@
       required: true,
     },
   });
+
+  const placeTypeLabel = computed(() => getPlaceTypeLabel(props.place.type));
 
   const emit = defineEmits(['select-slot', 'delete-place', 'archive-place']);
   const showDetails = ref(false);
@@ -68,15 +71,6 @@
       availableSlots: props.place.available_slots,
     });
   }
-
-  const placeTypeLabel = computed(() => {
-    const types = {
-      office: 'Офис',
-      coworking: 'Коворкинг',
-      meeting: 'Переговорная',
-    };
-    return types[props.place.type] || props.place.type;
-  });
 
   async function handleArchive() {
     isArchiving.value = true;

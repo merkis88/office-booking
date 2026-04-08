@@ -1,6 +1,6 @@
 <script setup>
   import { ref, onMounted } from 'vue';
-  import { usePlacesStore } from '@/store/places';
+  import { getPlaceTypeLabel, usePlacesStore } from '@/store/places';
   import { useRouter } from 'vue-router';
   import { storeToRefs } from 'pinia';
   import AppPagination from '@/components/AppPagination.vue';
@@ -22,15 +22,6 @@
   onMounted(async () => {
     await placesStore.fetchPlaces();
   });
-
-  function getPlaceTypeName(type) {
-    const types = {
-      office: 'Офис',
-      coworking: 'Коворкинг',
-      meeting: 'Переговорная',
-    };
-    return types[type] || type;
-  }
 
   function formatCapacity(capacity) {
     return `${capacity} человек`;
@@ -185,7 +176,7 @@
               <div class="admin-places__place-photo">
                 <img
                   :src="place.photo_url"
-                  :alt="getPlaceTypeName(place.type)"
+                  :alt="getPlaceTypeLabel(place.type)"
                   @error="
                     (e) => {
                       e.target.onerror = null;
@@ -196,7 +187,7 @@
               </div>
             </div>
             <div class="admin-places__table-col admin-places__table-col--type">
-              {{ getPlaceTypeName(place.type) }}
+              {{ getPlaceTypeLabel(place.type) }}
             </div>
             <div class="admin-places__table-col admin-places__table-col--name">
               {{ place.name }}
@@ -648,5 +639,4 @@
       animation: spin 0.6s linear infinite;
     }
   }
-
 </style>
