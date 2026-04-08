@@ -32,7 +32,7 @@
   }
 
   const placeTypeLabel = computed(() => {
-    getPlaceTypeLabel(props.place.type);
+    return getPlaceTypeLabel(props.place?.type);
   });
 </script>
 
