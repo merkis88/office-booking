@@ -66,11 +66,21 @@
       datasets: [
         {
           data,
-          backgroundColor: ['#4CAF50', '#2196F3', '#FFC107'],
+          backgroundColor: ['#C1F97D', '#D6E7F6', '#ECFDD8'],
+          borderColor: '#7C8FA0',
+          borderWidth: 2,
         },
       ],
     };
   });
+
+  const chartOptions = {
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+  };
 
   const hasChartData = computed(() => Object.keys(bookingsByType.value).length > 0);
 </script>
@@ -79,28 +89,34 @@
   <div class="profile-analytics">
     <div class="analytics-stats">
       <div class="analytics-item">
-        <strong>Любимый тип помещений:</strong>
+        Любимый тип помещения:
         {{ favoritePlaceType === '—' ? '—' : getPlaceTypeLabel(favoritePlaceType) }}
       </div>
 
-      <div class="analytics-item">
-        <strong>Всего часов забронировано:</strong>
-        {{ totalBookedHours.toFixed(0) }}
-      </div>
+      <div class="analytics-item">Всего часов забронировано: {{ totalBookedHours.toFixed(0) }}</div>
 
-      <div class="analytics-item">
-        <strong>Всего бронирований:</strong>
-        {{ totalBookingsCount }}
-      </div>
+      <div class="analytics-item">Количество бронирований: {{ totalBookingsCount }}</div>
     </div>
 
     <div class="analytics-chart" v-if="hasChartData">
-      <Pie :data="pieChartData" />
+      <Pie :data="pieChartData" :options="chartOptions" />
+
+      <div class="chart-legend">
+        <div v-for="(label, index) in pieChartData.labels" :key="label" class="legend-item">
+          <span
+            class="legend-color"
+            :style="{ backgroundColor: pieChartData.datasets[0].backgroundColor[index] }"
+          />
+          {{ label }}
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+  @use '@/assets/styles/variables' as *;
+
   .profile-analytics {
     width: 70%;
     display: flex;
@@ -120,13 +136,40 @@
 
   .analytics-item {
     background: #f7f7f7;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
+    padding: 1rem;
+    border-radius: 10px;
+    border: $card-border;
+    text-align: center;
     font-size: 1rem;
   }
 
   .analytics-chart {
-    width: 260px;
-    min-width: 260px;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .analytics-chart canvas {
+    width: 180px !important;
+    height: 180px !important;
+  }
+
+  .chart-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .legend-color {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
   }
 </style>
