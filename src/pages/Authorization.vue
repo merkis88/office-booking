@@ -276,8 +276,8 @@
           border: solid 1px $color-border;
           cursor: pointer;
           padding: 0.8rem 2rem;
-          width: 30rem; // ✅ Полная ширина
-          max-width: 17rem; // ✅ Как у полей ввода
+          width: 30rem;
+          max-width: 17rem;
 
           &:hover:not(:disabled) {
               background: $color-input-bg-dark;
@@ -297,7 +297,7 @@
           }
 
           @media (max-width: 768px) {
-              max-width: 100%; // ✅ На мобильных на всю ширину
+              max-width: 100%;
           }
       }
 

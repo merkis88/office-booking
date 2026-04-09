@@ -395,11 +395,9 @@
                               v-if="showRequestTypeDropdown"
                               class="requests__dropdown requests__dropdown--type"
                           >
-                              <!-- ✅ Показываем загрузку -->
                               <div v-if="!formattedRequestTypes.length" class="requests__dropdown-loading">
                                   Загрузка типов...
                               </div>
-                              <!-- ✅ Показываем динамический список -->
                               <div
                                   v-else
                                   v-for="type in formattedRequestTypes"

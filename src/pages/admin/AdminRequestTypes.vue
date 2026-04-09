@@ -98,10 +98,8 @@
     @confirm="confirmDelete"
   />
 
-  <!-- Модальное окно создания -->
   <CreateServiceTypeModal v-model="showCreateModal" @create="handleCreateType" />
 
-  <!-- ✅ Модальное окно редактирования -->
   <EditServiceTypeModal
     v-model="showEditModal"
     :service-type="typeToEdit"

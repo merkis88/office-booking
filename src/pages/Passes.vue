@@ -178,7 +178,6 @@
       align-items: center;
     }
 
-    // --- ТАБЫ ---
     &__tabs {
       display: flex;
       gap: 2rem;
@@ -206,10 +205,10 @@
     }
 
     &__title {
-      display: none; // в макете его нет
+      display: none;
     }
 
-    // --- ОСНОВНАЯ КАРТОЧКА ---
+
     &__content {
       position: relative;
       display: flex;
@@ -222,7 +221,6 @@
       background: $color-footer-bg;
     }
 
-    // диагональный фон
     &__content::before {
       content: '';
       position: absolute;
@@ -234,7 +232,6 @@
       clip-path: polygon(60% 0, 100% 0, 100% 100%);
     }
 
-    // --- КАРТИНКА ---
     &__image-col {
       flex: 1;
       display: flex;
@@ -248,7 +245,6 @@
       max-height: 340px;
     }
 
-    // --- ФОРМА ---
     &__form-col {
       flex: 1;
       display: flex;
@@ -258,7 +254,6 @@
       z-index: 2;
     }
 
-    // плашка формы (ВАЖНО)
 
     &__form-wrapper {
       display: flex;
@@ -296,7 +291,6 @@
       font-size: $text-sm;
     }
 
-    // инпут как в макете
     .input {
       background: #cbd5df;
     }
@@ -306,7 +300,6 @@
       color: $color-danger;
     }
 
-    // кнопка по центру
     .btn {
       align-self: center;
       padding: 0.6rem 2rem;
@@ -323,7 +316,6 @@
       color: $color-success;
     }
 
-    // --- МОБИЛКА ---
     @media (max-width: 768px) {
       &__content {
         flex-direction: column;

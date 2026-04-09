@@ -152,7 +152,6 @@ export const useAuthStore = defineStore('auth', {
       try {
         await axios.post('/api/logout');
       } catch (e) {
-        // Ignore logout errors
       } finally {
         this.clearAuth();
       }

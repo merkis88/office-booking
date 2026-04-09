@@ -197,7 +197,6 @@ export const usePlacesStore = defineStore('places', {
       return updated;
     },
 
-    // store/places.js
     async archivePlace(placeId, force = false) {
       try {
         const url = force
@@ -212,7 +211,6 @@ export const usePlacesStore = defineStore('places', {
       } catch (error) {
         console.error('Ошибка архивации помещения:', error);
 
-        // ✅ УПРОЩЕННАЯ ПРОВЕРКА: если 422 - значит есть бронирования
         if (error.response?.status === 422) {
           return {
             success: false,
@@ -221,7 +219,6 @@ export const usePlacesStore = defineStore('places', {
           };
         }
 
-        // Проверяем также 409 и has_bookings для других случаев
         if (error.response?.status === 409 || error.response?.data?.has_bookings) {
           return {
             success: false,

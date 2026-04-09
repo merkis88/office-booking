@@ -98,7 +98,6 @@ export const useReviewsStore = defineStore('reviews', {
             try {
                 await axios.delete(`/api/reviews/${reviewId}`);
 
-                // Удаляем из массива
                 this.reviews = this.reviews.filter((r) => r.id !== reviewId);
 
                 return { success: true };

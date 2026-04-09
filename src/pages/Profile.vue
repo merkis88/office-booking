@@ -930,7 +930,7 @@
       border: 1px solid $color-border;
       background: $card-bg;
       border-radius: $card-image-radius;
-      font-size: 1.125rem; // 18px
+      font-size: 1.125rem;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
@@ -1021,7 +1021,7 @@
     }
 
     &__booking-date {
-      font-size: 1.5rem; // 24px
+      font-size: 1.5rem;
       font-weight: 400;
       color: $color-text;
       margin-bottom: 1rem;
